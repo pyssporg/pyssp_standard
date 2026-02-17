@@ -45,6 +45,8 @@ def test_read_write_srmd_simple(write_file):
         classification = file.classifications[0]
         assert classification.classification_type == "com.example.simple"
         assert len(classification.classification_entries) == 1
+        assert classification.description == ""
+
         entry = classification.classification_entries[0]
 
         assert entry.keyword == "key1"

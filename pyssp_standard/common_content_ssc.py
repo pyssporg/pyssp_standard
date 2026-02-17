@@ -52,6 +52,8 @@ class Annotations(ModelicaStandard):
 
 @dataclass
 class BaseElement:
+    # Note: default should ideally be switched to None
+    # <Element description="" /> is different from <Element />
     id: str = ""
     description: str = ""
 

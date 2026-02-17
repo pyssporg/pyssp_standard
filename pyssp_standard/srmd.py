@@ -62,7 +62,7 @@ class ClassificationEntry(BaseElement, ModelicaStandard):
             raise TypeError(f"Can't init ClassificationEntry with {type(keyword_or_element)}")
 
     def __read__(self, element):
-        self.update({"id": element.get("id"), "description": element.get("description")})
+        self.update({"id": element.get("id", ""), "description": element.get("description", "")})
 
         self.keyword = element.attrib["keyword"]
         self.type_ = element.get("type", "text/plain")
@@ -145,7 +145,7 @@ class Classification(BaseElement, ModelicaStandard):
 
     def __read__(self, element):
         # BaseElement doesn't work well with inheritance
-        self.update({"id": element.get("id"), "description": element.get("description")})
+        self.update({"id": element.get("id", ""), "description": element.get("description", "")})
 
         self.classification_type = element.attrib["type"]
         self.link = element.get(QName(self.namespaces["xlink"], "href"))
