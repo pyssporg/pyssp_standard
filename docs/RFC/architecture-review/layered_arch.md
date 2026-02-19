@@ -4,12 +4,13 @@
 Adopt a layered architecture with strict boundaries:
 
 Detailed archive-layer contract and failure semantics:
-- `archive_session_spec.md`
+- `../archive_solution.md`
 
 ### 1) Archive Layer (`archive`)
 Responsibility:
 - Read/write package containers (`.ssp`, `.fmu`) and in-archive path operations.
 - Provide explicit dirty tracking and deterministic persistence.
+- Resolve referenced resources used by XML codecs (e.g., external `.ssv` from `.ssd`).
 
 Key APIs:
 - `ArchiveSession.open(path, mode)`
@@ -17,6 +18,8 @@ Key APIs:
 - `ArchiveSession.write_bytes(rel_path, data, overwrite=False)`
 - `ArchiveSession.remove(rel_path)`
 - `ArchiveSession.save()` / `save_as(path)`
+- `ResourceResolver.open_text(uri_or_rel_path, context_path)`
+- `ResourceResolver.write_text(uri_or_rel_path, context_path, content)`
 
 Design choices:
 - Read operations never mark dirty.
@@ -48,6 +51,33 @@ Design choices:
 - One codec module per format/version pair.
 - Lossless round-trip for supported schema elements.
 - Explicit unsupported-feature errors for uncovered branches.
+- Use storage strategies for equivalent model data that can be represented in multiple ways (inline vs external).
+
+### 3.1) ParameterSet Storage Strategy (SSD <-> SSV)
+Requirement:
+- In SSD, parameter values may appear inline or as external SSV references.
+- The architecture must support both without duplicating core mapping/validation logic.
+
+Approach:
+- Keep one canonical domain model: `ParameterSet`.
+- Add strategy interface used by SSD codec and authoring API:
+
+```python
+class ParameterSetStorage:
+    def load(self, context) -> ParameterSet: ...
+    def save(self, context, model: ParameterSet) -> None: ...
+```
+
+Implementations:
+- `InlineParameterSetStorage`: read/write SSV XML subtree embedded in SSD.
+- `ExternalParameterSetStorage`: read/write `.ssv` via `ResourceResolver` + `ArchiveSession`.
+
+Benefits:
+- Single model and semantic validator path for both representations.
+- No duplicated SSV parsing/business logic.
+- Enables safe conversion workflows:
+  - inline -> external
+  - external -> inline
 
 ### 4) Validation Layer (`validation`)
 Responsibility:
@@ -60,6 +90,7 @@ Structure:
 Design choices:
 - Validation results returned as structured diagnostics.
 - Optional strict mode that raises on warnings for CI pipelines.
+- Semantic rules are representation-agnostic: inline/external parameter sets produce equivalent diagnostics for equivalent content.
 
 ### 5) Compatibility Facade Layer
 Responsibility:
@@ -133,10 +164,12 @@ Acceptance criteria:
 Scope:
 - Implement SSP2 codecs for SSD/SSV/SSM/SSB using capability matrix.
 - Ensure support for SSP2 parameter type extensions and dimensions.
+- Implement dual storage handling for SSD parameter sets (inline and external SSV) via `ParameterSetStorage` strategy.
 
 Acceptance criteria:
 - Round-trip tests for SSP2 samples pass.
 - Schema and semantic validation pass for SSP2 fixtures.
+- Inline/external SSV in SSD round-trip and conversion tests pass without model divergence.
 
 ### Phase 3: FMI2/FMI3 Full Support (Near Term Priority)
 Scope:
@@ -174,6 +207,12 @@ Acceptance criteria:
 - CI gates:
   - Schema compliance required.
   - Semantic warning budget tracked and reduced over time.
+
+Additional representation-parity tests:
+- SSD with inline SSV: parse/edit/save/round-trip.
+- SSD with external SSV: parse/edit/save/round-trip.
+- Conversion tests: inline -> external and external -> inline.
+- Diagnostic parity tests for equivalent inline/external parameter content.
 
 ## Risks and Mitigations
 - Risk: Compatibility regressions during adapter rollout.

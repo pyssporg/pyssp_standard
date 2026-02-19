@@ -35,6 +35,7 @@ This spec defines a concrete archive subsystem for `.ssp` and `.fmu` handling th
 - robust authoring/editing workflows,
 - deterministic persistence semantics,
 - safe and atomic write behavior.
+- referenced-resource access needed by codecs (e.g., SSD external SSV references).
 
 ## Goals
 - Avoid full eager extraction for read-heavy usage.
@@ -112,7 +113,33 @@ class ArchiveSession:
     def save(self) -> None: ...
     def save_as(self, target_path: Path | str) -> None: ...
     def discard(self) -> None: ...
+
+class ResourceResolver:
+    """Resolves external references used by XML models/codecs."""
+    def read_text(self, uri_or_rel_path: str, *, context_path: str | None = None) -> str: ...
+    def write_text(self, uri_or_rel_path: str, content: str, *, context_path: str | None = None) -> None: ...
+    def exists(self, uri_or_rel_path: str, *, context_path: str | None = None) -> bool: ...
 ```
+
+## SSD Inline/External SSV Support
+To avoid duplicated logic for equivalent parameter data in SSD:
+- keep a canonical `ParameterSet` model in domain layer,
+- use storage strategies that load/save this model from either representation.
+
+Strategy interface:
+
+```python
+class ParameterSetStorage:
+    def load(self, context) -> ParameterSet: ...
+    def save(self, context, model: ParameterSet) -> None: ...
+```
+
+Implementations:
+- `InlineParameterSetStorage`: operates on SSV XML embedded in SSD.
+- `ExternalParameterSetStorage`: operates on referenced `.ssv` files through `ResourceResolver`.
+
+Constraint:
+- Semantic validation must operate on `ParameterSet` and be independent of storage representation.
 
 ## Path Rules and Safety
 - All member paths are normalized POSIX relative paths.
@@ -124,6 +151,7 @@ class ArchiveSession:
 Dirty is `True` if and only if there is at least one staged mutation:
 - write add/replace,
 - remove existing member.
+- write/remove of externally referenced resources resolved through `ResourceResolver`.
 
 Dirty is not set by:
 - reads,
@@ -181,3 +209,7 @@ Required tests:
 6. Overlay precedence resolution rules.
 7. Deterministic archive member ordering.
 8. Compatibility adapter parity (`SSP`/`FMU` smoke flows).
+9. SSD inline SSV parse/edit/save/round-trip.
+10. SSD external SSV parse/edit/save/round-trip.
+11. Conversion parity: inline -> external and external -> inline.
+12. Representation parity: equivalent inline/external content yields equivalent semantic diagnostics.

@@ -50,4 +50,4 @@ Observed architectural characteristics:
 ## Supporting Specs
 - `layered_arch.md`
 - `xsd_alternative.md`
-- `archive_session_spec.md`
+- `../archive_solution.md`
