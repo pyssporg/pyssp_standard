@@ -17,19 +17,19 @@
 
 ## Problem Statement
 The current architecture mixes archive I/O, XML parsing, mutable in-memory state, schema/version decisions, and semantic validation in the same classes. This creates:
+- High degree of custom xml solutions in multiple abstraction layers
 - High coupling between file formats and standard versions.
 - Inconsistent behavior across modules for read/write and parsing fidelity.
-- Difficult extension path for SSP2 and FMI2/FMI3.
+- Challenging extension path for SSP2 and FMI2/FMI3.
 - Elevated risk of regressions when adding features due to shared mutable patterns.
 
 ## Goals
 - Preserve existing public API behavior while introducing a stronger internal architecture.
-- Deliver full SSP2 and FMI2/FMI3 support quickly and safely.
+- Deliver full SSP2 and FMI2/FMI3 support.
 - Improve authoring/editing ergonomics with deterministic save semantics.
 - Improve maintainability through clearer layering and testable boundaries.
 
 ## Non-Goals
-- Immediate removal of legacy API surface.
 - Large one-shot rewrite of all modules.
 - Breaking file format behavior for existing users.
 
@@ -46,3 +46,8 @@ Observed architectural characteristics:
 - Parsing and serialization fidelity varies by format (SSV/SSB/SSM/SSD/SRMD/FMUs).
 - Semantic validation is present but not centralized.
 - Test coverage exists but currently allows regressions in priority areas.
+
+## Supporting Specs
+- `layered_arch.md`
+- `xsd_alternative.md`
+- `archive_session_spec.md`

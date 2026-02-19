@@ -1,7 +1,10 @@
 
 
-## Proposed Architecture
+## Layered Architecture
 Adopt a layered architecture with strict boundaries:
+
+Detailed archive-layer contract and failure semantics:
+- `archive_session_spec.md`
 
 ### 1) Archive Layer (`archive`)
 Responsibility:
