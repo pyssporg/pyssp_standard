@@ -99,8 +99,15 @@ Design choices:
 Responsibility:
 - Parse related artifacts in a shared context (e.g., all files in one SSP archive).
 - Resolve cross-file references (e.g., SSD `ParameterBinding@source` -> SSV file).
-- Set explicit binding flags (`is_internal`, `is_external`, `is_resolved`) after resolution.
+- Set explicit binding flags (`is_inlined`, `is_resolved`) after resolution.
 - Persist external artifacts when saving, but only at SSP level.
+
+Current demo mapping:
+- `PublicSSD`: SSD-facing API (document creation/edit/serialize)
+- `PublicSSV`: parameter-set API (add parameter + SSV load/save)
+- `PublicSSP`: orchestration API (resolve external references in shared context)
+- `SsdBindingCodec`: XML-only SSD transform (no file I/O)
+- `Ssv2HybridCodec`: XML-only SSV transform using xsdata-generated bindings
 
 ### 6) Compatibility Facade Layer
 Responsibility:
@@ -226,6 +233,7 @@ Additional representation-parity tests:
 - Diagnostic parity tests for equivalent inline/external parameter content.
 - SSD codec isolation tests: no file I/O side effects during parse/serialize.
 - SSP resolver tests: unresolved external in isolated SSD; resolved external when SSV exists in same SSP context.
+- Mixed-SSD test: one inlined and one external binding in the same SSD (`__data__/mixed_example.ssd`).
 
 ## Risks and Mitigations
 - Risk: Compatibility regressions during adapter rollout.

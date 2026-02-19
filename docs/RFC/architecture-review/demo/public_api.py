@@ -32,43 +32,6 @@ class PublicSSD:
     def validate(self):
         return self._validator.validate(self.document)
 
-    def add_parameter_set(
-        self,
-        *,
-        target: str,
-        inlined: bool,
-        external_path: str | None = None,
-        set_name: str | None = None,
-        set_version: str = "2.0",
-    ) -> SsdParameterBinding:
-        """Create or return a parameter binding for target in inline/external mode."""
-        mode = "inline" if inlined else "external"
-        binding = next(
-            (b for b in self.document.parameter_bindings if b.target == target and b.mode == mode),
-            None,
-        )
-        if binding is not None:
-            return binding
-
-        if not inlined and not external_path:
-            raise ValueError("external_path is required when inlined=False")
-
-        parameter_set = ParameterSet(
-            name=set_name or f"{target}_{mode}_params",
-            version=set_version,
-        )
-        binding = SsdParameterBinding(
-            target=target,
-            mode=mode,
-            parameter_set=parameter_set,
-            external_path=external_path,
-            is_internal=inlined,
-            is_external=not inlined,
-            is_resolved=True if inlined else False,
-        )
-        self.document.parameter_bindings.append(binding)
-        return binding
-
     def save(self):
         text = self._codec.serialize(self.document)
         self._session.write_text(text)
@@ -130,7 +93,7 @@ class PublicSSP:
 
         # Persist external parameter sets only at SSP orchestration level
         for binding in doc.parameter_bindings:
-            if binding.mode != "external" or not binding.external_path or binding.parameter_set is None:
+            if binding.is_inlined or not binding.external_path or binding.parameter_set is None:
                 continue
 
             ext_path = ssd_path.parent / binding.external_path
@@ -138,15 +101,11 @@ class PublicSSP:
 
     def _resolve_bindings(self, doc: SsdDocument, ssd_path: Path):
         for binding in doc.parameter_bindings:
-            if binding.mode == "inline":
-                binding.is_internal = True
-                binding.is_external = False
+            if binding.is_inlined:
                 binding.is_resolved = binding.parameter_set is not None
                 continue
 
-            if binding.mode == "external" and binding.external_path:
-                binding.is_internal = False
-                binding.is_external = True
+            if not binding.is_inlined and binding.external_path:
                 ext_path = ssd_path.parent / binding.external_path
                 if ext_path.exists():
                     binding.parameter_set = self._public_ssv.load(ext_path)

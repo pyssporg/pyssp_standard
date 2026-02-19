@@ -76,10 +76,26 @@ Use the layered architecture as the system design, and adopt `xsdata` selectivel
 - Compatibility adapters own old behavior contracts.
 - Authoring APIs are handwritten workflow-oriented services.
 - Semantic validation remains handwritten and version-aware.
+- Keep codecs XML-only and side-effect free.
+- Keep cross-file reference resolution at SSP orchestration level, not inside SSD codec.
+
+## Demo Status (Implemented)
+The RFC demo now implements this hybrid approach in:
+- `docs/RFC/architecture-review/demo/codec/ssv_hybrid_codec.py`
+- `docs/RFC/architecture-review/demo/generated/ssv2_generated_types.py`
+
+xsdata generation source used by demo:
+- `docs/RFC/architecture-review/demo/generated/SystemStructureParameterValues.xsd`
+
+Demo command:
+- `../pycps_sysml/venv/bin/python docs/RFC/architecture-review/demo/run_demo.py`
+
+Generation command used by demo:
+- `../pycps_sysml/venv/bin/python -m xsdata generate docs/RFC/architecture-review/demo/generated/SystemStructureParameterValues.xsd -p docs.RFC.architecture_review.demo.generated.bindings -ss single-package --relative-imports`
 
 ## Hybrid Adoption Plan
 
-### Phase A: Feasibility Spike (1-2 weeks)
+### Phase A: Feasibility Spike
 Scope:
 - Generate SSP2 SSV bindings from XSD with `xsdata`.
 - Parse/serialize existing `pytest/doc/ssv2_ex.ssv`.

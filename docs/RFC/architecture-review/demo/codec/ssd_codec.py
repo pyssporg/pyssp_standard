@@ -40,11 +40,9 @@ class SsdBindingCodec:
                     doc.parameter_bindings.append(
                         SsdParameterBinding(
                             target=target,
-                            mode="external",
+                            is_inlined=False,
                             parameter_set=None,
                             external_path=rel_path,
-                            is_external=True,
-                            is_internal=False,
                             is_resolved=False,
                         )
                     )
@@ -58,10 +56,8 @@ class SsdBindingCodec:
                     doc.parameter_bindings.append(
                         SsdParameterBinding(
                             target=target,
-                            mode="inline",
+                            is_inlined=True,
                             parameter_set=model,
-                            is_internal=True,
-                            is_external=False,
                             is_resolved=True,
                         )
                     )
@@ -90,13 +86,13 @@ class SsdBindingCodec:
             attrib = {"target": binding.target} if binding.target else {}
             elem = ET.SubElement(bindings, f"{{{NS_SSD}}}ParameterBinding", attrib=attrib)
 
-            if binding.mode == "inline" and binding.parameter_set is not None:
+            if binding.is_inlined and binding.parameter_set is not None:
                 xml = self._ssv_codec.serialize(
                     binding.parameter_set,
                     namespace_uri="http://ssp-standard.org/SSP1/SystemStructureDescription",
                 )
                 elem.append(ET.fromstring(xml))
-            elif binding.mode == "external" and binding.external_path:
+            elif not binding.is_inlined and binding.external_path:
                 rel_path = binding.external_path
                 elem.set("source", rel_path)
 

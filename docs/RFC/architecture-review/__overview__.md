@@ -51,3 +51,12 @@ Observed architectural characteristics:
 - `layered_arch.md`
 - `xsd_alternative.md`
 - `../archive_solution.md`
+- `demo/README.md`
+
+## Demo Alignment
+Current RFC demo implementation (in `docs/RFC/architecture-review/demo/`) demonstrates:
+- One mixed SSD example (`__data__/mixed_example.ssd`) containing one inlined parameter set and one external parameter set reference.
+- XML-only codecs (`codec/ssd_codec.py`, `codec/ssv_hybrid_codec.py`)
+- SSP-level reference resolution and persistence (`public_api.py`, `PublicSSP`)
+- Public API modularization with `PublicSSD` for SSD document operations and `PublicSSV` for parameter-set edits and SSV persistence.
+- `is_inlined` + `is_resolved` binding state in the SSD model

@@ -16,7 +16,7 @@ def run_case(case_file: Path):
     print("Loaded SSD:", ssd.name, ssd.version)
     print("Components:", len(ssd.components))
     print(
-        "Bindings:", [(b.target, b.mode, b.is_resolved) for b in ssd.parameter_bindings]
+        "Bindings:", [(b.target, b.is_inlined, b.is_resolved) for b in ssd.parameter_bindings]
     )
 
     # Add one idempotent parameter to show editable authoring API behavior
@@ -31,7 +31,7 @@ def run_case(case_file: Path):
     reloaded = ssp.load_ssd(Path("__data__") / "result" / new_name)
     print(
         "After save bindings:",
-        [(b.target, b.mode, b.is_resolved) for b in reloaded.parameter_bindings],
+        [(b.target, b.is_inlined, b.is_resolved) for b in reloaded.parameter_bindings],
     )
 
 
