@@ -35,7 +35,7 @@ This spec defines a concrete archive subsystem for `.ssp` and `.fmu` handling th
 - robust authoring/editing workflows,
 - deterministic persistence semantics,
 - safe and atomic write behavior.
-- referenced-resource access needed by codecs (e.g., SSD external SSV references).
+- XML/bytes access for higher-level resolvers and orchestrators.
 
 ## Goals
 - Avoid full eager extraction for read-heavy usage.
@@ -115,7 +115,7 @@ class ArchiveSession:
     def discard(self) -> None: ...
 
 class ResourceResolver:
-    """Resolves external references used by XML models/codecs."""
+    """Resolves external references at SSP orchestration level."""
     def read_text(self, uri_or_rel_path: str, *, context_path: str | None = None) -> str: ...
     def write_text(self, uri_or_rel_path: str, content: str, *, context_path: str | None = None) -> None: ...
     def exists(self, uri_or_rel_path: str, *, context_path: str | None = None) -> bool: ...
@@ -124,22 +124,24 @@ class ResourceResolver:
 ## SSD Inline/External SSV Support
 To avoid duplicated logic for equivalent parameter data in SSD:
 - keep a canonical `ParameterSet` model in domain layer,
-- use storage strategies that load/save this model from either representation.
+- use storage strategies that transform XML to/from this model.
 
 Strategy interface:
 
 ```python
 class ParameterSetStorage:
-    def load(self, context) -> ParameterSet: ...
-    def save(self, context, model: ParameterSet) -> None: ...
+    def load_from_xml(self, xml_text: str) -> ParameterSet: ...
+    def save_to_xml(self, model: ParameterSet, namespace_uri: str) -> str: ...
 ```
 
 Implementations:
 - `InlineParameterSetStorage`: operates on SSV XML embedded in SSD.
-- `ExternalParameterSetStorage`: operates on referenced `.ssv` files through `ResourceResolver`.
+- `ExternalParameterSetStorage`: keeps reference metadata in SSD; no direct file I/O.
 
 Constraint:
 - Semantic validation must operate on `ParameterSet` and be independent of storage representation.
+- SSD codec must not resolve external artifacts.
+- External reference resolution occurs only at SSP level when related artifacts are parsed in shared context.
 
 ## Path Rules and Safety
 - All member paths are normalized POSIX relative paths.
@@ -151,7 +153,7 @@ Constraint:
 Dirty is `True` if and only if there is at least one staged mutation:
 - write add/replace,
 - remove existing member.
-- write/remove of externally referenced resources resolved through `ResourceResolver`.
+- write/remove of external artifacts when SSP-level orchestrator persists them.
 
 Dirty is not set by:
 - reads,
@@ -213,3 +215,5 @@ Required tests:
 10. SSD external SSV parse/edit/save/round-trip.
 11. Conversion parity: inline -> external and external -> inline.
 12. Representation parity: equivalent inline/external content yields equivalent semantic diagnostics.
+13. SSD codec must be side-effect free (no file I/O during XML parse/serialize).
+14. SSP-level resolver must mark unresolved/resolved references correctly.

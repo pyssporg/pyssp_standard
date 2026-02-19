@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from .parameter_model import ParameterSet
+from .model.ssv_model import ParameterSet
 
 
 @dataclass
@@ -15,6 +15,9 @@ class SsdParameterBinding:
     mode: str  # inline | external
     parameter_set: ParameterSet | None = None
     external_path: str | None = None
+    is_internal: bool = False
+    is_external: bool = False
+    is_resolved: bool = False
 
 
 @dataclass

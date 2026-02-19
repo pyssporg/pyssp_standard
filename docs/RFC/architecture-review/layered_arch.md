@@ -10,7 +10,7 @@ Detailed archive-layer contract and failure semantics:
 Responsibility:
 - Read/write package containers (`.ssp`, `.fmu`) and in-archive path operations.
 - Provide explicit dirty tracking and deterministic persistence.
-- Resolve referenced resources used by XML codecs (e.g., external `.ssv` from `.ssd`).
+- Provide raw XML/bytes access for higher layers.
 
 Key APIs:
 - `ArchiveSession.open(path, mode)`
@@ -18,8 +18,6 @@ Key APIs:
 - `ArchiveSession.write_bytes(rel_path, data, overwrite=False)`
 - `ArchiveSession.remove(rel_path)`
 - `ArchiveSession.save()` / `save_as(path)`
-- `ResourceResolver.open_text(uri_or_rel_path, context_path)`
-- `ResourceResolver.write_text(uri_or_rel_path, context_path, content)`
 
 Design choices:
 - Read operations never mark dirty.
@@ -52,6 +50,7 @@ Design choices:
 - Lossless round-trip for supported schema elements.
 - Explicit unsupported-feature errors for uncovered branches.
 - Use storage strategies for equivalent model data that can be represented in multiple ways (inline vs external).
+- Codecs are pure transforms: no filesystem/archive I/O.
 
 ### 3.1) ParameterSet Storage Strategy (SSD <-> SSV)
 Requirement:
@@ -60,17 +59,21 @@ Requirement:
 
 Approach:
 - Keep one canonical domain model: `ParameterSet`.
-- Add strategy interface used by SSD codec and authoring API:
+- Add strategy interface used by SSD codec and SSP-level resolver:
 
 ```python
 class ParameterSetStorage:
-    def load(self, context) -> ParameterSet: ...
-    def save(self, context, model: ParameterSet) -> None: ...
+    def load_from_xml(self, xml_text: str) -> ParameterSet: ...
+    def save_to_xml(self, model: ParameterSet, namespace_uri: str) -> str: ...
 ```
 
 Implementations:
 - `InlineParameterSetStorage`: read/write SSV XML subtree embedded in SSD.
-- `ExternalParameterSetStorage`: read/write `.ssv` via `ResourceResolver` + `ArchiveSession`.
+- `ExternalParameterSetStorage`: represent external reference metadata in SSD only.
+
+Resolution policy:
+- SSD parsing does not resolve external artifacts.
+- SSP-level orchestrator resolves external references only when artifacts are within the same SSP context.
 
 Benefits:
 - Single model and semantic validator path for both representations.
@@ -92,7 +95,14 @@ Design choices:
 - Optional strict mode that raises on warnings for CI pipelines.
 - Semantic rules are representation-agnostic: inline/external parameter sets produce equivalent diagnostics for equivalent content.
 
-### 5) Compatibility Facade Layer
+### 5) SSP Orchestration Layer (`ssp`)
+Responsibility:
+- Parse related artifacts in a shared context (e.g., all files in one SSP archive).
+- Resolve cross-file references (e.g., SSD `ParameterBinding@source` -> SSV file).
+- Set explicit binding flags (`is_internal`, `is_external`, `is_resolved`) after resolution.
+- Persist external artifacts when saving, but only at SSP level.
+
+### 6) Compatibility Facade Layer
 Responsibility:
 - Keep existing classes (`SSP`, `SSD`, `SSV`, `SSM`, `SSB`, `FMU`) stable.
 - Route legacy operations through new archive/model/codec services.
@@ -165,6 +175,7 @@ Scope:
 - Implement SSP2 codecs for SSD/SSV/SSM/SSB using capability matrix.
 - Ensure support for SSP2 parameter type extensions and dimensions.
 - Implement dual storage handling for SSD parameter sets (inline and external SSV) via `ParameterSetStorage` strategy.
+- Implement SSP-level resolver pass for cross-file references.
 
 Acceptance criteria:
 - Round-trip tests for SSP2 samples pass.
@@ -213,6 +224,8 @@ Additional representation-parity tests:
 - SSD with external SSV: parse/edit/save/round-trip.
 - Conversion tests: inline -> external and external -> inline.
 - Diagnostic parity tests for equivalent inline/external parameter content.
+- SSD codec isolation tests: no file I/O side effects during parse/serialize.
+- SSP resolver tests: unresolved external in isolated SSD; resolved external when SSV exists in same SSP context.
 
 ## Risks and Mitigations
 - Risk: Compatibility regressions during adapter rollout.

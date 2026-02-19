@@ -1,24 +1,22 @@
-from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from .parameter_storage import ExternalParameterSetStorage, InlineParameterSetStorage
-from .ssd_model import SsdDocument, SsdParameterBinding
+from .model.ssd_model import SsdDocument, SsdParameterBinding
+from .codec.ssv_hybrid_codec import Ssv2HybridCodec
 
 
 NS_SSD = "http://ssp-standard.org/SSP1/SystemStructureDescription"
 
 
 class SsdBindingCodec:
-    """Handwritten SSD codec with storage strategy for inline/external parameter sets."""
+    """Handwritten SSD codec: XML <-> domain only, no file/resource I/O."""
 
     def __init__(self):
-        self._inline = InlineParameterSetStorage()
-        self._external = ExternalParameterSetStorage()
+        self._ssv_codec = Ssv2HybridCodec()
 
-    def parse(self, xml_text: str, *, context_path: Path) -> SsdDocument:
+    def parse(self, xml_text: str) -> SsdDocument:
         root = ET.fromstring(xml_text)
         doc = SsdDocument(name=root.attrib.get("name", "unnamed"), version=root.attrib.get("version", "1.0"))
-        
+
         def localname(tag: str) -> str:
             return tag.split("}", 1)[-1]
 
@@ -39,13 +37,15 @@ class SsdBindingCodec:
                 # Standard-like external form: <ssd:ParameterBinding source="..."/>
                 if "source" in binding.attrib:
                     rel_path = binding.attrib.get("source", "")
-                    model = self._external.load(context_path=context_path, encoded_value=rel_path)
                     doc.parameter_bindings.append(
                         SsdParameterBinding(
                             target=target,
                             mode="external",
-                            parameter_set=model,
+                            parameter_set=None,
                             external_path=rel_path,
+                            is_external=True,
+                            is_internal=False,
+                            is_resolved=False,
                         )
                     )
                     continue
@@ -54,17 +54,24 @@ class SsdBindingCodec:
                 inline_param_set = next((c for c in binding if localname(c.tag) == "ParameterSet"), None)
                 if inline_param_set is not None:
                     xml = ET.tostring(inline_param_set, encoding="unicode")
-                    model = self._inline.load(context_path=context_path, encoded_value=xml)
+                    model = self._ssv_codec.parse(xml)
                     doc.parameter_bindings.append(
-                        SsdParameterBinding(target=target, mode="inline", parameter_set=model)
+                        SsdParameterBinding(
+                            target=target,
+                            mode="inline",
+                            parameter_set=model,
+                            is_internal=True,
+                            is_external=False,
+                            is_resolved=True,
+                        )
                     )
 
         return doc
 
-    def serialize(self, doc: SsdDocument, *, context_path: Path) -> str:
+    def serialize(self, doc: SsdDocument) -> str:
         root = ET.Element(
-            f"{{{NS_SSD}}}SystemStructureDescription",
-            attrib={"name": doc.name, "version": doc.version},
+                f"{{{NS_SSD}}}SystemStructureDescription",
+                attrib={"name": doc.name, "version": doc.version},
         )
         root.set("xmlns:ssd", NS_SSD)
 
@@ -84,14 +91,13 @@ class SsdBindingCodec:
             elem = ET.SubElement(bindings, f"{{{NS_SSD}}}ParameterBinding", attrib=attrib)
 
             if binding.mode == "inline" and binding.parameter_set is not None:
-                xml = self._inline.save(context_path=context_path, model=binding.parameter_set)
-                elem.append(ET.fromstring(xml))
-            elif binding.mode == "external" and binding.parameter_set is not None and binding.external_path:
-                rel_path = self._external.save(
-                    context_path=context_path,
-                    model=binding.parameter_set,
-                    encoded_value=binding.external_path,
+                xml = self._ssv_codec.serialize(
+                    binding.parameter_set,
+                    namespace_uri="http://ssp-standard.org/SSP1/SystemStructureDescription",
                 )
+                elem.append(ET.fromstring(xml))
+            elif binding.mode == "external" and binding.external_path:
+                rel_path = binding.external_path
                 elem.set("source", rel_path)
 
         return ET.tostring(root, encoding="unicode")
