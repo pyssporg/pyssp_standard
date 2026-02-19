@@ -32,19 +32,42 @@ class PublicSSD:
     def validate(self):
         return self._validator.validate(self.document)
 
-    def add_parameter(self, *, target: str, mode: str, name: str, value: float, external_path: str | None = None):
-        binding = next((b for b in self.document.parameter_bindings if b.target == target and b.mode == mode), None)
-        if binding is None:
-            binding = SsdParameterBinding(target=target, mode=mode, external_path=external_path)
-            self.document.parameter_bindings.append(binding)
+    def add_parameter_set(
+        self,
+        *,
+        target: str,
+        inlined: bool,
+        external_path: str | None = None,
+        set_name: str | None = None,
+        set_version: str = "2.0",
+    ) -> SsdParameterBinding:
+        """Create or return a parameter binding for target in inline/external mode."""
+        mode = "inline" if inlined else "external"
+        binding = next(
+            (b for b in self.document.parameter_bindings if b.target == target and b.mode == mode),
+            None,
+        )
+        if binding is not None:
+            return binding
 
-        if binding.parameter_set is None:
-            from .model.ssv_model import ParameterSet
+        if not inlined and not external_path:
+            raise ValueError("external_path is required when inlined=False")
 
-            binding.parameter_set = ParameterSet(name=f"{target}_params", version="2.0")
-
-        if not any(p.name == name for p in binding.parameter_set.parameters):
-            binding.parameter_set.add_real_parameter(name=name, value=value)
+        parameter_set = ParameterSet(
+            name=set_name or f"{target}_{mode}_params",
+            version=set_version,
+        )
+        binding = SsdParameterBinding(
+            target=target,
+            mode=mode,
+            parameter_set=parameter_set,
+            external_path=external_path,
+            is_internal=inlined,
+            is_external=not inlined,
+            is_resolved=True if inlined else False,
+        )
+        self.document.parameter_bindings.append(binding)
+        return binding
 
     def save(self):
         text = self._codec.serialize(self.document)
@@ -69,6 +92,16 @@ class PublicSSV:
                 namespace_uri="http://ssp-standard.org/SSP1/SystemStructureParameterValues",
             )
         )
+
+    def add_parameter(
+        self,
+        parameter_set: ParameterSet,
+        *,
+        name: str,
+        value: float,
+    ):
+        if not any(p.name == name for p in parameter_set.parameters):
+            parameter_set.add_real_parameter(name=name, value=value)
 
 
 class PublicSSP:

@@ -1,7 +1,7 @@
 from xml.etree import ElementTree as ET
 
-from .model.ssd_model import SsdDocument, SsdParameterBinding
-from .codec.ssv_hybrid_codec import Ssv2HybridCodec
+from ..model.ssd_model import SsdDocument, SsdParameterBinding
+from .ssv_hybrid_codec import Ssv2HybridCodec
 
 
 NS_SSD = "http://ssp-standard.org/SSP1/SystemStructureDescription"

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .model.ssd_model import SsdDocument
+from ..model.ssd_model import SsdDocument
 
 
 @dataclass

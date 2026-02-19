@@ -4,5 +4,8 @@
     <ssv:Parameter name="gain">
       <ssv:Real value="0.8"/>
     </ssv:Parameter>
+    <ssv:Parameter name="offset">
+      <ssv:Real value="2.0"/>
+    </ssv:Parameter>
   </ssv:Parameters>
 </ssv:ParameterSet>

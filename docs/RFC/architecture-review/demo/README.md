@@ -4,7 +4,7 @@ This folder contains a limited-functionality prototype showing the **hybrid laye
 
 ## What it demonstrates
 - Shared `archive` layer: deterministic dirty tracking and explicit save.
-- One unified example track: `examples/ssd_binding_modes`.
+- One unified example in this `demo/` package.
 - Hybrid codec for `ParameterSet`: generated-style bindings + handwritten domain mapping.
 - Handwritten SSD codec using storage strategy pattern for parameter bindings:
   - inline SSV payload
@@ -29,19 +29,19 @@ This folder contains a limited-functionality prototype showing the **hybrid laye
 From repo root:
 
 ```bash
-python3 docs/RFC/architecture-review/demo/examples/ssd_binding_modes/run_demo.py
+../pycps_sysml/venv/bin/python docs/RFC/architecture-review/demo/run_demo.py
 ```
 
 ## Generate bindings
 The merged example uses real `xsdata`-generated bindings from:
-- `examples/ssd_binding_modes/generated/SystemStructureParameterValues.xsd`
+- `generated/SystemStructureParameterValues.xsd`
 
 Use the project venv where `xsdata` is installed:
 
 ```bash
 ../pycps_sysml/venv/bin/python -m xsdata generate \
-  docs/RFC/architecture-review/demo/examples/ssd_binding_modes/generated/SystemStructureParameterValues.xsd \
-  -p docs.RFC.architecture_review.demo.examples.ssd_binding_modes.generated.bindings \
+  docs/RFC/architecture-review/demo/generated/SystemStructureParameterValues.xsd \
+  -p docs.RFC.architecture_review.demo.generated.bindings \
   -ss single-package \
   --relative-imports
 ```
@@ -50,7 +50,7 @@ Then copy the generated module into the demo import location:
 
 ```bash
 cp -f docs/rfc/architecture_review/demo/examples/ssd_binding_modes/generated/bindings.py \
-  docs/RFC/architecture-review/demo/examples/ssd_binding_modes/generated/ssv2_generated_types.py
+  docs/RFC/architecture-review/demo/generated/ssv2_generated_types.py
 ```
 
 Notes:
@@ -58,8 +58,8 @@ Notes:
 - If `xsdata` fails because `ruff` is missing in `PATH`, add a temporary no-op `ruff` shim or install `ruff`.
 - Run the demo with the same venv Python if system Python does not have `xsdata` installed.
 
-The merged demo (`examples/ssd_binding_modes/run_demo.py`):
-1. Loads `data/mixed_example.ssd`.
+The merged demo (`run_demo.py`):
+1. Loads `__data__/mixed_example.ssd`.
 2. Parses one inline SSV binding and one external SSV reference in the same SSD.
 3. Resolves the external SSV only at SSP orchestration level.
 4. Adds a parameter through one public API for both modes.

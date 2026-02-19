@@ -1,9 +1,9 @@
-from .generated.ssv2_generated_types import (
+from ..generated.ssv2_generated_types import (
     ParameterSet as GeneratedParameterSet,
     Tparameter,
     Tparameters,
 )
-from .model.ssv_model import Parameter, ParameterSet
+from ..model.ssv_model import Parameter, ParameterSet
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig

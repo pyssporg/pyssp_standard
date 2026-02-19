@@ -12,9 +12,6 @@
             <ns0:Parameter name="gain">
               <ns0:Real value="1.5" />
             </ns0:Parameter>
-            <ns0:Parameter name="offset">
-              <ns0:Real value="2.0" />
-            </ns0:Parameter>
           </ns0:Parameters>
         </ns0:ParameterSet>
       </ns0:ParameterBinding>

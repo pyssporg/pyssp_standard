@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from .model.ssv_model import ParameterSet
+from .ssv_model import ParameterSet
 
 
 @dataclass
