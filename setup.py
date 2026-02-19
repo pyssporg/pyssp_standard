@@ -3,15 +3,15 @@ from distutils.core import setup
 setup(
     name='pyssp_standard',
     packages=['pyssp_standard'],
-    version='0.8.2',
+    version='0.9.0',
     license='MIT',
     description='Simple python package for reading, modifying and creating files, specified in the SSP Standard',
     long_description='',
     long_description_content_type='text/markdown',
     author='Fredrik Haider',
     author_email='',
-    url='https://github.com/FGHaider/pyssp',
-    download_url='https://github.com/FGHaider/pyssp/archive/refs/tags/v_01.tar.gz',
+    url='https://github.com/pyssporg/pyssp_standard',
+    download_url='https://github.com/pyssporg/pyssp_standard/releases/latest/',
     keywords=['SSP', 'system', 'engineering'],
     install_requires=[
         'lxml',
