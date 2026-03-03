@@ -210,7 +210,7 @@ class ParameterBinding(ModelicaStandard):
     source: str | None = None
     source_base: str = "SSD"
     prefix: str | None = None
-    ssv: SSVElem | None = field(default_factory=SSVElem)
+    ssv: SSVElem | None = None
     # TODO: support for parameter mapping
 
     @classmethod
