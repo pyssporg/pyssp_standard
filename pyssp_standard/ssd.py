@@ -134,7 +134,7 @@ class Component(ModelicaStandard):
         self.source = None
         self.implementation = None
         self.connectors = []
-        self.parameter_bindings = None
+        self.parameter_bindings: list[ParameterBinding] = None
         self.annotations = None
 
         if element is not None:
@@ -151,7 +151,10 @@ class Component(ModelicaStandard):
             for connector in connectors.findall('ssd:Connector', namespaces=self.namespaces):
                 self.connectors.append(Connector(connector))
 
-        self.parameter_bindings = element.find("ssd:ParameterBindings", namespaces=self.namespaces)
+        parameter_bindings = element.find("ssd:ParameterBindings", namespaces=self.namespaces)
+        if parameter_bindings is not None:
+            bindings = parameter_bindings.findall("ssd:ParameterBinding", namespaces=self.namespaces)
+            self.parameter_bindings = [ParameterBinding.from_xml(binding) for binding in bindings]
 
     def as_element(self):
         element = ET.Element(QName(self.namespaces["ssd"], "Component"), name=self.name)
@@ -172,8 +175,12 @@ class Component(ModelicaStandard):
 
             element.append(connectors)
 
-        if self.parameter_bindings is not None:
-            element.append(self.parameter_bindings)
+        if self.parameter_bindings:
+            parameter_bindings = ET.SubElement(
+                element,
+                QName(self.namespaces["ssd"], "ParameterBindings")
+            )
+            parameter_bindings.extend(binding.to_xml() for binding in self.parameter_bindings)
 
         return element
 
@@ -203,7 +210,7 @@ class ParameterBinding(ModelicaStandard):
     source: str | None = None
     source_base: str = "SSD"
     prefix: str | None = None
-    ssv: SSVElem | None = field(default_factory=SSVElem)
+    ssv: SSVElem | None = None
     # TODO: support for parameter mapping
 
     @classmethod
