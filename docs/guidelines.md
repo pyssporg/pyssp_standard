@@ -8,6 +8,7 @@ These guidelines are meant to keep both code and documentation simple, readable,
 - Keep each module, class, and document focused on one responsibility.
 - Separate concerns early so complexity does not accumulate in one place.
 - Add structure only when it clearly reduces confusion or duplication.
+- Avoid internal monkeypatches or shims, keep the call chain as pure as possible
 
 ## Code Guidelines
 - Avoid duplication of logic, schema knowledge, and workflow rules.

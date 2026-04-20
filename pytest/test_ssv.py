@@ -43,3 +43,19 @@ def test_creation(write_file):
         file.add_unit("kg", {"kg": 1})
         file.add_unit("N")
         file.__check_compliance__()
+
+
+def test_creation_round_trip_preserves_units_and_metadata(write_file):
+
+    with SSV(write_file, 'w') as file:
+        file.top_level_metadata.author = "tester"
+        file.base_element.description = "demo"
+        file.add_parameter(parname='Weight', ptype='Real', value=20.4, unit="kg")
+        file.add_unit("kg", {"kg": 1})
+
+    with SSV(write_file) as file:
+        assert file.metadata.author == "tester"
+        assert file.metadata.description == "demo"
+        assert len(file.units) == 1
+        assert file.units[0].name == "kg"
+        assert file.parameters[0].attributes["unit"] == "kg"

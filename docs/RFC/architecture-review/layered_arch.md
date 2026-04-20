@@ -107,7 +107,7 @@ Rules:
 - semantic validation checks meaning: references, directions, cardinality, consistency
 - validation stays representation-agnostic where possible
 
-## 6) Orchestration Layer (`ssp`)
+## 6) Orchestration Layer (`ssp`, 'ssd')
 Responsibility:
 - load related artifacts in shared context
 - resolve cross-file references

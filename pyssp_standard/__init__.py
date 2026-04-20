@@ -13,7 +13,6 @@ _ALIASES = {
     "ssd": "pyssp_standard_v1.ssd",
     "ssm": "pyssp_standard_v1.ssm",
     "ssp": "pyssp_standard_v1.ssp",
-    "ssv": "pyssp_standard_v1.ssv",
     "standard": "pyssp_standard_v1.standard",
     "transformation_types": "pyssp_standard_v1.transformation_types",
     "unit": "pyssp_standard_v1.unit",
@@ -29,6 +28,7 @@ def _install_module_aliases() -> None:
 
 _install_module_aliases()
 
+from pyssp_standard.ssv import SSV  # noqa: E402,F401
 from pyssp_standard_v1 import (  # noqa: E402,F401
     Annotation,
     Annotations,
@@ -41,7 +41,6 @@ from pyssp_standard_v1 import (  # noqa: E402,F401
     SSD,
     SSM,
     SSP,
-    SSV,
     Transformation,
     classification_parser,
 )
