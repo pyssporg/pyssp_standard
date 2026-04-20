@@ -84,6 +84,11 @@ Status legend:
      - authoring logic drifts out of `SsvParameterSet`
      - file/persistence logic drifts out of the session object
      - the public `SSV` wrapper regresses into owning raw XML or business logic
+   - treat the resulting `SSV` implementation as the reference slice for the other XML-backed artifacts:
+     - shared facade shape
+     - generated binding -> codec -> mapper -> model -> validation -> facade split
+     - validation split between schema checks and semantic checks
+     - archive/session behavior kept outside XML business logic
    - treat `SSP2` `SSV` support as follow-on work after the `SSP1` slice is architecture-compliant
 
 7. `[in_progress]` Migrate the first SSD slice behind existing public workflows.
@@ -107,6 +112,7 @@ Status legend:
 
 10. `[pending]` Expand the generated/versioned path across remaining formats after the `SSP1` `SSV` slice is solid.
    Scope:
+   - use the current `SSP1` `SSV` implementation as the base pattern for all XML-backed artifact migrations
    - `SSP2` `SSV`
    - `SSM`
    - `SSB`
@@ -149,6 +155,9 @@ Status legend:
   - units are not yet represented in the canonical SSV domain model / mapper path
   - metadata/root patch-up responsibilities are still mixed into the public facade instead of being clearly assigned to lower layers
 - Added an explicit corrective SSV refactor step ahead of broader format expansion so the layering pattern is fixed before it is copied into SSD/other formats.
+- Current implementation rule recorded:
+  - the `SSP1` `SSV` path is the base implementation pattern for the remaining XML-backed artifacts
+  - future XML artifact work should start by copying the `SSV` layering approach, then adapting artifact-specific model/codec/validation details
 - Stored the implementation plan on disk.
 - Architecture RFC updated to recommend the layered `xsdata` approach as the primary direction.
 - Demo includes:
