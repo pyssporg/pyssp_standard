@@ -1,159 +1,156 @@
+# Layered Architecture
 
+## Core Rule
+Each layer should own one kind of responsibility only.
 
-## Layered Architecture
-Adopt a layered architecture with strict boundaries:
+Recommended flow:
+- `archive -> generated bindings -> mapper/codec -> domain model -> public API/orchestration`
 
-Detailed archive-layer contract and failure semantics:
-- `../archive_solution.md`
-
-### 1) Archive Layer (`archive`)
+## 1) Archive Layer (`archive`)
 Responsibility:
-- Read/write package containers (`.ssp`, `.fmu`) and in-archive path operations.
-- Provide explicit dirty tracking and deterministic persistence.
-- Provide raw XML/bytes access for higher layers.
+- read/write package containers such as `.ssp` and `.fmu`
+- provide deterministic save behavior and dirty tracking
+- expose raw XML/bytes to higher layers
 
-Key APIs:
-- `ArchiveSession.open(path, mode)`
-- `ArchiveSession.read_bytes(rel_path)`
-- `ArchiveSession.write_bytes(rel_path, data, overwrite=False)`
-- `ArchiveSession.remove(rel_path)`
-- `ArchiveSession.save()` / `save_as(path)`
+Must not own:
+- XML business logic
+- cross-file semantic decisions
+- schema-specific model mapping
 
-Design choices:
-- Read operations never mark dirty.
-- Mutating operations always mark dirty.
-- Context manager keeps compatibility; explicit save is preferred internally.
-
-#### Archive Strategy
-
-Full unpack to temp dir
-
-  - Pros: simplest mental model, easy random file edits, works with existing code.
-  - Cons: slow for large archives, high disk usage, risky extractall path handling, hard to do atomic saves.
-  - Fit: good baseline, but should be hardened (safe extraction + atomic write + better dirty tracking).
-
-
-### 2) Domain Model Layer (`model`)
+## 2) Generated Binding Layer (`generated`)
 Responsibility:
-- Canonical typed objects for SSP/FMI constructs, independent of XML library types.
-- Should enable reuse of earlier versions or rewrites if necessary
+- hold `xsdata`-generated classes for SSP/FMI XSDs
+- represent the schema-shaped XML structure directly
+
+Rules:
+- generated files are derived artifacts
+- generated files are regenerated from wrapper scripts
+- generated files are not public API
+- do not hand-edit generated files
+
+## 3) Codec Layer (`codec`)
+Responsibility:
+- parse and serialize XML using generated root types
+- keep XML transform orchestration separate from business logic
+
+Recommended split:
+- `*_xsdata_codec`
+  - owns parser/serializer setup
+  - chooses generated root type
+  - handles namespace normalization when needed
+  - contains no archive I/O and no semantic logic
+- `*_mapper`
+  - converts generated bindings `<->` compact domain model
+  - handles inline vs external representation branching
+  - hides awkward schema-shaped objects from the rest of the codebase
+
+SSD recommendation:
+- prefer one `SsdXsdataCodec`
+- prefer one `SsdXsdataMapper`
+- split into smaller helper mappers only if that mapper becomes hard to test
+- avoid a large monolithic handwritten SSD XML codec
+
+## Standard Versioning
+Standard versioning should be explicit and centralized.
+
+Rules:
+- detect standard family and version once per document
+- select the generated binding, codec, mapper, validator, and schema stack before parsing deeply
+- avoid scattered `if version == ...` checks across public APIs and orchestration code
+- keep version-specific schema differences in generated bindings and version-specific codec/mapper stacks
+- keep shared workflow behavior version-independent where possible
+
+Recommended routing shape:
+- inspect namespace, root element, and version attribute
+- resolve a `StandardVersion`
+- select the version-specific stack
+- parse and map with that stack
+
+Recommended split:
+- version-specific:
+  - XSD files
+  - generated bindings
+  - schema validators
+  - root codecs
+  - mappers for schema differences
+- version-independent where possible:
+  - archive/session handling
+  - public editing workflows
+  - shared semantic validation rules
+  - orchestration and persistence flow
+
+Preferred implementation pattern:
+- use a small registry/factory for `(format, family, version) -> stack`
+- prefer separate versioned codec families over one codec with many internal branches
+- use canonical domain models for shared concepts, and version-specific extensions only when semantics diverge materially
+
+Compatibility note:
+- schema version support, public API compatibility, and semantic behavior compatibility should be documented separately
+
+## 4) Domain Model Layer (`model`)
+Responsibility:
+- hold compact typed objects for SSP/FMI concepts
+- provide the stable shape used by validation, orchestration, and public APIs
+
+Rules:
+- no XML library elements in domain fields
+- no generated binding objects in domain fields
+- keep models closer to workflow needs than schema layout
+
+## 5) Validation Layer (`validation`)
+Responsibility:
+- schema compliance checks
+- semantic validation rules
+
+Rules:
+- schema validation checks XML/binding compliance
+- semantic validation checks meaning: references, directions, cardinality, consistency
+- validation stays representation-agnostic where possible
+
+## 6) Orchestration Layer (`ssp`)
+Responsibility:
+- load related artifacts in shared context
+- resolve cross-file references
+- persist external artifacts
+- expose compatibility behavior expected by higher-level APIs
+
+Must own:
+- archive-relative resolution
+- binding state such as resolved/unresolved external references
+
+Must not own:
+- low-level XML parsing details
+
+## 7) Public API Layer
+Responsibility:
+- preserve the existing user-facing workflow
+- provide authoring/editing helpers
+- hide version and schema-binding complexity
 
 Examples:
-- `Ssp1SystemStructureDescription`, `Ssp2SystemStructureDescription`, `Ssp1System`, `Ssp1Component`, `Ssp1Connector`, `Ssp1Connection`
-- `Ssp1ParameterSet`, `Ssp1ParameterMapping`, `Ssp1SignalDictionary`
-- `Fmi2ModelDescription`, `Fmi3ModelDescription`
+- `add_component(...)`
+- `connect(...)`
+- `bind_parameters(...)`
+- `save()` / `save_as()`
 
+## Storage Strategy
+Some data can appear inline or externally referenced.
 
-Design choices:
-- Dataclass-based models with validation hooks.
-- No direct `lxml` elements in public model fields.
+Rule:
+- keep one canonical domain model
+- let the mapper/codec distinguish inline vs external XML representation
+- let orchestration resolve external artifacts
 
-### 3) Codec Layer (`codec`)
-Responsibility:
-- Parse/serialize XML <-> model for each format/version.
-- Should enable reuse of earlier versions or rewrites if necessary
+Do not:
+- resolve external files during plain parse
+- duplicate validation logic for inline and external cases
 
-Structure:
-- `codec.ssp1.ssd`, `codec.ssp2.ssd`
-- `codec.fmi2.model_description`, `codec.fmi3.model_description`
-
-
-Design choices:
-- One codec module per format/version pair.
-- Lossless round-trip for supported schema elements.
-- Explicit unsupported-feature errors for uncovered branches.
-- Use storage strategies for equivalent model data that can be represented in multiple ways (inline vs external).
-- Codecs are pure transforms: no filesystem/archive I/O.
-
-### 3.1) Storage Strategy
-Requirement:
-- Some data values may appear inline or as external resource.
-- The architecture must support both without duplicating core mapping/validation logic.
-
-Implementations:
-- `InlineStorage`: read/write XML subtree embedded.
-- `ExternalStorage`: represent external reference metadata in SSD only.
-
-Approach:
-- Keep one canonical domain model
-- Add reusable internal/external interface used by codec:
-
-Resolution policy:
-- parsing does not resolve external artifacts.
-- SSP-level orchestrator resolves external references only when artifacts are within the same SSP context.
-
-Benefits:
-- Single model and semantic validator path for both representations.
-- No duplicated parsing/business logic.
-
-### 4) Validation Layer (`validation`)
-Responsibility:
-- XSD validation and semantic validation.
-
-Structure:
-- `validation.schema` for XML schema compliance.
-- `validation.semantic` for rules (connection directionality, cardinality, references).
-
-Design choices:
-- Validation results returned as structured diagnostics.
-- Optional strict mode that raises on warnings for CI pipelines.
-- Semantic rules are representation-agnostic: inline/external parameter sets produce equivalent diagnostics for equivalent content.
-
-### 5) SSP Orchestration Layer (`ssp`)
-Responsibility:
-- Parse related artifacts in a shared context (e.g., all files in one SSP archive).
-- Resolve cross-file references (e.g., SSD `ParameterBinding@source` -> SSV file).
-- Set explicit binding flags (`is_inlined`, `is_resolved`) after resolution.
-
-Current demo mapping:
-- `PublicSSD`: SSD-facing API (document creation/edit/serialize)
-- `PublicSSV`: parameter-set API (add parameter + SSV load/save)
-- `PublicSSP`: orchestration API (resolve external references in shared context)
-- `SsdBindingCodec`: XML-only SSD transform (no file I/O)
-- `Ssv2HybridCodec`: XML-only SSV transform using xsdata-generated bindings
-
-
-## API and UX Strategy (Authoring/Editing First)
-- Keep current context-manager authoring flow.
-- Add explicit high-level authoring operations:
-  - `add_component(...)`
-  - `add_connector(...)`
-  - `connect(...)`
-  - `bind_parameters(...)`
-  - `add_resource(...)`
-- Add deterministic persistence:
-  - Introduce explicit `save()` and `save_as()` and in docs.
-- Add stable exceptions:
-  - `SchemaValidationError`
-  - `SemanticValidationError`
-  - `ArchiveStateError`
-  - `CompatibilityError`
-
-
-## Module Layout Proposal
-Suggested package organization:
+## Suggested Package Shape
 - `pyssp_standard/archive/`
-- `pyssp_standard/ssp1/model`
-- `pyssp_standard/ssp1/codec`
-- `pyssp_standard/ssp1/validation`
+- `pyssp_standard/ssp1/generated/`
+- `pyssp_standard/ssp1/model/`
+- `pyssp_standard/ssp1/codec/`
+- `pyssp_standard/ssp1/validation/`
 - `pyssp_standard/ssp2/...`
-- `pyssp_standard/fmi2/`
-- `pyssp_standard/fmi3/`
-
-
-## Success Metrics
-- Feature:
-  - Full SSP2 and FMI2/FMI3 test fixtures supported.
-- Reliability:
-  - Zero known data-loss parse/serialize issues in supported features.
-- Developer productivity:
-  - Reduced lines touched per new schema feature (tracked by PR stats).
-- Usability:
-  - New authoring examples require fewer low-level XML operations.
-
-## Immediate Next Actions
-1. Create compatibility test baseline for current public API.
-2. Fix known blocking correctness issues in legacy modules.
-3. Implement archive layer and route `SSP`/`FMU` through it.
-4. Deliver SSP2 SSV support first (highest current test pressure), then SSD/SSM/SSB.
-5. Deliver FMI2 codec and unify FMI2/FMI3 query interface.
+- `pyssp_standard/fmi2/...`
+- `pyssp_standard/fmi3/...`
