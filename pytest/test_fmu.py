@@ -19,8 +19,8 @@ def test_unpacking_packing(fmu_file):
 
     with FMU(test_fmu_file) as fmu:
 
-        md = fmu.model_description
-        assert type(md) == ModelDescription
+        with fmu.model_description as md:
+            assert type(md) == ModelDescription
         
         assert len(fmu.binaries) > 0
         assert len(fmu.documentation) > 0
@@ -32,6 +32,7 @@ def test_variable_unpacking(md_file):  # Asserts that reading a known correct fi
         inputs = md.inputs
         outputs = md.outputs
         parameters = md.parameters
+
     assert len(inputs) > 0
     assert len(outputs) > 0
     assert len(parameters) > 0
