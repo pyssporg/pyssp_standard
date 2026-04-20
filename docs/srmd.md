@@ -1,6 +1,0 @@
-# SRMD
-
-## Features
-
-## Example
-

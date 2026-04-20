@@ -1,5 +1,0 @@
-# SSV
-
-## Features
-
-## Example

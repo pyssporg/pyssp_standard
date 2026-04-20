@@ -1,5 +1,0 @@
-# SSD
-
-## Features
-
-## Example

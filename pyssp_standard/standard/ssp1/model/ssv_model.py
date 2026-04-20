@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from pyssp_standard.unit_conversion import generate_base_unit
+from pyssp_standard.standard.unit_conversion import generate_base_unit
 
 
 @dataclass

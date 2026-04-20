@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from pyssp_standard.orchestration.version_routing import (
+from pyssp_standard.standard.version_routing import (
     StandardVersion,
     detect_ssv_standard_version,
     resolve_parse_stack,

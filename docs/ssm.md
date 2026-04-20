@@ -1,5 +1,0 @@
-# SSM
-
-## Features
-
-## Example

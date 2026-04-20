@@ -4,7 +4,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from pyssp_standard.ssp1.model.ssv_model import SsvParameterSet
+from pyssp_standard.standard.ssp1.model.ssv_model import SsvParameterSet
 
 
 class Ssp1SsvSchemaValidator:

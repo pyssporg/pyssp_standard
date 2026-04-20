@@ -77,8 +77,8 @@ def get_parse_stack(standard: StandardVersion) -> ParseStackSpec:
 
 
 def get_parse_stack_from_xml(xml_text: str) -> ParseStackSpec:
-    return get_parse_stack(detect_standard_version(xml_text))
+    return get_parse_stack(get_standard_version(xml_text))
 
 
 def get_parse_stack_from_file(path: Path) -> ParseStackSpec:
-    return get_parse_stack(detect_standard_version_from_file(path))
+    return get_parse_stack(get_standard_version_from_file(path))

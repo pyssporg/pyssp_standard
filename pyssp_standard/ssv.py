@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pyssp_standard.ssp1.codec.ssv_xsdata_codec import Ssp1SsvXsdataCodec
-from pyssp_standard.ssp1.model.ssv_model import SsvParameterSet
-from pyssp_standard.ssp1.validation import Ssp1SsvValidator
-from pyssp_standard.xml_document import XmlDocumentFacade
+from pyssp_standard.standard.ssp1.codec.ssv_xsdata_codec import Ssp1SsvXsdataCodec
+from pyssp_standard.standard.ssp1.model.ssv_model import SsvParameterSet
+from pyssp_standard.standard.ssp1.validation import Ssp1SsvValidator
+from pyssp_standard.standard.xml_document import XmlDocumentFacade
 
 
 class SSV(XmlDocumentFacade[SsvParameterSet]):

@@ -4,9 +4,9 @@ from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
-from pyssp_standard.ssp1.codec.ssv_xsdata_mapper import Ssp1SsvXsdataMapper
-from pyssp_standard.ssp1.generated.ssv_generated_types import ParameterSet
-from pyssp_standard.ssp1.model.ssv_model import SsvParameterSet
+from pyssp_standard.standard.ssp1.codec.ssv_xsdata_mapper import Ssp1SsvXsdataMapper
+from pyssp_standard.standard.ssp1.generated.ssv_generated_types import ParameterSet
+from pyssp_standard.standard.ssp1.model.ssv_model import SsvParameterSet
 
 
 NS_SSV = "http://ssp-standard.org/SSP1/SystemStructureParameterValues"

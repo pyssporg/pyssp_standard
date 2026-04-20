@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pyssp_standard.ssp1.generated.ssv_generated_types import ParameterSet, Tparameter, Tparameters, Tunits, Tunit
-from pyssp_standard.ssp1.model.ssv_model import (
+from pyssp_standard.standard.ssp1.generated.ssv_generated_types import ParameterSet, Tparameter, Tparameters, Tunits, Tunit
+from pyssp_standard.standard.ssp1.model.ssv_model import (
     SsvBaseUnit,
     SsvDocumentMetadata,
     SsvParameter,

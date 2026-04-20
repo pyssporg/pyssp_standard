@@ -1,6 +1,6 @@
 """SSP1 schema and semantic validation."""
 
-from pyssp_standard.ssp1.validation.ssv_validation import (
+from pyssp_standard.standard.ssp1.validation.ssv_validation import (
     Ssp1SsvSchemaValidator,
     Ssp1SsvSemanticValidator,
     Ssp1SsvValidator,
