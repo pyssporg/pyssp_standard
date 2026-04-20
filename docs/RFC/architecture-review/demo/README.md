@@ -5,7 +5,7 @@ This folder contains a limited-functionality prototype showing the **hybrid laye
 ## What it demonstrates
 - Shared `archive` layer: deterministic dirty tracking and explicit save.
 - One unified example in this `demo/` package.
-- Hybrid codec for `ParameterSet`: generated-style bindings + handwritten domain mapping.
+- `xsdata`-backed codec for `ParameterSet`: generated bindings + handwritten domain mapping.
 - Handwritten SSD codec using storage strategy pattern for parameter bindings:
   - inline SSV payload
   - external SSV file reference
@@ -29,33 +29,22 @@ This folder contains a limited-functionality prototype showing the **hybrid laye
 From repo root:
 
 ```bash
-../pycps_sysml/venv/bin/python docs/RFC/architecture-review/demo/run_demo.py
+./venv/bin/python docs/RFC/architecture-review/demo/run_demo.py
 ```
 
 ## Generate bindings
 The merged example uses real `xsdata`-generated bindings from:
 - `generated/SystemStructureParameterValues.xsd`
 
-Use the project venv where `xsdata` is installed:
+Use the repo venv:
 
 ```bash
-../pycps_sysml/venv/bin/python -m xsdata generate \
-  docs/RFC/architecture-review/demo/generated/SystemStructureParameterValues.xsd \
-  -p docs.RFC.architecture_review.demo.generated.bindings \
-  -ss single-package \
-  --relative-imports
-```
-
-Then copy the generated module into the demo import location:
-
-```bash
-cp -f docs/rfc/architecture_review/demo/examples/ssd_binding_modes/generated/bindings.py \
-  docs/RFC/architecture-review/demo/generated/ssv2_generated_types.py
+./venv/bin/python docs/RFC/architecture-review/demo/generated/generate_ssv_bindings.py
 ```
 
 Notes:
 - Ensure `SystemStructureCommon.xsd` is present next to `SystemStructureParameterValues.xsd`.
-- If `xsdata` fails because `ruff` is missing in `PATH`, add a temporary no-op `ruff` shim or install `ruff`.
+- The wrapper script prefixes the repo venv `bin` directory on `PATH` so `xsdata` can invoke `ruff` during generation.
 - Run the demo with the same venv Python if system Python does not have `xsdata` installed.
 
 The merged demo (`run_demo.py`):
@@ -64,3 +53,16 @@ The merged demo (`run_demo.py`):
 3. Resolves the external SSV only at SSP orchestration level.
 4. Adds a parameter through one public API for both modes.
 5. Runs shared semantic validation and saves updated files.
+
+## xsdata wrapper proof of concept
+The demo now uses `xsdata` directly as the schema authority and keeps only a small handwritten
+mapping layer for the public-facing domain model.
+
+Regenerate the checked-in generated module with:
+
+```bash
+./venv/bin/python docs/RFC/architecture-review/demo/generated/generate_ssv_bindings.py
+```
+
+The goal is a smaller authority chain for one narrow slice:
+`XSD -> xsdata generated bindings -> demo codec/domain mapping`

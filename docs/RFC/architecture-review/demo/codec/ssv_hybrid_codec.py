@@ -54,7 +54,7 @@ class Ssv2HybridCodec:
                 ]
             ),
         )
-        xml = XmlSerializer(config=SerializerConfig(pretty_print=True)).render(
+        xml = XmlSerializer(config=SerializerConfig(indent="  ")).render(
             generated,
             ns_map={
                 "ssv": NS_SSV,

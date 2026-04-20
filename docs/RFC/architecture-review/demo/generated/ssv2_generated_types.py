@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
-from xsdata.models.datatype import XmlDate, XmlDateTime
+
+from xsdata.models.datatype import XmlDateTime
 
 
 @dataclass(kw_only=True)
@@ -20,6 +22,7 @@ class ContentType:
         where appropriate.
     :ivar content:
     """
+
     class Meta:
         target_namespace = "http://ssp-standard.org/SSP1/SystemStructureCommon"
 
@@ -27,13 +30,13 @@ class ContentType:
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     description: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     content: list[object] = field(
         default_factory=list,
@@ -41,21 +44,31 @@ class ContentType:
             "type": "Wildcard",
             "namespace": "##any",
             "mixed": True,
-        }
+        },
     )
+
+
 class MetaDataKind(Enum):
-    GENERAL = 'general'
-    QUALITY = 'quality'
+    GENERAL = "general"
+    QUALITY = "quality"
+
+
 class MetaDataSourceBase(Enum):
-    FILE = 'file'
-    RESOURCE = 'resource'
+    FILE = "file"
+    RESOURCE = "resource"
+
+
 class SignatureTypeRole(Enum):
-    AUTHENTICITY = 'authenticity'
-    SUITABILITY = 'suitability'
+    AUTHENTICITY = "authenticity"
+    SUITABILITY = "suitability"
+
+
 class SignatureTypeSourceBase(Enum):
-    FILE = 'file'
-    RESOURCE = 'resource'
-    META_DATA = 'metaData'
+    FILE = "file"
+    RESOURCE = "resource"
+    META_DATA = "metaData"
+
+
 @dataclass(kw_only=True)
 class Tannotations:
     class Meta:
@@ -69,7 +82,7 @@ class Tannotations:
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
             "min_occurs": 1,
-        }
+        },
     )
 
     @dataclass(kw_only=True)
@@ -86,6 +99,7 @@ class Tannotations:
             prefix.
         :ivar content:
         """
+
         type_value: str = field(
             metadata={
                 "name": "type",
@@ -98,8 +112,10 @@ class Tannotations:
                 "type": "Wildcard",
                 "namespace": "##any",
                 "mixed": True,
-            }
+            },
         )
+
+
 @dataclass(kw_only=True)
 class SignatureType:
     """
@@ -141,6 +157,7 @@ class SignatureType:
         description of the model element, which can be shown to the user
         where appropriate.
     """
+
     class Meta:
         target_namespace = "http://ssp-standard.org/SSP1/SystemStructureCommon"
 
@@ -150,7 +167,7 @@ class SignatureType:
             "name": "Content",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
-        }
+        },
     )
     role: SignatureTypeRole = field(
         metadata={
@@ -167,27 +184,29 @@ class SignatureType:
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     source_base: SignatureTypeSourceBase = field(
         default=SignatureTypeSourceBase.FILE,
         metadata={
             "name": "sourceBase",
             "type": "Attribute",
-        }
+        },
     )
     id: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     description: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
+
+
 @dataclass(kw_only=True)
 class Tenumeration:
     """
@@ -203,6 +222,7 @@ class Tenumeration:
         the system description, which must be unique within in the
         system description.
     """
+
     class Meta:
         name = "TEnumeration"
         target_namespace = "http://ssp-standard.org/SSP1/SystemStructureCommon"
@@ -214,7 +234,7 @@ class Tenumeration:
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
             "min_occurs": 1,
-        }
+        },
     )
     annotations: None | Tannotations = field(
         default=None,
@@ -222,19 +242,19 @@ class Tenumeration:
             "name": "Annotations",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
-        }
+        },
     )
     id: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     description: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     name: str = field(
         metadata={
@@ -248,6 +268,7 @@ class Tenumeration:
         :ivar name: Name of the Enumeration Item
         :ivar value: The Value of the Enumeration Item
         """
+
         name: str = field(
             metadata={
                 "type": "Attribute",
@@ -258,6 +279,8 @@ class Tenumeration:
                 "type": "Attribute",
             }
         )
+
+
 @dataclass(kw_only=True)
 class Tunit:
     """
@@ -273,6 +296,7 @@ class Tunit:
         system description, which must be unique within in the system
         description.
     """
+
     class Meta:
         name = "TUnit"
         target_namespace = "http://ssp-standard.org/SSP1/SystemStructureCommon"
@@ -290,19 +314,19 @@ class Tunit:
             "name": "Annotations",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
-        }
+        },
     )
     id: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     description: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     name: str = field(
         metadata={
@@ -324,68 +348,71 @@ class Tunit:
         :ivar factor:
         :ivar offset:
         """
+
         kg: int = field(
             default=0,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         m: int = field(
             default=0,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         s: int = field(
             default=0,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         a: int = field(
             default=0,
             metadata={
                 "name": "A",
                 "type": "Attribute",
-            }
+            },
         )
         k: int = field(
             default=0,
             metadata={
                 "name": "K",
                 "type": "Attribute",
-            }
+            },
         )
         mol: int = field(
             default=0,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         cd: int = field(
             default=0,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         rad: int = field(
             default=0,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         factor: float = field(
             default=1.0,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         offset: float = field(
             default=0.0,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
+
+
 @dataclass(kw_only=True)
 class Tparameter:
     """
@@ -427,9 +454,12 @@ class Tparameter:
         the parameter set, which must be unique within in the parameter
         set.
     """
+
     class Meta:
         name = "TParameter"
-        target_namespace = "http://ssp-standard.org/SSP1/SystemStructureParameterValues"
+        target_namespace = (
+            "http://ssp-standard.org/SSP1/SystemStructureParameterValues"
+        )
 
     real: None | Tparameter.Real = field(
         default=None,
@@ -437,7 +467,7 @@ class Tparameter:
             "name": "Real",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     float64: None | Tparameter.Float64 = field(
         default=None,
@@ -445,7 +475,7 @@ class Tparameter:
             "name": "Float64",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     float32: None | Tparameter.Float32 = field(
         default=None,
@@ -453,7 +483,7 @@ class Tparameter:
             "name": "Float32",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     integer: None | Tparameter.Integer = field(
         default=None,
@@ -461,7 +491,7 @@ class Tparameter:
             "name": "Integer",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     int8: None | Tparameter.Int8 = field(
         default=None,
@@ -469,7 +499,7 @@ class Tparameter:
             "name": "Int8",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     uint8: None | Tparameter.Uint8 = field(
         default=None,
@@ -477,7 +507,7 @@ class Tparameter:
             "name": "UInt8",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     int16: None | Tparameter.Int16 = field(
         default=None,
@@ -485,7 +515,7 @@ class Tparameter:
             "name": "Int16",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     uint16: None | Tparameter.Uint16 = field(
         default=None,
@@ -493,7 +523,7 @@ class Tparameter:
             "name": "UInt16",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     int32: None | Tparameter.Int32 = field(
         default=None,
@@ -501,7 +531,7 @@ class Tparameter:
             "name": "Int32",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     uint32: None | Tparameter.Uint32 = field(
         default=None,
@@ -509,7 +539,7 @@ class Tparameter:
             "name": "UInt32",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     int64: None | Tparameter.Int64 = field(
         default=None,
@@ -517,7 +547,7 @@ class Tparameter:
             "name": "Int64",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     uint64: None | Tparameter.Uint64 = field(
         default=None,
@@ -525,7 +555,7 @@ class Tparameter:
             "name": "UInt64",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     boolean: None | Tparameter.Boolean = field(
         default=None,
@@ -533,7 +563,7 @@ class Tparameter:
             "name": "Boolean",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     string: None | Tparameter.String = field(
         default=None,
@@ -541,7 +571,7 @@ class Tparameter:
             "name": "String",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     enumeration: None | Tparameter.Enumeration = field(
         default=None,
@@ -549,7 +579,7 @@ class Tparameter:
             "name": "Enumeration",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     binary: None | Tparameter.Binary = field(
         default=None,
@@ -557,7 +587,7 @@ class Tparameter:
             "name": "Binary",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     dimension: list[Tparameter.Dimension] = field(
         default_factory=list,
@@ -565,7 +595,7 @@ class Tparameter:
             "name": "Dimension",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
-        }
+        },
     )
     annotations: None | Tannotations = field(
         default=None,
@@ -573,19 +603,19 @@ class Tparameter:
             "name": "Annotations",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
     id: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     description: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     name: str = field(
         metadata={
@@ -603,18 +633,19 @@ class Tparameter:
             and must reference one of the unit definitions provided in
             the Units element of the enclosing file.
         """
+
         value: list[float] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
         unit: None | str = field(
             default=None,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -627,18 +658,19 @@ class Tparameter:
             and must reference one of the unit definitions provided in
             the Units element of the enclosing file.
         """
+
         value: list[float] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
         unit: None | str = field(
             default=None,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -651,18 +683,19 @@ class Tparameter:
             and must reference one of the unit definitions provided in
             the Units element of the enclosing file.
         """
+
         value: list[float] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
         unit: None | str = field(
             default=None,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -672,12 +705,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -687,12 +721,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -702,12 +737,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -717,12 +753,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -732,12 +769,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -747,12 +785,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -762,12 +801,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -777,12 +817,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -792,12 +833,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[int] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -807,12 +849,13 @@ class Tparameter:
             Array values are serialized in row-major order, as defined
             in FMI.
         """
+
         value: list[bool] = field(
             default_factory=list,
             metadata={
                 "type": "Attribute",
                 "tokens": True,
-            }
+            },
         )
 
     @dataclass(kw_only=True)
@@ -830,20 +873,21 @@ class Tparameter:
             element CAN be used. In either case, if Value elements are
             used, then this value attribute MUST NOT be present.
         """
+
         value: list[Tparameter.String.Value] = field(
             default_factory=list,
             metadata={
                 "name": "Value",
                 "type": "Element",
                 "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-            }
+            },
         )
         value_attribute: None | str = field(
             default=None,
             metadata={
                 "name": "value",
                 "type": "Attribute",
-            }
+            },
         )
 
         @dataclass(kw_only=True)
@@ -887,26 +931,27 @@ class Tparameter:
             implementations MAY use that information for user interface
             purposes, and/or for additional consistency checking.
         """
+
         value: list[Tparameter.Enumeration.Value] = field(
             default_factory=list,
             metadata={
                 "name": "Value",
                 "type": "Element",
                 "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-            }
+            },
         )
         value_attribute: None | str = field(
             default=None,
             metadata={
                 "name": "value",
                 "type": "Attribute",
-            }
+            },
         )
         name: None | str = field(
             default=None,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
 
         @dataclass(kw_only=True)
@@ -942,20 +987,21 @@ class Tparameter:
             either case, if Value elements are used, then this value
             attribute MUST NOT be present.
         """
+
         value: list[Tparameter.Binary.Value] = field(
             default_factory=list,
             metadata={
                 "name": "Value",
                 "type": "Element",
                 "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-            }
+            },
         )
         mime_type: str = field(
-            default='application/octet-stream',
+            default="application/octet-stream",
             metadata={
                 "name": "mime-type",
                 "type": "Attribute",
-            }
+            },
         )
         value_attribute: None | bytes = field(
             default=None,
@@ -963,7 +1009,7 @@ class Tparameter:
                 "name": "value",
                 "type": "Attribute",
                 "format": "base16",
-            }
+            },
         )
 
         @dataclass(kw_only=True)
@@ -985,19 +1031,22 @@ class Tparameter:
             the connector, e.g. a structural parameter or a constant of
             the underlying component that gives the dimension size.
         """
+
         size: None | int = field(
             default=None,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         size_connector: None | str = field(
             default=None,
             metadata={
                 "name": "sizeConnector",
                 "type": "Attribute",
-            }
+            },
         )
+
+
 @dataclass(kw_only=True)
 class Tenumerations:
     class Meta:
@@ -1011,8 +1060,10 @@ class Tenumerations:
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
             "min_occurs": 1,
-        }
+        },
     )
+
+
 @dataclass(kw_only=True)
 class Tunits:
     class Meta:
@@ -1026,13 +1077,17 @@ class Tunits:
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
             "min_occurs": 1,
-        }
+        },
     )
+
+
 @dataclass(kw_only=True)
 class Tparameters:
     class Meta:
         name = "TParameters"
-        target_namespace = "http://ssp-standard.org/SSP1/SystemStructureParameterValues"
+        target_namespace = (
+            "http://ssp-standard.org/SSP1/SystemStructureParameterValues"
+        )
 
     parameter: list[Tparameter] = field(
         default_factory=list,
@@ -1040,8 +1095,10 @@ class Tparameters:
             "name": "Parameter",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureParameterValues",
-        }
+        },
     )
+
+
 @dataclass(kw_only=True)
 class ParameterSet:
     """
@@ -1078,8 +1135,11 @@ class ParameterSet:
     :ivar generation_date_and_time: This attribute gives the date and
         time this file was generated.
     """
+
     class Meta:
-        namespace = "http://ssp-standard.org/SSP1/SystemStructureParameterValues"
+        namespace = (
+            "http://ssp-standard.org/SSP1/SystemStructureParameterValues"
+        )
 
     parameters: Tparameters = field(
         metadata={
@@ -1092,14 +1152,14 @@ class ParameterSet:
         metadata={
             "name": "Enumerations",
             "type": "Element",
-        }
+        },
     )
     units: None | Tunits = field(
         default=None,
         metadata={
             "name": "Units",
             "type": "Element",
-        }
+        },
     )
     meta_data: list[ParameterSet.MetaData] = field(
         default_factory=list,
@@ -1107,7 +1167,7 @@ class ParameterSet:
             "name": "MetaData",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
-        }
+        },
     )
     signature: list[SignatureType] = field(
         default_factory=list,
@@ -1115,32 +1175,32 @@ class ParameterSet:
             "name": "Signature",
             "type": "Element",
             "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
-        }
+        },
     )
     annotations: None | Tannotations = field(
         default=None,
         metadata={
             "name": "Annotations",
             "type": "Element",
-        }
+        },
     )
     version: str = field(
         metadata={
             "type": "Attribute",
-            "pattern": r'1[.]0|2[.]0',
+            "pattern": r"1[.]0|2[.]0",
         }
     )
     id: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     description: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     name: str = field(
         metadata={
@@ -1151,39 +1211,39 @@ class ParameterSet:
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     fileversion: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     copyright: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     license: None | str = field(
         default=None,
         metadata={
             "type": "Attribute",
-        }
+        },
     )
     generation_tool: None | str = field(
         default=None,
         metadata={
             "name": "generationTool",
             "type": "Attribute",
-        }
+        },
     )
     generation_date_and_time: None | XmlDateTime = field(
         default=None,
         metadata={
             "name": "generationDateAndTime",
             "type": "Attribute",
-        }
+        },
     )
 
     @dataclass(kw_only=True)
@@ -1228,13 +1288,14 @@ class ParameterSet:
             description of the model element, which can be shown to the
             user where appropriate.
         """
+
         content: None | ContentType = field(
             default=None,
             metadata={
                 "name": "Content",
                 "type": "Element",
                 "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
-            }
+            },
         )
         signature: list[SignatureType] = field(
             default_factory=list,
@@ -1242,7 +1303,7 @@ class ParameterSet:
                 "name": "Signature",
                 "type": "Element",
                 "namespace": "http://ssp-standard.org/SSP1/SystemStructureCommon",
-            }
+            },
         )
         kind: MetaDataKind = field(
             metadata={
@@ -1259,24 +1320,24 @@ class ParameterSet:
             default=None,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         source_base: MetaDataSourceBase = field(
             default=MetaDataSourceBase.FILE,
             metadata={
                 "name": "sourceBase",
                 "type": "Attribute",
-            }
+            },
         )
         id: None | str = field(
             default=None,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )
         description: None | str = field(
             default=None,
             metadata={
                 "type": "Attribute",
-            }
+            },
         )

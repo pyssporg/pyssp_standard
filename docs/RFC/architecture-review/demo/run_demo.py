@@ -8,11 +8,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from demo.public_api import PublicSSP, PublicSSV
 
 
-def run_case(case_file: Path):
-    ssp = PublicSSP(ROOT)
-    public_ssv = PublicSSV()
+def run_case(case_file: Path, *, codec_name: str):
+    ssp = PublicSSP(ROOT, ssv_codec_name=codec_name)
+    public_ssv = PublicSSV(codec_name=codec_name)
     ssd = ssp.load_ssd(Path("__data__") / case_file.name)
-    print(f"\n--- {case_file.name} ---")
+    print(f"\n--- {case_file.name} [{codec_name}] ---")
     print("Loaded SSD:", ssd.name, ssd.version)
     print("Components:", len(ssd.components))
     print(
@@ -35,5 +35,5 @@ def run_case(case_file: Path):
     )
 
 
-run_case(ROOT / "__data__" / "mixed_example.ssd")
+run_case(ROOT / "__data__" / "mixed_example.ssd", codec_name="xsdata")
 print("Updated files in:", ROOT / "__data__")

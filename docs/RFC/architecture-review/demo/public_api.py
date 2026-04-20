@@ -6,16 +6,23 @@ from .model.ssv_model import ParameterSet
 from .model.ssd_model import SsdDocument, SsdParameterBinding
 from .validator.semantic_validation import SsdBindingValidator
 from .codec.ssd_codec import SsdBindingCodec
-from .codec.ssv_hybrid_codec import Ssv2HybridCodec
+
+
+def _build_ssv_codec(codec_name: str):
+    if codec_name in {"hybrid", "xsdata"}:
+        from .codec.ssv_hybrid_codec import Ssv2HybridCodec
+
+        return Ssv2HybridCodec()
+    raise ValueError(f"Unknown demo SSV codec '{codec_name}'")
 
 
 class PublicSSD:
     """Public SSD API: XML codec usage only, no external artifact resolution."""
 
-    def __init__(self, path: str | Path, mode: str = "r"):
+    def __init__(self, path: str | Path, mode: str = "r", *, ssv_codec_name: str = "hybrid"):
         self._path = Path(path)
         self._session = ArchiveSession(self._path, mode=mode)
-        self._codec = SsdBindingCodec()
+        self._codec = SsdBindingCodec(ssv_codec=_build_ssv_codec(ssv_codec_name))
         self._validator = SsdBindingValidator()
         self._doc: SsdDocument | None = None
 
@@ -40,8 +47,8 @@ class PublicSSD:
 class PublicSSV:
     """Public SSV API focused on SSV file/model operations."""
 
-    def __init__(self):
-        self._codec = Ssv2HybridCodec()
+    def __init__(self, *, codec_name: str = "hybrid"):
+        self._codec = _build_ssv_codec(codec_name)
 
     def load(self, ssv_path: str | Path) -> ParameterSet:
         session = ArchiveSession(Path(ssv_path), mode="r")
@@ -74,10 +81,10 @@ class PublicSSP:
     XML files and then resolving references with explicit internal/external flags.
     """
 
-    def __init__(self, root_dir: str | Path):
+    def __init__(self, root_dir: str | Path, *, ssv_codec_name: str = "hybrid"):
         self.root_dir = Path(root_dir)
-        self._ssd_codec = SsdBindingCodec()
-        self._public_ssv = PublicSSV()
+        self._ssd_codec = SsdBindingCodec(ssv_codec=_build_ssv_codec(ssv_codec_name))
+        self._public_ssv = PublicSSV(codec_name=ssv_codec_name)
 
     def load_ssd(self, ssd_path: str | Path) -> SsdDocument:
         ssd_path = self.root_dir / Path(ssd_path)

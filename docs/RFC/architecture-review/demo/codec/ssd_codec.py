@@ -1,7 +1,6 @@
 from xml.etree import ElementTree as ET
 
 from ..model.ssd_model import SsdDocument, SsdParameterBinding
-from .ssv_hybrid_codec import Ssv2HybridCodec
 
 
 NS_SSD = "http://ssp-standard.org/SSP1/SystemStructureDescription"
@@ -10,8 +9,12 @@ NS_SSD = "http://ssp-standard.org/SSP1/SystemStructureDescription"
 class SsdBindingCodec:
     """Handwritten SSD codec: XML <-> domain only, no file/resource I/O."""
 
-    def __init__(self):
-        self._ssv_codec = Ssv2HybridCodec()
+    def __init__(self, ssv_codec=None):
+        if ssv_codec is None:
+            from .ssv_hybrid_codec import Ssv2HybridCodec
+
+            ssv_codec = Ssv2HybridCodec()
+        self._ssv_codec = ssv_codec
 
     def parse(self, xml_text: str) -> SsdDocument:
         root = ET.fromstring(xml_text)

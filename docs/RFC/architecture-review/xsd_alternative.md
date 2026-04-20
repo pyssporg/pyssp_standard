@@ -1,6 +1,8 @@
 ## Alternative Architecture: xsdata-Centric
 `xsdata` is a schema-driven XML binding tool that can generate Python dataclasses and serializers/deserializers from XSD files.
 
+Leave the solution open for this later, do not implement it as of now
+
 ### What an xsdata-centric architecture would look like
 - Generate model classes from SSP/FMI XSDs.
 - Use generated parsers/serializers as primary XML codec path.

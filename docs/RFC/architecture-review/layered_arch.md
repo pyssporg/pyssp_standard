@@ -24,6 +24,15 @@ Design choices:
 - Mutating operations always mark dirty.
 - Context manager keeps compatibility; explicit save is preferred internally.
 
+#### Archive Strategy
+
+Full unpack to temp dir
+
+  - Pros: simplest mental model, easy random file edits, works with existing code.
+  - Cons: slow for large archives, high disk usage, risky extractall path handling, hard to do atomic saves.
+  - Fit: good baseline, but should be hardened (safe extraction + atomic write + better dirty tracking).
+
+
 ### 2) Domain Model Layer (`model`)
 Responsibility:
 - Canonical typed objects for SSP/FMI constructs, independent of XML library types.
