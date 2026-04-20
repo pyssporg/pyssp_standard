@@ -16,23 +16,8 @@ class SsvDocumentMetadata:
     generation_tool: str | None = None
     generation_date_and_time: str | None = None
 
-    @property
-    def generationTool(self) -> str | None:
-        return self.generation_tool
 
-    @generationTool.setter
-    def generationTool(self, value: str | None) -> None:
-        self.generation_tool = value
-
-    @property
-    def generationDateAndTime(self) -> str | None:
-        return self.generation_date_and_time
-
-    @generationDateAndTime.setter
-    def generationDateAndTime(self, value: str | None) -> None:
-        self.generation_date_and_time = value
-
-
+# TODO: Should most likely map to the common ssp unit
 @dataclass
 class SsvBaseUnit:
     kg: int | None = None
@@ -47,21 +32,17 @@ class SsvBaseUnit:
     offset: float | None = None
 
     @classmethod
-    def from_dict(cls, base_unit: dict[str, object]) -> SsvBaseUnit:
-        int_fields = {"kg", "m", "s", "A", "K", "mol", "cd", "rad"}
-        float_fields = {"factor", "offset"}
-        values: dict[str, int | float] = {}
-        for key, value in base_unit.items():
-            if value is None:
-                continue
-            mapped_key = {"A": "a", "K": "k"}.get(key, key)
-            if mapped_key in {"kg", "m", "s", "a", "k", "mol", "cd", "rad"}:
-                values[mapped_key] = int(value) if key in int_fields or mapped_key in {"a", "k"} else int(value)
-            elif mapped_key in float_fields:
-                values[mapped_key] = float(value)
-        return cls(**values)
+    def from_dict(cls, data: dict[str, object]) -> "SsvBaseUnit":
+        normalized: dict[str, object] = {}
+        for key, value in data.items():
+            target_key = key.lower() if key in {"A", "K"} else key
+            if target_key in cls.__dataclass_fields__:
+                normalized[target_key] = value
+        return cls(**normalized)
 
 
+
+# TODO: Should most likely map to the common ssp unit
 @dataclass
 class SsvUnit:
     name: str
