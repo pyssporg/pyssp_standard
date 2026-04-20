@@ -8,8 +8,8 @@ import os
 import warnings
 from lxml import etree as ET
 
-from pyssp_standard.common_content_ssc import Annotations, Annotation, BaseElement, TopLevelMetaData
-from pyssp_standard.standard import ModelicaStandard
+from pyssp_standard_v1.common_content_ssc import Annotations, Annotation, BaseElement, TopLevelMetaData
+from pyssp_standard_v1.standard import ModelicaStandard
 
 
 def register_namespaces():

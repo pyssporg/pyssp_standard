@@ -3,8 +3,8 @@ from dataclasses import dataclass, asdict
 from lxml import etree as ET
 from lxml.etree import QName
 
-from pyssp_standard.utils import SSPElement
-from pyssp_standard.standard import ModelicaStandard
+from pyssp_standard_v1.utils import SSPElement
+from pyssp_standard_v1.standard import ModelicaStandard
 
 
 @dataclass

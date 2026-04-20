@@ -6,7 +6,7 @@ from lxml import etree as ET
 from lxml.etree import QName
 from dataclasses import dataclass, asdict, fields, field
 
-from pyssp_standard.standard import ModelicaStandard
+from pyssp_standard_v1.standard import ModelicaStandard
 
 
 class Annotation(ModelicaStandard):  # TODO needs to read and not just create

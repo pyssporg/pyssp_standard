@@ -2,12 +2,12 @@ from lxml import etree as ET
 from typing import TypedDict, List
 from lxml.etree import QName
 
-from pyssp_standard.common_content_ssc import Enumerations
-from pyssp_standard.parameter_types import ParameterType
+from pyssp_standard_v1.common_content_ssc import Enumerations
+from pyssp_standard_v1.parameter_types import ParameterType
 
-from pyssp_standard.unit import BaseUnit, Unit, Units
-from pyssp_standard.utils import ModelicaXMLFile
-from pyssp_standard.unit_conversion import generate_base_unit
+from pyssp_standard_v1.unit import BaseUnit, Unit, Units
+from pyssp_standard_v1.utils import ModelicaXMLFile
+from pyssp_standard_v1.unit_conversion import generate_base_unit
 
 
 class Parameter(TypedDict):

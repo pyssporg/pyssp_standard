@@ -4,13 +4,13 @@ import zipfile
 import shutil
 from pathlib import Path, PosixPath
 import warnings
-from pyssp_standard.ssd import SSD
-from pyssp_standard.ssb import SSB
-from pyssp_standard.ssv import SSV
-from pyssp_standard.ssm import SSM
-from pyssp_standard.fmu import FMU
-from pyssp_standard.standard import ModelicaStandard
-from pyssp_standard.utils import ZIPFile
+from pyssp_standard_v1.ssd import SSD
+from pyssp_standard_v1.ssb import SSB
+from pyssp_standard_v1.ssv import SSV
+from pyssp_standard_v1.ssm import SSM
+from pyssp_standard_v1.fmu import FMU
+from pyssp_standard_v1.standard import ModelicaStandard
+from pyssp_standard_v1.utils import ZIPFile
 
 
 class VariantsProxy:

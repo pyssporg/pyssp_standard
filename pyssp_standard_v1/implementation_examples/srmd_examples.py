@@ -5,7 +5,7 @@ Created on Thu Sep 14 14:14:27 2023
 @author: robha67
 """
 
-from pyssp_standard import SRMD, Classification, ClassificationEntry
+from pyssp_standard_v1 import SRMD, Classification, ClassificationEntry
 
 
 def create_credibilityinfo_srmd(write_file):

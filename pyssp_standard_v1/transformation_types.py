@@ -2,7 +2,7 @@ from typing import TypedDict
 from lxml import etree as ET
 from lxml.etree import QName
 
-from pyssp_standard.standard import ModelicaStandard
+from pyssp_standard_v1.standard import ModelicaStandard
 
 
 class Transformation(ModelicaStandard):

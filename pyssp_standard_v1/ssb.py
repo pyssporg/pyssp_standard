@@ -1,8 +1,8 @@
 
-from pyssp_standard.parameter_types import ParameterType
-from pyssp_standard.common_content_ssc import Annotations, Enumerations, Enumeration
-from pyssp_standard.unit import Units
-from pyssp_standard.utils import ModelicaXMLFile
+from pyssp_standard_v1.parameter_types import ParameterType
+from pyssp_standard_v1.common_content_ssc import Annotations, Enumerations, Enumeration
+from pyssp_standard_v1.unit import Units
+from pyssp_standard_v1.utils import ModelicaXMLFile
 from lxml import etree as ET
 from lxml.etree import QName
 from typing import TypedDict

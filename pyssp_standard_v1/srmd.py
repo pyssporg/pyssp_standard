@@ -2,9 +2,9 @@ import os
 import pathlib
 
 import hashlib
-from pyssp_standard.utils import ModelicaXMLFile, XMLFile, BaseElement
-from pyssp_standard.standard import ModelicaStandard
-from pyssp_standard.common_content_ssc import BaseElement
+from pyssp_standard_v1.utils import ModelicaXMLFile, XMLFile, BaseElement
+from pyssp_standard_v1.standard import ModelicaStandard
+from pyssp_standard_v1.common_content_ssc import BaseElement
 from lxml import etree as et
 from lxml.etree import QName
 

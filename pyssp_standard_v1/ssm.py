@@ -1,6 +1,6 @@
-from pyssp_standard.transformation_types import Transformation
-from pyssp_standard.common_content_ssc import Annotations, Annotation
-from pyssp_standard.utils import ModelicaXMLFile
+from pyssp_standard_v1.transformation_types import Transformation
+from pyssp_standard_v1.common_content_ssc import Annotations, Annotation
+from pyssp_standard_v1.utils import ModelicaXMLFile
 from lxml import etree as et
 from lxml.etree import QName
 from typing import TypedDict
