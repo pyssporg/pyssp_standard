@@ -67,8 +67,5 @@ Add explicit test buckets:
 - Orchestrator tests (cross-file resolution behavior).
 - Schema validation tests at full-document boundaries.
 
-## Migration Guidance
-- Preserve existing file-level public APIs for compatibility.
-- Internally refactor those APIs to call document adapters.
-- Move shared fragment logic into element codecs incrementally.
-- Add regression tests before switching each module.
+
+Lets go with the recommended hybrid

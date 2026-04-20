@@ -10,8 +10,8 @@
 - Codex architecture review (based on repository analysis and maintainers' priorities)
 
 ## Decision Drivers
-- Backward compatibility is strict for existing public API behavior.
-- Near-term feature priority is full SSP2 plus FMI2/FMI3 support.
+
+- Near-term feature priority is full SSP1/SSP2 plus FMI2/FMI3 support.
 - The project should be a robust authoring/editing SDK, not only an inspection utility.
 - Current codebase has correctness and consistency gaps that slow feature delivery.
 
@@ -25,16 +25,11 @@ The current architecture mixes archive I/O, XML parsing, mutable in-memory state
 
 ## Goals
 - Preserve existing public API behavior while introducing a stronger internal architecture.
-- Deliver full SSP2 and FMI2/FMI3 support.
+- Deliver full SSP1/2 and FMI2/FMI3 support.
 - Improve authoring/editing ergonomics with deterministic save semantics.
 - Improve maintainability through clearer layering and testable boundaries.
 
-## Non-Goals
-- Large one-shot rewrite of all modules.
-- Breaking file format behavior for existing users.
-
 ## Constraints and Assumptions
-- Existing package exports in `pyssp_standard/__init__.py` remain available.
 - Context-manager workflows (`with SSP(...) as ssp`) remain supported.
 - Existing serialized outputs should remain schema-compliant and functionally equivalent.
 - Migration should be incremental with compatibility adapters.

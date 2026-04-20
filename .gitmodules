@@ -1,0 +1,12 @@
+[submodule "3rdParty/SSP1"]
+	path = 3rdParty/SSP1
+	url = https://github.com/modelica/ssp-standard
+[submodule "3rdParty/FMI3"]
+	path = 3rdParty/FMI3
+	url = https://github.com/modelica/fmi-standard
+[submodule "3rdParty/SSP2"]
+	path = 3rdParty/SSP2
+	url = git@github.com:modelica/ssp-standard.git
+[submodule "3rdParty/FMI2"]
+	path = 3rdParty/FMI2
+	url = https://github.com/modelica/fmi-standard
