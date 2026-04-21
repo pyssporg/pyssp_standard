@@ -4,23 +4,23 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class SsmTransformation:
+class Ssp1Transformation:
     type_name: str
     attributes: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
-class SsmMappingEntry:
+class Ssp1MappingEntry:
     source: str
     target: str
     suppress_unit_conversion: bool | None = None
-    transformation: SsmTransformation | None = None
+    transformation: Ssp1Transformation | None = None
 
 
 @dataclass
-class SsmParameterMapping:
+class Ssp1ParameterMapping:
     version: str
-    mappings: list[SsmMappingEntry] = field(default_factory=list)
+    mappings: list[Ssp1MappingEntry] = field(default_factory=list)
 
     def add_mapping(
         self,
@@ -28,9 +28,9 @@ class SsmParameterMapping:
         target: str,
         *,
         suppress_unit_conversion: bool | None = None,
-        transformation: SsmTransformation | None = None,
-    ) -> SsmMappingEntry:
-        mapping = SsmMappingEntry(
+        transformation: Ssp1Transformation | None = None,
+    ) -> Ssp1MappingEntry:
+        mapping = Ssp1MappingEntry(
             source=source,
             target=target,
             suppress_unit_conversion=suppress_unit_conversion,
@@ -45,8 +45,8 @@ class SsmParameterMapping:
         target: str,
         source: str | None = None,
         suppress_unit_conversion: bool | None = None,
-        transformation: SsmTransformation | None = None,
-    ) -> SsmMappingEntry:
+        transformation: Ssp1Transformation | None = None,
+    ) -> Ssp1MappingEntry:
         for mapping in self.mappings:
             if mapping.target != target:
                 continue

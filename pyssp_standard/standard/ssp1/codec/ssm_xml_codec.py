@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from xml.etree import ElementTree as ET
 
-from pyssp_standard.standard.ssp1.model.ssm_model import SsmParameterMapping, SsmMappingEntry, SsmTransformation
+from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping, Ssp1MappingEntry, Ssp1Transformation
 
 
 NS_SSM = "http://ssp-standard.org/SSP1/SystemStructureParameterMapping"
@@ -12,17 +12,17 @@ NS_SSC = "http://ssp-standard.org/SSP1/SystemStructureCommon"
 class Ssp1SsmXmlCodec:
     """Direct SSP1 SSM XML codec without generated bindings or archive logic."""
 
-    def parse(self, xml_text: str) -> SsmParameterMapping:
+    def parse(self, xml_text: str) -> Ssp1ParameterMapping:
         root = ET.fromstring(xml_text)
         if root.tag != f"{{{NS_SSM}}}ParameterMapping":
             raise ValueError(f"Unexpected SSM root tag '{root.tag}'")
 
-        document = SsmParameterMapping(version=root.attrib.get("version", "1.0"))
+        document = Ssp1ParameterMapping(version=root.attrib.get("version", "1.0"))
         for child in list(root):
             if self._local_name(child.tag) != "MappingEntry":
                 continue
             document.mappings.append(
-                SsmMappingEntry(
+                Ssp1MappingEntry(
                     source=child.attrib.get("source", ""),
                     target=child.attrib.get("target", ""),
                     suppress_unit_conversion=self._parse_bool(child.attrib.get("suppressUnitConversion")),
@@ -31,7 +31,7 @@ class Ssp1SsmXmlCodec:
             )
         return document
 
-    def serialize(self, document: SsmParameterMapping) -> str:
+    def serialize(self, document: Ssp1ParameterMapping) -> str:
         ET.register_namespace("ssm", NS_SSM)
         ET.register_namespace("ssc", NS_SSC)
         root = ET.Element(f"{{{NS_SSM}}}ParameterMapping", attrib={"version": document.version})
@@ -50,9 +50,9 @@ class Ssp1SsmXmlCodec:
         ET.indent(tree, space="  ")
         return ET.tostring(root, encoding="unicode")
 
-    def _read_transformation(self, mapping_entry: ET.Element) -> SsmTransformation | None:
+    def _read_transformation(self, mapping_entry: ET.Element) -> Ssp1Transformation | None:
         for child in list(mapping_entry):
-            return SsmTransformation(
+            return Ssp1Transformation(
                 type_name=self._local_name(child.tag),
                 attributes=dict(child.attrib),
             )

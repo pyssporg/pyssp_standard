@@ -4,7 +4,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from pyssp_standard.standard.ssp1.model.ssd_model import SsdSystemStructureDescription
+from pyssp_standard.standard.ssp1.model.ssd_model import Ssd1SystemStructureDescription
 
 
 class Ssp1SsdSchemaValidator:
@@ -31,7 +31,7 @@ class Ssp1SsdSchemaValidator:
 
 
 class Ssp1SsdSemanticValidator:
-    def validate(self, model: SsdSystemStructureDescription) -> None:
+    def validate(self, model: Ssd1SystemStructureDescription) -> None:
         if model.system is None:
             raise ValueError("SSD document must contain a root system")
 
@@ -58,6 +58,6 @@ class Ssp1SsdValidator:
         self.schema_validator = schema_validator or Ssp1SsdSchemaValidator()
         self.semantic_validator = semantic_validator or Ssp1SsdSemanticValidator()
 
-    def validate(self, model: SsdSystemStructureDescription, xml_text: str) -> None:
+    def validate(self, model: Ssd1SystemStructureDescription, xml_text: str) -> None:
         self.semantic_validator.validate(model)
         self.schema_validator.validate_xml(xml_text)

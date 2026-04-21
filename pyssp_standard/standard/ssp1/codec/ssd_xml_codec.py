@@ -3,12 +3,12 @@ from __future__ import annotations
 from xml.etree import ElementTree as ET
 
 from pyssp_standard.standard.ssp1.model.ssd_model import (
-    SsdComponent,
-    SsdConnection,
-    SsdConnector,
-    SsdDefaultExperiment,
-    SsdSystemStructureDescription,
-    SsdSystem,
+    Ssd1Component,
+    Ssd1Connection,
+    Ssd1Connector,
+    Ssd1DefaultExperiment,
+    Ssd1SystemStructureDescription,
+    Ssd1System,
 )
 
 
@@ -20,11 +20,11 @@ TYPE_TAGS = {"Real", "Integer", "Boolean", "String", "Enumeration", "Binary"}
 class Ssp1SsdXmlCodec:
     """Direct SSP1 SSD XML codec without generated bindings or archive logic."""
 
-    def parse(self, xml_text: str) -> SsdSystemStructureDescription:
+    def parse(self, xml_text: str) -> Ssd1SystemStructureDescription:
         root = ET.fromstring(xml_text)
         self._require_root(root, "SystemStructureDescription")
 
-        document = SsdSystemStructureDescription(
+        document = Ssd1SystemStructureDescription(
             name=root.attrib.get("name", ""),
             version=root.attrib.get("version", "1.0"),
         )
@@ -34,13 +34,13 @@ class Ssp1SsdXmlCodec:
 
         default_experiment = root.find(f"{{{NS_SSD}}}DefaultExperiment")
         if default_experiment is not None:
-            document.default_experiment = SsdDefaultExperiment(
+            document.default_experiment = Ssd1DefaultExperiment(
                 start_time=self._parse_float(default_experiment.attrib.get("startTime")),
                 stop_time=self._parse_float(default_experiment.attrib.get("stopTime")),
             )
         return document
 
-    def serialize(self, document: SsdSystemStructureDescription) -> str:
+    def serialize(self, document: Ssd1SystemStructureDescription) -> str:
         root = ET.Element(
             f"{{{NS_SSD}}}SystemStructureDescription",
             attrib={"name": document.name, "version": document.version},
@@ -62,8 +62,8 @@ class Ssp1SsdXmlCodec:
         ET.indent(tree, space="  ")
         return ET.tostring(root, encoding="unicode")
 
-    def _read_system(self, element: ET.Element) -> SsdSystem:
-        system = SsdSystem(name=element.attrib.get("name", ""))
+    def _read_system(self, element: ET.Element) -> Ssd1System:
+        system = Ssd1System(name=element.attrib.get("name", ""))
 
         connectors = element.find(f"{{{NS_SSD}}}Connectors")
         if connectors is not None:
@@ -74,7 +74,7 @@ class Ssp1SsdXmlCodec:
             for child in list(elements):
                 if self._local_name(child.tag) != "Component":
                     continue
-                component = SsdComponent(
+                component = Ssd1Component(
                     name=child.attrib.get("name", ""),
                     source=child.attrib.get("source", ""),
                     component_type=child.attrib.get("type"),
@@ -88,7 +88,7 @@ class Ssp1SsdXmlCodec:
         connections = element.find(f"{{{NS_SSD}}}Connections")
         if connections is not None:
             system.connections = [
-                SsdConnection(
+                Ssd1Connection(
                     start_element=connection.attrib.get("startElement"),
                     start_connector=connection.attrib.get("startConnector", ""),
                     end_element=connection.attrib.get("endElement"),
@@ -99,7 +99,7 @@ class Ssp1SsdXmlCodec:
             ]
         return system
 
-    def _write_system(self, system: SsdSystem) -> ET.Element:
+    def _write_system(self, system: Ssd1System) -> ET.Element:
         element = ET.Element(f"{{{NS_SSD}}}System", attrib={"name": system.name})
 
         if system.connectors:
@@ -135,7 +135,7 @@ class Ssp1SsdXmlCodec:
 
         return element
 
-    def _read_connector(self, element: ET.Element) -> SsdConnector:
+    def _read_connector(self, element: ET.Element) -> Ssd1Connector:
         type_name = None
         type_attributes: dict[str, str] = {}
         for child in list(element):
@@ -144,14 +144,14 @@ class Ssp1SsdXmlCodec:
                 type_name = local_name
                 type_attributes = dict(child.attrib)
                 break
-        return SsdConnector(
+        return Ssd1Connector(
             name=element.attrib.get("name", ""),
             kind=element.attrib.get("kind", ""),
             type_name=type_name,
             type_attributes=type_attributes,
         )
 
-    def _write_connector(self, connector: SsdConnector) -> ET.Element:
+    def _write_connector(self, connector: Ssd1Connector) -> ET.Element:
         element = ET.Element(
             f"{{{NS_SSD}}}Connector",
             attrib={"name": connector.name, "kind": connector.kind},

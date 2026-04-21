@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 from pyssp_standard.ssm import SSM
-from pyssp_standard.transformation_types import Transformation
+from pyssp_standard.common.transformation_types import Transformation
 from lxml.etree import _Element
 
 

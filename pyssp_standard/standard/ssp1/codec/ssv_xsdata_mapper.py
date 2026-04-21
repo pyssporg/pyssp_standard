@@ -2,27 +2,27 @@ from __future__ import annotations
 
 from pyssp_standard.standard.ssp1.generated.ssv_generated_types import ParameterSet, Tparameter, Tparameters, Tunits, Tunit
 from pyssp_standard.standard.ssp1.model.ssv_model import (
-    SsvBaseUnit,
-    SsvDocumentMetadata,
-    SsvParameter,
-    SsvParameterSet,
-    SsvUnit,
+    Ssp1BaseUnit,
+    Ssp1DocumentMetadata,
+    Ssp1Parameter,
+    Ssp1ParameterSet,
+    Ssp1Unit,
 )
 
 
 class Ssp1SsvXsdataMapper:
     
-    def read_parameterset(self, generated: ParameterSet) -> SsvParameterSet:
-        parameters: list[SsvParameter] = []
+    def read_parameterset(self, generated: ParameterSet) -> Ssp1ParameterSet:
+        parameters: list[Ssp1Parameter] = []
         for entry in generated.parameters.parameter:
             ptype, attrs = self._read_parameter(entry)
             if ptype is None:
                 continue
-            parameters.append(SsvParameter(name=entry.name, type_name=ptype, attributes=attrs))
+            parameters.append(Ssp1Parameter(name=entry.name, type_name=ptype, attributes=attrs))
 
         units = [self._read_unit(entry) for entry in generated.units.unit] if generated.units is not None else []
 
-        metadata = SsvDocumentMetadata(
+        metadata = Ssp1DocumentMetadata(
             id=generated.id,
             description=generated.description,
             author=generated.author,
@@ -35,7 +35,7 @@ class Ssp1SsvXsdataMapper:
             else None,
         )
 
-        return SsvParameterSet(
+        return Ssp1ParameterSet(
             name=generated.name,
             version=generated.version,
             metadata=metadata,
@@ -43,7 +43,7 @@ class Ssp1SsvXsdataMapper:
             units=units,
         )
 
-    def write_parameterset(self, model: SsvParameterSet) -> ParameterSet:
+    def write_parameterset(self, model: Ssp1ParameterSet) -> ParameterSet:
         units = Tunits(unit=[self._write_unit(unit) for unit in model.units]) if model.units else None
         return ParameterSet(
             version=model.version,
@@ -61,13 +61,13 @@ class Ssp1SsvXsdataMapper:
         )
 
     @staticmethod
-    def _read_unit(entry: Tunit) -> SsvUnit:
+    def _read_unit(entry: Tunit) -> Ssp1Unit:
         base = entry.base_unit
-        return SsvUnit(
+        return Ssp1Unit(
             name=entry.name,
             id=entry.id,
             description=entry.description,
-            base_unit=SsvBaseUnit(
+            base_unit=Ssp1BaseUnit(
                 kg=base.kg,
                 m=base.m,
                 s=base.s,
@@ -82,7 +82,7 @@ class Ssp1SsvXsdataMapper:
         )
 
     @staticmethod
-    def _write_unit(unit: SsvUnit) -> Tunit:
+    def _write_unit(unit: Ssp1Unit) -> Tunit:
         return Tunit(
             name=unit.name,
             id=unit.id,
@@ -127,7 +127,7 @@ class Ssp1SsvXsdataMapper:
         return None, {}
 
     @staticmethod
-    def _write_parameter(param: SsvParameter) -> Tparameter:
+    def _write_parameter(param: Ssp1Parameter) -> Tparameter:
         attrs = param.attributes
         if param.type_name == "Real":
             return Tparameter(

@@ -6,7 +6,7 @@ from pyssp_standard.standard.unit_conversion import generate_base_unit
 
 
 @dataclass
-class SsvDocumentMetadata:
+class Ssp1DocumentMetadata:
     id: str | None = None
     description: str | None = None
     author: str | None = None
@@ -19,7 +19,7 @@ class SsvDocumentMetadata:
 
 # TODO: Should most likely map to the common ssp unit
 @dataclass
-class SsvBaseUnit:
+class Ssp1BaseUnit:
     kg: int | None = None
     m: int | None = None
     s: int | None = None
@@ -32,7 +32,7 @@ class SsvBaseUnit:
     offset: float | None = None
 
     @classmethod
-    def from_dict(cls, data: dict[str, object]) -> "SsvBaseUnit":
+    def from_dict(cls, data: dict[str, object]) -> "Ssp1BaseUnit":
         normalized: dict[str, object] = {}
         for key, value in data.items():
             target_key = key.lower() if key in {"A", "K"} else key
@@ -44,27 +44,27 @@ class SsvBaseUnit:
 
 # TODO: Should most likely map to the common ssp unit
 @dataclass
-class SsvUnit:
+class Ssp1Unit:
     name: str
-    base_unit: SsvBaseUnit
+    base_unit: Ssp1BaseUnit
     id: str | None = None
     description: str | None = None
 
 
 @dataclass
-class SsvParameter:
+class Ssp1Parameter:
     name: str
     type_name: str
     attributes: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
-class SsvParameterSet:
+class Ssp1ParameterSet:
     name: str
     version: str
-    metadata: SsvDocumentMetadata = field(default_factory=SsvDocumentMetadata)
-    parameters: list[SsvParameter] = field(default_factory=list)
-    units: list[SsvUnit] = field(default_factory=list)
+    metadata: Ssp1DocumentMetadata = field(default_factory=Ssp1DocumentMetadata)
+    parameters: list[Ssp1Parameter] = field(default_factory=list)
+    units: list[Ssp1Unit] = field(default_factory=list)
 
     def add_parameter(
         self,
@@ -75,7 +75,7 @@ class SsvParameterSet:
         name: str = None,
         mimetype: str | None = None,
         unit: str | None = None,
-    ) -> SsvParameter:
+    ) -> Ssp1Parameter:
         attributes: dict[str, str] = {}
         if value is not None:
             attributes["value"] = str(value)
@@ -86,15 +86,15 @@ class SsvParameterSet:
         if unit is not None:
             attributes["unit"] = unit
 
-        parameter = SsvParameter(name=parname, type_name=ptype, attributes=attributes)
+        parameter = Ssp1Parameter(name=parname, type_name=ptype, attributes=attributes)
         self.parameters.append(parameter)
         return parameter
 
-    def add_unit(self, name: str, base_unit: dict[str, object] | None = None) -> SsvUnit:
+    def add_unit(self, name: str, base_unit: dict[str, object] | None = None) -> Ssp1Unit:
         if base_unit is None:
             base_unit = generate_base_unit(name)
 
-        unit = SsvUnit(name=name, base_unit=SsvBaseUnit.from_dict(base_unit))
+        unit = Ssp1Unit(name=name, base_unit=Ssp1BaseUnit.from_dict(base_unit))
         existing = self.get_unit(name)
         if existing is None:
             self.units.append(unit)
@@ -111,7 +111,7 @@ class SsvParameterSet:
             existing.base_unit = unit.base_unit
         return existing
 
-    def get_unit(self, name: str) -> SsvUnit | None:
+    def get_unit(self, name: str) -> Ssp1Unit | None:
         for unit in self.units:
             if unit.name == name:
                 return unit

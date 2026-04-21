@@ -3,12 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from pyssp_standard.standard.ssp1.codec.ssv_xsdata_codec import Ssp1SsvXsdataCodec
-from pyssp_standard.standard.ssp1.model.ssv_model import SsvParameterSet
+from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1ParameterSet
 from pyssp_standard.standard.ssp1.validation import Ssp1SsvValidator
-from pyssp_standard.xml_document import XmlDocumentFacade
+from pyssp_standard.common.xml_document import XmlDocumentFacade
 
 
-class SSV(XmlDocumentFacade[SsvParameterSet]):
+class SSV(XmlDocumentFacade[Ssp1ParameterSet]):
     """Public SSV facade following the layered package layout."""
 
     def __init__(self, path: str | Path, mode: str = "r"):
@@ -16,8 +16,8 @@ class SSV(XmlDocumentFacade[SsvParameterSet]):
         self._codec = Ssp1SsvXsdataCodec()
         self._validator = Ssp1SsvValidator()
 
-    def _create_document(self) -> SsvParameterSet:
-        return SsvParameterSet(name=self.path.stem or "parameters", version="2.0")
+    def _create_document(self) -> Ssp1ParameterSet:
+        return Ssp1ParameterSet(name=self.path.stem or "parameters", version="2.0")
 
     @property
     def parameters(self):

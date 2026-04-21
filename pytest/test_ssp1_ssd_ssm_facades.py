@@ -5,7 +5,7 @@ from pathlib import Path
 from pyssp_standard.ssd import Component, Connection, Connector, DefaultExperiment, SSD, System
 from pyssp_standard.ssm import SSM
 from pyssp_standard.standard.ssp1.codec import Ssp1SsdXmlCodec, Ssp1SsmXmlCodec
-from pyssp_standard.transformation_types import Transformation
+from pyssp_standard.common.transformation_types import Transformation
 
 
 SSD_FIXTURE = Path("pytest/doc/embrace/SystemStructure.ssd")

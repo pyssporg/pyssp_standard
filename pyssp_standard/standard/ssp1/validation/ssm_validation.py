@@ -4,7 +4,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from pyssp_standard.standard.ssp1.model.ssm_model import SsmParameterMapping
+from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
 
 
 class Ssp1SsmSchemaValidator:
@@ -31,7 +31,7 @@ class Ssp1SsmSchemaValidator:
 
 
 class Ssp1SsmSemanticValidator:
-    def validate(self, model: SsmParameterMapping) -> None:
+    def validate(self, model: Ssp1ParameterMapping) -> None:
         seen_targets: set[str] = set()
         for mapping in model.mappings:
             if mapping.target in seen_targets:
@@ -49,6 +49,6 @@ class Ssp1SsmValidator:
         self.schema_validator = schema_validator or Ssp1SsmSchemaValidator()
         self.semantic_validator = semantic_validator or Ssp1SsmSemanticValidator()
 
-    def validate(self, model: SsmParameterMapping, xml_text: str) -> None:
+    def validate(self, model: Ssp1ParameterMapping, xml_text: str) -> None:
         self.semantic_validator.validate(model)
         self.schema_validator.validate_xml(xml_text)

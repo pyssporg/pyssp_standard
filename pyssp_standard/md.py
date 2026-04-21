@@ -5,7 +5,7 @@ from pathlib import Path
 from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
 from pyssp_standard.standard.fmi2.model import Fmi2ModelDescriptionDocument
 from pyssp_standard.standard.fmi2.validation import Fmi2ModelDescriptionValidator
-from pyssp_standard.xml_document import XmlDocumentFacade
+from pyssp_standard.common.xml_document import XmlDocumentFacade
 
 
 class ModelDescription(XmlDocumentFacade[Fmi2ModelDescriptionDocument]):
