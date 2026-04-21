@@ -24,6 +24,8 @@ Connector = Ssd1Connector
 ParameterBinding = Ssd1ParameterBinding
 
 
+# Should we break out the context manager from all the file and archive based type to better handle external dependencies?
+
 class SSD(XmlDocumentFacade[Ssd1SystemStructureDescription]):
     """Public SSD facade.
 

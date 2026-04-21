@@ -106,5 +106,15 @@ class SSP:
     def system_structure(self) -> _SspSystemStructureFacade:
         workdir = self._archive._require_workdir()
         ssd_path = workdir / "SystemStructure.ssd"
-        # opening the ssp in w should not create a new SSD, change to a
+        if self.mode == "w" and not ssd_path.exists():
+            ssd_path.write_text(
+                (
+                    '<?xml version="1.0" encoding="UTF-8"?>\n'
+                    '<ssd:SystemStructureDescription xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription" '
+                    'name="SystemStructure" version="1.0">\n'
+                    '  <ssd:System name="system"/>\n'
+                    '</ssd:SystemStructureDescription>\n'
+                ),
+                encoding="utf-8",
+            )
         return _SspSystemStructureFacade(ssd_path, mode="a" if self.mode == "w" else self.mode)

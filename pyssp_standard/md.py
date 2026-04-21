@@ -48,6 +48,11 @@ class ModelDescription(XmlDocumentFacade[Fmi2ModelDescriptionDocument]):
     def get(self, causality: str | None = None, variability: str | None = None):
         return self.document.get(causality=causality, variability=variability)
 
+    def load_document(self) -> Fmi2ModelDescriptionDocument:
+        if self._xml_text is not None:
+            return self._codec.parse(self._xml_text)
+        return super().load_document()
+
     def _create_document(self) -> Fmi2ModelDescriptionDocument:
         return Fmi2ModelDescriptionDocument(
             root=None,

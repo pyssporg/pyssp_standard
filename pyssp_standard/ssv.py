@@ -17,7 +17,7 @@ class SSV(XmlDocumentFacade[Ssp1ParameterSet]):
         self._validator = Ssp1SsvValidator()
 
     def _create_document(self) -> Ssp1ParameterSet:
-        return Ssp1ParameterSet(name=self.path.stem or "parameters", version="2.0")
+        return Ssp1ParameterSet(name=self.path.stem or "parameters", version="1.0")
 
     @property
     def parameters(self):

@@ -11,6 +11,7 @@ from demo.generated.generate_ssv_bindings import generate_bindings
 from demo.codec.ssv_hybrid_codec import Ssv2HybridCodec
 from demo.public_api import PublicSSP
 
+
 SSV_FIXTURE = DEMO_ROOT / "__data__" / "external_values.ssv"
 
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 from pyssp_standard.tools.xsdata_generation import TARGETS
@@ -17,7 +19,7 @@ def test_generation_targets_have_separated_versioned_outputs():
     assert ssp2.schema_path.name == "SystemStructureParameterValues.xsd"
 
 
-def test_generation_targets_paths_are_repo_relative():
+def test_generation_target_paths_are_repo_relative():
     for target in TARGETS.values():
         assert target.schema_path.is_absolute()
         assert target.output_path.is_absolute()

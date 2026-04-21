@@ -214,6 +214,8 @@ class Fmi2ModelDescriptionXmlCodec:
         return unknowns
 
     def _write_unknown_section(self, parent: ET.Element, section_name: str, unknowns: list[Fmi2Unknown]) -> None:
+        if not unknowns:
+            return
         section = ET.SubElement(parent, section_name)
         for unknown in unknowns:
             attrib = {"index": unknown.index}
