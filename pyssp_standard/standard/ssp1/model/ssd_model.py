@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
+from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1ParameterSet
+
 
 @dataclass
 class Ssd1DefaultExperiment:
@@ -36,12 +39,25 @@ class Ssd1Component:
 
 
 @dataclass
+class Ssd1ParameterBinding:
+    target: str
+    is_inlined: bool
+    parameter_set: Ssp1ParameterSet | None = None
+    external_path: str | None = None
+    is_resolved: bool = False
+    parameter_mapping: Ssp1ParameterMapping | None = None
+    parameter_mapping_path: str | None = None
+    is_mapping_resolved: bool = False
+
+
+@dataclass
 class Ssd1System:
     element: str | None = None
     name: str = ""
     elements: list[Ssd1Component] = field(default_factory=list)
     connectors: list[Ssd1Connector] = field(default_factory=list)
     connections: list[Ssd1Connection] = field(default_factory=list)
+    parameter_bindings: list[Ssd1ParameterBinding] = field(default_factory=list)
 
 
 @dataclass
@@ -80,6 +96,12 @@ class Ssd1SystemStructureDescription:
             if element.name == parent:
                 return list(element.connectors)
         return []
+
+    @property
+    def parameter_bindings(self) -> list[Ssd1ParameterBinding]:
+        if self.system is None:
+            return []
+        return self.system.parameter_bindings
 
     @staticmethod
     def _connections_equal(left: Ssd1Connection, right: Ssd1Connection) -> bool:

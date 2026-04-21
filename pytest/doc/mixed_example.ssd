@@ -1,0 +1,24 @@
+<ns0:SystemStructureDescription xmlns:ns0="http://ssp-standard.org/SSP1/SystemStructureDescription"
+  xmlns:ssv="http://ssp-standard.org/SSP1/SystemStructureParameterValues"
+  name="MixedSSD" version="1.0" xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription">
+  <ns0:System name="system">
+    <ns0:ParameterBindings>
+      <ns0:ParameterBinding prefix="Plant.">
+        <ns0:ParameterValues>
+          <ssv:ParameterSet version="1.0" name="PlantInline">
+            <ssv:Parameters>
+              <ssv:Parameter name="gain">
+                <ssv:Real value="1.5" />
+              </ssv:Parameter>
+            </ssv:Parameters>
+          </ssv:ParameterSet>
+        </ns0:ParameterValues>
+      </ns0:ParameterBinding>
+      <ns0:ParameterBinding prefix="Controller." source="external_values.ssv" />
+    </ns0:ParameterBindings>
+    <ns0:Elements>
+      <ns0:Component name="Plant" source="resources/plant.fmu" />
+      <ns0:Component name="Controller" source="resources/controller.fmu" />
+    </ns0:Elements>
+  </ns0:System>
+</ns0:SystemStructureDescription>

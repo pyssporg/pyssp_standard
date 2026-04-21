@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pyssp_standard.ssd import SSD
 from pyssp_standard.common.zip_archive import ZipArchiveFacade
 
 
@@ -31,6 +32,23 @@ class SSP:
         self._archive.remove_file(f"resources/{resource_name}")
 
     @property
-    def system_structure(self) -> Path:
-        # TODO: return  tmp "systemstructure.xml" path to be used with a context 
-        pass
+    def system_structure(self) -> SSD:
+        workdir = self._archive._require_workdir()
+        ssd_path = workdir / "SystemStructure.ssd"
+        if self.mode == "w" and not ssd_path.exists():
+            ssd_path.write_text(
+                (
+                    '<?xml version="1.0" encoding="UTF-8"?>\n'
+                    '<ssd:SystemStructureDescription xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription" '
+                    'name="SystemStructure" version="1.0">\n'
+                    '  <ssd:System name="system"/>\n'
+                    '</ssd:SystemStructureDescription>\n'
+                ),
+                encoding="utf-8",
+            )
+        return SSD(
+            ssd_path,
+            mode="a" if self.mode == "w" else self.mode,
+            resolve_external_references=True,
+            reference_base_dir=ssd_path.parent,
+        )

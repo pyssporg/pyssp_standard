@@ -11,7 +11,7 @@ class Ssp1SsvSchemaValidator:
     def __init__(self, schema_path: Path | None = None):
         if schema_path is None:
             schema_path = (
-                Path(__file__).resolve().parents[3]
+                Path(__file__).resolve().parents[4]
                 / "3rdParty"
                 / "SSP1"
                 / "schema"

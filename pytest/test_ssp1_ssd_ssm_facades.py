@@ -5,10 +5,13 @@ from pathlib import Path
 from pyssp_standard.ssd import Component, Connection, Connector, DefaultExperiment, SSD, System
 from pyssp_standard.ssm import SSM, Ssp1Transformation
 from pyssp_standard.standard.ssp1.codec import Ssp1SsdXmlCodec, Ssp1SsmXmlCodec
+from pyssp_standard.ssv import SSV
 
 
 SSD_FIXTURE = Path("pytest/doc/embrace/SystemStructure.ssd")
 SSM_FIXTURE = Path("pytest/doc/embrace/resources/ECS_HW.ssm")
+MIXED_SSD_FIXTURE = Path("pytest/doc/mixed_example.ssd")
+EXTERNAL_SSV_FIXTURE = Path("pytest/doc/external_values.ssv")
 
 
 def test_ssp1_ssd_codec_parses_typed_fixture():
@@ -20,6 +23,40 @@ def test_ssp1_ssd_codec_parses_typed_fixture():
     assert document.system.name == "root"
     assert len(document.system.elements) == 5
     assert len(document.system.connections) > 10
+    assert len(document.parameter_bindings) == 1
+    binding = document.parameter_bindings[0]
+    assert binding.external_path == "resources/RAPID_Systems_2021-03-29_Test_1.ssv"
+    assert binding.parameter_mapping_path == "resources/ECS_HW.ssm"
+    assert binding.parameter_mapping is None
+    assert binding.is_mapping_resolved is False
+
+
+def test_ssp1_ssd_codec_parses_inline_and_external_parameter_bindings():
+    codec = Ssp1SsdXmlCodec()
+    document = codec.parse(MIXED_SSD_FIXTURE.read_text(encoding="utf-8"))
+
+    assert document.system is not None
+    assert len(document.parameter_bindings) == 2
+
+    inline_binding = document.parameter_bindings[0]
+    assert inline_binding.target == "Plant"
+    assert inline_binding.is_inlined is True
+    assert inline_binding.parameter_set is not None
+    assert inline_binding.parameter_set.name == "PlantInline"
+    assert inline_binding.parameter_set.parameters[0].name == "gain"
+    assert inline_binding.parameter_set.parameters[0].attributes["value"] == "1.5"
+
+    external_binding = document.parameter_bindings[1]
+    assert external_binding.target == "Controller"
+    assert external_binding.is_inlined is False
+    assert external_binding.external_path == "external_values.ssv"
+    assert external_binding.parameter_set is None
+
+    reparsed = codec.parse(codec.serialize(document))
+    assert len(reparsed.parameter_bindings) == 2
+    assert reparsed.parameter_bindings[0].parameter_set is not None
+    assert reparsed.parameter_bindings[0].parameter_set.parameters[0].attributes["value"] == "1.5"
+    assert reparsed.parameter_bindings[1].external_path == "external_values.ssv"
 
 
 def test_ssp1_ssm_codec_parses_typed_fixture():
@@ -114,3 +151,18 @@ def test_ssm_fixture_compliance():
     with SSM(SSM_FIXTURE) as ssm:
         ssm.check_compliance()
         assert len(ssm.mappings) == 203
+
+
+def test_ssd_facade_preserves_external_binding_reference_and_ssv_loads_separately():
+    with SSD(MIXED_SSD_FIXTURE) as ssd:
+        assert len(ssd.parameter_bindings) == 2
+        external_binding = next(binding for binding in ssd.parameter_bindings if not binding.is_inlined)
+        assert external_binding.target == "Controller"
+        assert external_binding.external_path == "external_values.ssv"
+        assert external_binding.parameter_mapping is None
+
+    with SSV(EXTERNAL_SSV_FIXTURE) as ssv:
+        assert ssv.document.name == "ControllerExternal"
+        assert len(ssv.parameters) == 1
+        assert ssv.parameters[0].name == "gain"
+        assert ssv.parameters[0].attributes["value"] == "0.8"

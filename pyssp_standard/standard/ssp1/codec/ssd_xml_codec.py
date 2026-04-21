@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from xml.etree import ElementTree as ET
 
+from pyssp_standard.standard.ssp1.codec.ssm_xml_codec import Ssp1SsmXmlCodec
+from pyssp_standard.standard.ssp1.codec.ssv_xsdata_codec import NS_SSV, Ssp1SsvXsdataCodec
 from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1Component,
     Ssd1Connection,
     Ssd1Connector,
     Ssd1DefaultExperiment,
+    Ssd1ParameterBinding,
     Ssd1SystemStructureDescription,
     Ssd1System,
 )
@@ -19,6 +22,10 @@ TYPE_TAGS = {"Real", "Integer", "Boolean", "String", "Enumeration", "Binary"}
 
 class Ssp1SsdXmlCodec:
     """Direct SSP1 SSD XML codec without generated bindings or archive logic."""
+
+    def __init__(self, ssv_codec: Ssp1SsvXsdataCodec | None = None, ssm_codec: Ssp1SsmXmlCodec | None = None):
+        self._ssv_codec = ssv_codec or Ssp1SsvXsdataCodec()
+        self._ssm_codec = ssm_codec or Ssp1SsmXmlCodec()
 
     def parse(self, xml_text: str) -> Ssd1SystemStructureDescription:
         root = ET.fromstring(xml_text)
@@ -97,6 +104,14 @@ class Ssp1SsdXmlCodec:
                 for connection in list(connections)
                 if self._local_name(connection.tag) == "Connection"
             ]
+
+        bindings = element.find(f"{{{NS_SSD}}}ParameterBindings")
+        if bindings is not None:
+            system.parameter_bindings = [
+                self._read_parameter_binding(binding)
+                for binding in list(bindings)
+                if self._local_name(binding.tag) == "ParameterBinding"
+            ]
         return system
 
     def _write_system(self, system: Ssd1System) -> ET.Element:
@@ -106,6 +121,11 @@ class Ssp1SsdXmlCodec:
             connectors = ET.SubElement(element, f"{{{NS_SSD}}}Connectors")
             for connector in system.connectors:
                 connectors.append(self._write_connector(connector))
+
+        if system.parameter_bindings:
+            bindings = ET.SubElement(element, f"{{{NS_SSD}}}ParameterBindings")
+            for binding in system.parameter_bindings:
+                bindings.append(self._write_parameter_binding(binding))
 
         elements = ET.SubElement(element, f"{{{NS_SSD}}}Elements")
         for component in system.elements:
@@ -163,6 +183,99 @@ class Ssp1SsdXmlCodec:
                 attrib=dict(connector.type_attributes),
             )
         return element
+
+    def _read_parameter_binding(self, element: ET.Element) -> Ssd1ParameterBinding:
+        target = self._target_from_binding(element)
+        external_path = element.attrib.get("source")
+        parameter_mapping = self._read_parameter_mapping(element)
+        if external_path is not None:
+            return Ssd1ParameterBinding(
+                target=target,
+                is_inlined=False,
+                external_path=external_path,
+                is_resolved=False,
+                parameter_mapping=parameter_mapping[0],
+                parameter_mapping_path=parameter_mapping[1],
+                is_mapping_resolved=parameter_mapping[0] is not None,
+            )
+
+        parameter_values = next(
+            (child for child in list(element) if self._local_name(child.tag) == "ParameterValues"),
+            None,
+        )
+        inline_parameter_set = None
+        if parameter_values is not None:
+            inline_parameter_set = next(iter(parameter_values), None)
+        elif list(element):
+            # Backward-compatible parse path for earlier demo-style fixtures.
+            inline_parameter_set = next((child for child in list(element) if self._local_name(child.tag) == "ParameterSet"), None)
+
+        if inline_parameter_set is not None:
+            xml_text = ET.tostring(inline_parameter_set, encoding="unicode")
+            return Ssd1ParameterBinding(
+                target=target,
+                is_inlined=True,
+                parameter_set=self._ssv_codec.parse(xml_text),
+                is_resolved=True,
+                parameter_mapping=parameter_mapping[0],
+                parameter_mapping_path=parameter_mapping[1],
+                is_mapping_resolved=parameter_mapping[0] is not None,
+            )
+
+        return Ssd1ParameterBinding(
+            target=target,
+            is_inlined=True,
+            parameter_mapping=parameter_mapping[0],
+            parameter_mapping_path=parameter_mapping[1],
+            is_mapping_resolved=parameter_mapping[0] is not None,
+        )
+
+    def _write_parameter_binding(self, binding: Ssd1ParameterBinding) -> ET.Element:
+        attrib: dict[str, str] = {}
+        if binding.target:
+            attrib["prefix"] = f"{binding.target}."
+        element = ET.Element(f"{{{NS_SSD}}}ParameterBinding", attrib=attrib)
+
+        if binding.is_inlined and binding.parameter_set is not None:
+            xml_text = self._ssv_codec.serialize(binding.parameter_set)
+            values_element = ET.SubElement(element, f"{{{NS_SSD}}}ParameterValues")
+            values_element.append(ET.fromstring(xml_text))
+        elif not binding.is_inlined and binding.external_path:
+            element.set("source", binding.external_path)
+
+        if binding.parameter_mapping is not None or binding.parameter_mapping_path is not None:
+            mapping_element = ET.SubElement(element, f"{{{NS_SSD}}}ParameterMapping")
+            if binding.parameter_mapping_path:
+                mapping_element.set("source", binding.parameter_mapping_path)
+            elif binding.parameter_mapping is not None:
+                xml_text = self._ssm_codec.serialize(binding.parameter_mapping)
+                mapping_element.append(ET.fromstring(xml_text))
+        return element
+
+    def _read_parameter_mapping(self, element: ET.Element):
+        mapping_element = next(
+            (child for child in list(element) if self._local_name(child.tag) == "ParameterMapping"),
+            None,
+        )
+        if mapping_element is None:
+            return None, None
+
+        mapping_path = mapping_element.attrib.get("source")
+        if mapping_path is not None:
+            return None, mapping_path
+
+        inline_mapping = next(iter(mapping_element), None)
+        if inline_mapping is None:
+            return None, None
+
+        xml_text = ET.tostring(inline_mapping, encoding="unicode")
+        return self._ssm_codec.parse(xml_text), None
+
+    def _target_from_binding(self, element: ET.Element) -> str:
+        prefix = element.attrib.get("prefix")
+        if prefix:
+            return prefix[:-1] if prefix.endswith(".") else prefix
+        return element.attrib.get("target", "")
 
     @staticmethod
     def _require_root(root: ET.Element, expected_local_name: str) -> None:
