@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-import xml.etree.ElementTree as ET
 
+from pyssp_standard.md import ModelDescription
 from pyssp_standard.zip_archive import ZipArchiveFacade
-
-
 
 
 class FMU:
@@ -32,6 +30,5 @@ class FMU:
         return self._archive.list_prefix("documentation/")
 
     @property
-    def model_description(self) -> Path:
-        # TODO: return  tmp "modelDescription.xml" path to be used with a context 
-        pass
+    def model_description(self) -> ModelDescription:
+        return ModelDescription(self._archive._require_workdir() / "modelDescription.xml")
