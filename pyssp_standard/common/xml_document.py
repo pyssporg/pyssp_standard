@@ -45,6 +45,9 @@ class XmlDocumentFacade(Generic[DocumentT]):
         return True
 
     def load_document(self) -> DocumentT:
+        if not self.path.exists():
+            return self._create_document()
+
         text = self.path.read_text(encoding="utf-8")
         return self._codec.parse(text)
 
@@ -54,5 +57,3 @@ class XmlDocumentFacade(Generic[DocumentT]):
     def _create_document(self) -> DocumentT:
         raise NotImplementedError
 
-    def _validate_document(self):
-        raise NotImplementedError

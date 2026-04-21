@@ -56,8 +56,3 @@ class ModelDescription(XmlDocumentFacade[Fmi2ModelDescriptionDocument]):
             guid="",
             interface_type="CoSimulation",
         )
-
-    def load_document(self) -> Fmi2ModelDescriptionDocument:
-        if self._xml_text is not None:
-            return self._codec.parse(self._xml_text)
-        return super().load_document()
