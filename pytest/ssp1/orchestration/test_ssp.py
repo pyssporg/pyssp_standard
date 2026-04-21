@@ -64,11 +64,10 @@ def test_archive_uses_temp_workdir_and_cleans_up_after_exit(embrace_ssp_fixture)
     archive = SSP(embrace_ssp_fixture, mode="r")
 
     with archive as ssp:
-        workdir = ssp._archive._workdir
-        assert workdir is not None
-        assert workdir.exists()
+        root = ssp._archive.root
+        assert root.exists()
 
-    assert archive._archive._workdir is None
+    assert not root.exists()
 
 
 def test_system_structure_uses_extracted_archive_file(embrace_ssp_fixture):
@@ -85,6 +84,42 @@ def test_create_mode_scaffolds_system_structure_entry(write_file):
 
     with SSP(write_file, mode="r") as ssp:
         assert "SystemStructure.ssd" in ssp._archive.namelist()
+
+
+def test_directory_mode_uses_persistent_root_and_keeps_it_after_exit(embrace_ssd_fixture, tmp_path):
+    unpacked_ssp_dir = tmp_path / "embrace_dir"
+    shutil.copytree(embrace_ssd_fixture.parent, unpacked_ssp_dir)
+
+    archive = SSP(unpacked_ssp_dir, mode="r")
+    with archive as ssp:
+        root = ssp._archive.root
+        assert root == unpacked_ssp_dir
+        assert root.exists()
+
+    assert root.exists()
+
+
+def test_directory_add_resource_persists_without_repacking(embrace_ssd_fixture, tmp_path):
+    unpacked_ssp_dir = tmp_path / "embrace_dir"
+    shutil.copytree(embrace_ssd_fixture.parent, unpacked_ssp_dir)
+    file_to_add = Path("pytest/doc/test.txt")
+
+    with SSP(unpacked_ssp_dir, mode="a") as ssp:
+        added_name = ssp.add_resource(file_to_add)
+        assert added_name == file_to_add.name
+        assert (unpacked_ssp_dir / "resources" / file_to_add.name).exists()
+
+    with SSP(unpacked_ssp_dir, mode="r") as ssp:
+        assert file_to_add.name in ssp.resources
+
+
+def test_directory_write_mode_scaffolds_system_structure(tmp_path):
+    unpacked_ssp_dir = tmp_path / "new_ssp_dir"
+
+    with SSP(unpacked_ssp_dir, mode="w") as ssp:
+        _ = ssp.system_structure
+
+    assert (unpacked_ssp_dir / "SystemStructure.ssd").exists()
 
 
 def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):

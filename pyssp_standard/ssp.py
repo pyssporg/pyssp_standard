@@ -5,7 +5,7 @@ from pathlib import Path
 from pyssp_standard.ssd import SSD
 from pyssp_standard.ssm import SSM
 from pyssp_standard.ssv import SSV
-from pyssp_standard.common.zip_archive import ZipArchiveFacade
+from pyssp_standard.common.zip_archive import open_archive
 
 
 class _SspSystemStructureFacade:
@@ -81,7 +81,7 @@ class SSP:
     def __init__(self, path: str | Path, mode: str = "a"):
         self.path = Path(path)
         self.mode = mode
-        self._archive = ZipArchiveFacade(self.path, mode)
+        self._archive = open_archive(self.path, mode)
 
     def __enter__(self) -> "SSP":
         self._archive.__enter__()
@@ -104,8 +104,7 @@ class SSP:
 
     @property
     def system_structure(self) -> _SspSystemStructureFacade:
-        workdir = self._archive._require_workdir()
-        ssd_path = workdir / "SystemStructure.ssd"
+        ssd_path = self._archive.root / "SystemStructure.ssd"
         if self.mode == "w" and not ssd_path.exists():
             ssd_path.write_text(
                 (
