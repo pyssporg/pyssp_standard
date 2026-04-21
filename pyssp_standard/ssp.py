@@ -5,7 +5,7 @@ from pathlib import Path
 from pyssp_standard.ssd import SSD
 from pyssp_standard.ssm import SSM
 from pyssp_standard.ssv import SSV
-from pyssp_standard.common.zip_archive import open_archive
+from pyssp_standard.common.zip_archive import DirectoryRuntime, open_archive
 
 
 class _SspSystemStructureFacade:
@@ -15,8 +15,9 @@ class _SspSystemStructureFacade:
     loading and persistence belongs here at the SSP archive boundary.
     """
 
-    def __init__(self, ssd_path: str | Path, mode: str = "r"):
-        self._ssd_path = Path(ssd_path)
+    def __init__(self, runtime: DirectoryRuntime, ssd_name: str = "SystemStructure.ssd", mode: str = "r"):
+        self._runtime = runtime
+        self._ssd_path = runtime.resolve(ssd_name)
         self._mode = mode
         self._ssd = SSD(self._ssd_path, mode=mode)
 
@@ -37,7 +38,7 @@ class _SspSystemStructureFacade:
     def _load_external_references(self) -> None:
         for binding in self._ssd.parameter_bindings:
             if not binding.is_inlined and binding.external_path:
-                external_path = self._ssd_path.parent / binding.external_path
+                external_path = self._runtime.resolve(binding.external_path)
                 if external_path.exists():
                     try:
                         with SSV(external_path, mode="r") as ssv:
@@ -51,7 +52,7 @@ class _SspSystemStructureFacade:
                     binding.is_resolved = False
 
             if binding.parameter_mapping_path:
-                mapping_path = self._ssd_path.parent / binding.parameter_mapping_path
+                mapping_path = self._runtime.resolve(binding.parameter_mapping_path)
                 if mapping_path.exists():
                     try:
                         with SSM(mapping_path, mode="r") as ssm:
@@ -67,12 +68,12 @@ class _SspSystemStructureFacade:
     def _persist_external_references(self) -> None:
         for binding in self._ssd.parameter_bindings:
             if not binding.is_inlined and binding.external_path and binding.parameter_set is not None:
-                external_path = self._ssd_path.parent / binding.external_path
+                external_path = self._runtime.resolve(binding.external_path)
                 with SSV(external_path, mode="w") as ssv:
                     ssv._document = binding.parameter_set
 
             if binding.parameter_mapping_path and binding.parameter_mapping is not None:
-                mapping_path = self._ssd_path.parent / binding.parameter_mapping_path
+                mapping_path = self._runtime.resolve(binding.parameter_mapping_path)
                 with SSM(mapping_path, mode="w") as ssm:
                     ssm._document = binding.parameter_mapping
 
@@ -82,29 +83,38 @@ class SSP:
         self.path = Path(path)
         self.mode = mode
         self._archive = open_archive(self.path, mode)
+        self._runtime: DirectoryRuntime | None = None
 
     def __enter__(self) -> "SSP":
-        self._archive.__enter__()
+        self._runtime = self._archive.__enter__()
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        self._archive.__exit__(exc_type, exc, tb)
-        return False
+        try:
+            return self._archive.__exit__(exc_type, exc, tb)
+        finally:
+            self._runtime = None
+
+    @property
+    def runtime(self) -> DirectoryRuntime:
+        if self._runtime is None:
+            raise RuntimeError("SSP is not open")
+        return self._runtime
 
     @property
     def resources(self) -> list[str]:
-        return [name.removeprefix("resources/") for name in self._archive.list_prefix("resources/")]
+        return [name.removeprefix("resources/") for name in self.runtime.list_prefix("resources/")]
 
     def add_resource(self, source: str | Path) -> str:
         source_path = Path(source)
-        return self._archive.add_file(source_path, target_name=f"resources/{source_path.name}").removeprefix("resources/")
+        return self.runtime.add_file(source_path, target_name=f"resources/{source_path.name}").removeprefix("resources/")
 
     def remove_resource(self, resource_name: str) -> None:
-        self._archive.remove_file(f"resources/{resource_name}")
+        self.runtime.remove_file(f"resources/{resource_name}")
 
     @property
     def system_structure(self) -> _SspSystemStructureFacade:
-        ssd_path = self._archive.root / "SystemStructure.ssd"
+        ssd_path = self.runtime.resolve("SystemStructure.ssd")
         if self.mode == "w" and not ssd_path.exists():
             ssd_path.write_text(
                 (
@@ -116,4 +126,4 @@ class SSP:
                 ),
                 encoding="utf-8",
             )
-        return _SspSystemStructureFacade(ssd_path, mode="a" if self.mode == "w" else self.mode)
+        return _SspSystemStructureFacade(self.runtime, ssd_name="SystemStructure.ssd", mode="a" if self.mode == "w" else self.mode)

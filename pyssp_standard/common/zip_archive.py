@@ -6,7 +6,7 @@ import tempfile
 import zipfile
 
 
-class DirectoryFacade:
+class DirectoryRuntime:
     """Shared directory-layer helper for unpacked SSP/FMU contents."""
 
     def __init__(self, path: str | Path, mode: str = "r"):
@@ -14,7 +14,7 @@ class DirectoryFacade:
         self.mode = mode
         self._root: Path | None = None
 
-    def __enter__(self) -> "DirectoryFacade":
+    def __enter__(self) -> "DirectoryRuntime":
         if self.mode not in {"r", "a", "w"}:
             raise ValueError(f"Unsupported archive mode '{self.mode}'")
 
@@ -48,6 +48,9 @@ class DirectoryFacade:
             raise RuntimeError("Archive is not open")
         return self._root
 
+    def resolve(self, path: str | Path) -> Path:
+        return self.root / Path(path)
+
     def namelist(self) -> list[str]:
         names: list[str] = []
         for entry in sorted(self.root.rglob("*")):
@@ -55,19 +58,19 @@ class DirectoryFacade:
                 names.append(entry.relative_to(self.root).as_posix())
         return names
 
-    def read_text(self, name: str, encoding: str = "utf-8") -> str:
-        return (self.root / name).read_text(encoding=encoding)
+    def read_text(self, path: str, encoding: str = "utf-8") -> str:
+        return self.resolve(path).read_text(encoding=encoding)
 
     def add_file(self, source: str | Path, target_name: str | None = None) -> str:
         source_path = Path(source)
         archive_name = target_name or source_path.name
-        target_path = self.root / archive_name
+        target_path = self.resolve(archive_name)
         target_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source_path, target_path)
         return archive_name
 
     def remove_file(self, target_name: str) -> None:
-        target_path = self.root / target_name
+        target_path = self.resolve(target_name)
         if target_path.exists():
             target_path.unlink()
 
@@ -82,7 +85,7 @@ class ZipArchiveFacade:
         self.path = Path(path)
         self.mode = mode
         self._temp_dir: tempfile.TemporaryDirectory[str] | None = None
-        self._directory = DirectoryFacade(self.path, mode)
+        self._runtime = DirectoryRuntime(self.path, mode)
 
     def __enter__(self) -> "ZipArchiveFacade":
         if self.mode not in {"r", "a", "w"}:
@@ -92,13 +95,13 @@ class ZipArchiveFacade:
             raise FileNotFoundError(f"Archive does not exist: {self.path}")
 
         self._temp_dir = tempfile.TemporaryDirectory(prefix=f"{self.path.stem}_archive_")
-        self._directory = DirectoryFacade(self._temp_dir.name, mode="a")
-        self._directory.__enter__()
+        self._runtime = DirectoryRuntime(self._temp_dir.name, mode="a")
+        self._runtime.__enter__()
 
         if self.mode in {"r", "a"} and self.path.exists() and self.path.stat().st_size > 0:
             with zipfile.ZipFile(self.path, "r") as archive:
                 archive.extractall(self.root)
-        return self
+        return self._runtime
 
     def __exit__(self, exc_type, exc, tb):
         try:
@@ -106,29 +109,29 @@ class ZipArchiveFacade:
                 self._commit()
             return False
         finally:
-            self._directory.__exit__(exc_type, exc, tb)
+            self._runtime.__exit__(exc_type, exc, tb)
             if self._temp_dir is not None:
                 self._temp_dir.cleanup()
                 self._temp_dir = None
 
     @property
     def root(self) -> Path:
-        return self._directory.root
+        return self._runtime.root
 
     def namelist(self) -> list[str]:
-        return self._directory.namelist()
+        return self._runtime.namelist()
 
     def read_text(self, name: str, encoding: str = "utf-8") -> str:
-        return self._directory.read_text(name, encoding=encoding)
+        return self._runtime.read_text(name, encoding=encoding)
 
     def add_file(self, source: str | Path, target_name: str | None = None) -> str:
-        return self._directory.add_file(source, target_name=target_name)
+        return self._runtime.add_file(source, target_name=target_name)
 
     def remove_file(self, target_name: str) -> None:
-        self._directory.remove_file(target_name)
+        self._runtime.remove_file(target_name)
 
     def list_prefix(self, prefix: str) -> list[str]:
-        return self._directory.list_prefix(prefix)
+        return self._runtime.list_prefix(prefix)
 
     def _commit(self) -> None:
         with zipfile.ZipFile(self.path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -137,12 +140,12 @@ class ZipArchiveFacade:
                     archive.write(entry, arcname=entry.relative_to(self.root).as_posix())
 
 
-def open_archive(path: str | Path, mode: str = "r") -> DirectoryFacade | ZipArchiveFacade:
+def open_archive(path: str | Path, mode: str = "r") -> DirectoryRuntime | ZipArchiveFacade:
     resolved_path = Path(path)
     if resolved_path.is_dir():
-        return DirectoryFacade(resolved_path, mode)
+        return DirectoryRuntime(resolved_path, mode)
     if resolved_path.exists():
         return ZipArchiveFacade(resolved_path, mode)
     if resolved_path.suffix.lower() in {".ssp", ".fmu"}:
         return ZipArchiveFacade(resolved_path, mode)
-    return DirectoryFacade(resolved_path, mode)
+    return DirectoryRuntime(resolved_path, mode)
