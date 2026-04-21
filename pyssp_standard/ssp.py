@@ -114,16 +114,4 @@ class SSP:
 
     @property
     def system_structure(self) -> _SspSystemStructureFacade:
-        ssd_path = self.runtime.resolve("SystemStructure.ssd")
-        if self.mode == "w" and not ssd_path.exists():
-            ssd_path.write_text(
-                (
-                    '<?xml version="1.0" encoding="UTF-8"?>\n'
-                    '<ssd:SystemStructureDescription xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription" '
-                    'name="SystemStructure" version="1.0">\n'
-                    '  <ssd:System name="system"/>\n'
-                    '</ssd:SystemStructureDescription>\n'
-                ),
-                encoding="utf-8",
-            )
         return _SspSystemStructureFacade(self.runtime, ssd_name="SystemStructure.ssd", mode="a" if self.mode == "w" else self.mode)

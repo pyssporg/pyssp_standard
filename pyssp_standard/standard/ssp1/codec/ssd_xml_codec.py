@@ -185,12 +185,14 @@ class Ssp1SsdXmlCodec:
         return element
 
     def _read_parameter_binding(self, element: ET.Element) -> Ssd1ParameterBinding:
-        target = self._target_from_binding(element)
+        prefix = element.attrib.get("prefix")
+        if prefix:
+            prefix = prefix[:-1] if prefix.endswith(".") else prefix
         external_path = element.attrib.get("source")
         parameter_mapping = self._read_parameter_mapping(element)
         if external_path is not None:
             return Ssd1ParameterBinding(
-                target=target,
+                prefix=prefix,
                 is_inlined=False,
                 external_path=external_path,
                 is_resolved=False,
@@ -213,7 +215,7 @@ class Ssp1SsdXmlCodec:
         if inline_parameter_set is not None:
             xml_text = ET.tostring(inline_parameter_set, encoding="unicode")
             return Ssd1ParameterBinding(
-                target=target,
+                prefix=prefix,
                 is_inlined=True,
                 parameter_set=self._ssv_codec.parse(xml_text),
                 is_resolved=True,
@@ -223,7 +225,7 @@ class Ssp1SsdXmlCodec:
             )
 
         return Ssd1ParameterBinding(
-            target=target,
+            prefix=prefix,
             is_inlined=True,
             parameter_mapping=parameter_mapping[0],
             parameter_mapping_path=parameter_mapping[1],
@@ -232,8 +234,8 @@ class Ssp1SsdXmlCodec:
 
     def _write_parameter_binding(self, binding: Ssd1ParameterBinding) -> ET.Element:
         attrib: dict[str, str] = {}
-        if binding.target:
-            attrib["prefix"] = f"{binding.target}."
+        if binding.prefix:
+            attrib["prefix"] = f"{binding.prefix}."
         element = ET.Element(f"{{{NS_SSD}}}ParameterBinding", attrib=attrib)
 
         if binding.is_inlined and binding.parameter_set is not None:
@@ -270,12 +272,6 @@ class Ssp1SsdXmlCodec:
 
         xml_text = ET.tostring(inline_mapping, encoding="unicode")
         return self._ssm_codec.parse(xml_text), None
-
-    def _target_from_binding(self, element: ET.Element) -> str:
-        prefix = element.attrib.get("prefix")
-        if prefix:
-            return prefix[:-1] if prefix.endswith(".") else prefix
-        return element.attrib.get("target", "")
 
     @staticmethod
     def _require_root(root: ET.Element, expected_local_name: str) -> None:

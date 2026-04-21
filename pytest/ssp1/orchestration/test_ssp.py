@@ -21,7 +21,7 @@ def test_lists_existing_resources(embrace_ssp_fixture):
 def test_add_resource_persists_to_archive(embrace_ssp_fixture, tmp_path):
     test_ssp_file = tmp_path / "embrace.ssp"
     shutil.copy(embrace_ssp_fixture, test_ssp_file)
-    file_to_add = Path("pytest/doc/test.txt")
+    file_to_add = Path("pytest/__fixture__/test.txt")
 
     with SSP(test_ssp_file) as ssp:
         added_name = ssp.add_resource(file_to_add)
@@ -80,7 +80,10 @@ def test_system_structure_uses_extracted_archive_file(embrace_ssp_fixture):
 
 def test_create_mode_scaffolds_system_structure_entry(write_file):
     with SSP(write_file, mode="w") as ssp:
-        _ = ssp.system_structure
+        facade = ssp.system_structure
+        assert not facade.path.exists()
+        with facade:
+            assert facade.path.exists() is False
 
     with SSP(write_file, mode="r") as ssp:
         assert "SystemStructure.ssd" in ssp._archive.namelist()
@@ -102,7 +105,7 @@ def test_directory_mode_uses_persistent_root_and_keeps_it_after_exit(embrace_ssd
 def test_directory_add_resource_persists_without_repacking(embrace_ssd_fixture, tmp_path):
     unpacked_ssp_dir = tmp_path / "embrace_dir"
     shutil.copytree(embrace_ssd_fixture.parent, unpacked_ssp_dir)
-    file_to_add = Path("pytest/doc/test.txt")
+    file_to_add = Path("pytest/__fixture__/test.txt")
 
     with SSP(unpacked_ssp_dir, mode="a") as ssp:
         added_name = ssp.add_resource(file_to_add)
@@ -117,7 +120,10 @@ def test_directory_write_mode_scaffolds_system_structure(tmp_path):
     unpacked_ssp_dir = tmp_path / "new_ssp_dir"
 
     with SSP(unpacked_ssp_dir, mode="w") as ssp:
-        _ = ssp.system_structure
+        facade = ssp.system_structure
+        assert not facade.path.exists()
+        with facade:
+            assert facade.path.exists() is False
 
     assert (unpacked_ssp_dir / "SystemStructure.ssd").exists()
 
@@ -125,10 +131,10 @@ def test_directory_write_mode_scaffolds_system_structure(tmp_path):
 def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):
     ssp_path = tmp_path / "mixed.ssp"
     with zipfile.ZipFile(ssp_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.write("pytest/doc/mixed_example.ssd", arcname="SystemStructure.ssd")
-        archive.write("pytest/doc/external_values.ssv", arcname="external_values.ssv")
+        archive.write("pytest/__fixture__/mixed_example.ssd", arcname="SystemStructure.ssd")
+        archive.write("pytest/__fixture__/external_values.ssv", arcname="external_values.ssv")
 
-    with SSD("pytest/doc/mixed_example.ssd") as standalone_ssd:
+    with SSD("pytest/__fixture__/mixed_example.ssd") as standalone_ssd:
         external_binding = next(binding for binding in standalone_ssd.parameter_bindings if not binding.is_inlined)
         assert external_binding.parameter_set is None
         assert external_binding.is_resolved is False
@@ -146,8 +152,8 @@ def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):
 def test_persists_resolved_external_parameter_sets(tmp_path):
     ssp_path = tmp_path / "mixed.ssp"
     with zipfile.ZipFile(ssp_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.write("pytest/doc/mixed_example.ssd", arcname="SystemStructure.ssd")
-        archive.write("pytest/doc/external_values.ssv", arcname="external_values.ssv")
+        archive.write("pytest/__fixture__/mixed_example.ssd", arcname="SystemStructure.ssd")
+        archive.write("pytest/__fixture__/external_values.ssv", arcname="external_values.ssv")
 
     with SSP(ssp_path, mode="a") as ssp:
         with ssp.system_structure as ssd:

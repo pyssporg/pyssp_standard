@@ -34,7 +34,7 @@ def test_round_trip_preserves_inline_and_external_parameter_bindings(mixed_ssd_f
     assert len(document.parameter_bindings) == 2
 
     inline_binding = document.parameter_bindings[0]
-    assert inline_binding.target == "Plant"
+    assert inline_binding.prefix == "Plant"
     assert inline_binding.is_inlined is True
     assert inline_binding.parameter_set is not None
     assert inline_binding.parameter_set.name == "PlantInline"
@@ -42,7 +42,7 @@ def test_round_trip_preserves_inline_and_external_parameter_bindings(mixed_ssd_f
     assert inline_binding.parameter_set.parameters[0].attributes["value"] == "1.5"
 
     external_binding = document.parameter_bindings[1]
-    assert external_binding.target == "Controller"
+    assert external_binding.prefix == "Controller"
     assert external_binding.is_inlined is False
     assert external_binding.external_path == "external_values.ssv"
     assert external_binding.parameter_set is None

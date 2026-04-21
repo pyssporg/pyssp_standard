@@ -7,7 +7,7 @@ from pyssp_standard.utils import ZIPFile
 
 def test_zipfile():
     print()
-    source_file = Path("pytest/doc/embrace.ssp")
+    source_file = Path("pytest/__fixture__/embrace.ssp")
     target_file = Path('./temp_embrace.ssp')
 
     file_to_add = Path("pytest/test_fmu.py")

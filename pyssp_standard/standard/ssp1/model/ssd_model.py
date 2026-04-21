@@ -40,7 +40,7 @@ class Ssd1Component:
 
 @dataclass
 class Ssd1ParameterBinding:
-    target: str
+    prefix: str
     is_inlined: bool
     parameter_set: Ssp1ParameterSet | None = None
     external_path: str | None = None

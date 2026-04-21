@@ -70,7 +70,7 @@ def test_standalone_facade_preserves_external_binding_reference_without_resoluti
     with SSD(mixed_ssd_fixture) as ssd:
         assert len(ssd.parameter_bindings) == 2
         external_binding = next(binding for binding in ssd.parameter_bindings if not binding.is_inlined)
-        assert external_binding.target == "Controller"
+        assert external_binding.prefix == "Controller"
         assert external_binding.external_path == "external_values.ssv"
         assert external_binding.parameter_set is None
         assert external_binding.parameter_mapping is None

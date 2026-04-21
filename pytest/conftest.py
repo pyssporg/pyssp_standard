@@ -5,47 +5,47 @@ from pathlib import Path
 import pytest
 
 
-DOC_DIR = Path("pytest/doc")
+FIXTURE_DIR = Path("pytest/__fixture__")
 
 
 @pytest.fixture
 def embrace_ssd_fixture() -> Path:
-    return DOC_DIR / "embrace" / "SystemStructure.ssd"
+    return FIXTURE_DIR / "embrace" / "SystemStructure.ssd"
 
 
 @pytest.fixture
 def embrace_ssm_fixture() -> Path:
-    return DOC_DIR / "embrace" / "resources" / "ECS_HW.ssm"
+    return FIXTURE_DIR / "embrace" / "resources" / "ECS_HW.ssm"
 
 
 @pytest.fixture
 def embrace_ssp_fixture() -> Path:
-    return DOC_DIR / "embrace.ssp"
+    return FIXTURE_DIR / "embrace.ssp"
 
 
 @pytest.fixture
 def mixed_ssd_fixture() -> Path:
-    return DOC_DIR / "mixed_example.ssd"
+    return FIXTURE_DIR / "mixed_example.ssd"
 
 
 @pytest.fixture
 def external_ssv_fixture() -> Path:
-    return DOC_DIR / "external_values.ssv"
+    return FIXTURE_DIR / "external_values.ssv"
 
 
 @pytest.fixture
 def ssv2_fixture() -> Path:
-    return DOC_DIR / "ssv2_ex.ssv"
+    return FIXTURE_DIR / "ssv2_ex.ssv"
 
 
 @pytest.fixture
 def model_description_fixture() -> Path:
-    return DOC_DIR / "embrace" / "fmu" / "modelDescription.xml"
+    return FIXTURE_DIR / "embrace" / "fmu" / "modelDescription.xml"
 
 
 @pytest.fixture
 def fmu_fixture() -> Path:
-    return DOC_DIR / "embrace" / "resources" / "0001_ECS_HW.fmu"
+    return FIXTURE_DIR / "embrace" / "resources" / "0001_ECS_HW.fmu"
 
 
 def pytest_collection_modifyitems(config, items):
