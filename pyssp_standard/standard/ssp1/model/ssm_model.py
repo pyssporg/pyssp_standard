@@ -8,6 +8,9 @@ class Ssp1Transformation:
     type_name: str
     attributes: dict[str, str] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        self.attributes = {key: str(value) for key, value in self.attributes.items()}
+
 
 @dataclass
 class Ssp1MappingEntry:

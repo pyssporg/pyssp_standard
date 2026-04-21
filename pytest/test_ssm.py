@@ -1,8 +1,8 @@
 import pytest
+import xml.etree.ElementTree as ET
 from pathlib import Path
-from pyssp_standard.ssm import SSM
-from pyssp_standard.common.transformation_types import Transformation
-from lxml.etree import _Element
+from pyssp_standard.ssm import SSM, Ssp1Transformation
+from pyssp_standard.standard.ssp1.codec.ssm_xml_codec import NS_SSC, NS_SSM
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def test_create_and_edit_basic_file(write_file):
 
     with SSM(write_file, 'w') as f:
         f.add_mapping('dog', 'shepard')
-        f.add_mapping('cat', 'odd', transformation=Transformation('LinearTransformation', {'factor': 2, 'offset': 0}))
+        f.add_mapping('cat', 'odd', transformation=Ssp1Transformation('LinearTransformation', {'factor': 2, 'offset': 0}))
         f.check_compliance()
 
     with SSM(write_file, 'a') as f:
@@ -36,12 +36,17 @@ def test_create_and_edit_basic_file(write_file):
         f.check_compliance()
 
 
-def test_transformations_creation():
-    linear_trans = Transformation('LinearTransformation', attributes={'factor': 1, 'offset': 0})
-    assert type(linear_trans.element()) is _Element
-    boolean_trans = Transformation('BooleanMappingTransformation', attributes={'source': 'cat', 'target': 'shelf'})
-    assert type(boolean_trans.element()) is _Element
-    enum_trans = Transformation('EnumerationMappingTransformation', attributes={'source': 'cat', 'target': 'shelf'})
-    assert type(enum_trans.element()) is _Element
-    int_trans = Transformation('IntegerMappingTransformation', attributes={'source': 'cat', 'target': 'shelf'})
-    assert type(int_trans.element()) is _Element
+def test_transformation_xml_is_constructed_by_codec(write_file):
+    with SSM(write_file, 'w') as f:
+        f.add_mapping(
+            'cat',
+            'odd',
+            transformation=Ssp1Transformation('LinearTransformation', {'factor': 1, 'offset': 0}),
+        )
+
+    root = ET.parse(write_file).getroot()
+    assert root.tag == f"{{{NS_SSM}}}ParameterMapping"
+    entry = next(child for child in root if child.tag == f"{{{NS_SSM}}}MappingEntry")
+    transformation = next(child for child in entry)
+    assert transformation.tag == f"{{{NS_SSC}}}LinearTransformation"
+    assert transformation.attrib == {'factor': '1', 'offset': '0'}

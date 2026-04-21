@@ -3,9 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from pyssp_standard.ssd import Component, Connection, Connector, DefaultExperiment, SSD, System
-from pyssp_standard.ssm import SSM
+from pyssp_standard.ssm import SSM, Ssp1Transformation
 from pyssp_standard.standard.ssp1.codec import Ssp1SsdXmlCodec, Ssp1SsmXmlCodec
-from pyssp_standard.common.transformation_types import Transformation
 
 
 SSD_FIXTURE = Path("pytest/doc/embrace/SystemStructure.ssd")
@@ -95,7 +94,7 @@ def test_ssm_facade_create_and_edit(tmp_path):
         ssm.add_mapping(
             "cat",
             "odd",
-            transformation=Transformation("LinearTransformation", {"factor": 2, "offset": 0}),
+            transformation=Ssp1Transformation("LinearTransformation", {"factor": 2, "offset": 0}),
         )
         ssm.check_compliance()
 
