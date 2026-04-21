@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pyssp_standard.archive import ZipArchiveFacade
+from pyssp_standard.zip_archive import ZipArchiveFacade
 
 
 class SSP:

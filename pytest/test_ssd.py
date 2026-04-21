@@ -29,7 +29,7 @@ def write_file():
 def test_compliance_check(read_file):
     # Reference file is known to be good, no error should be raised.
     with SSD(read_file) as file:
-        file.__check_compliance__()
+        file.check_compliance()
 
 
 def test_list_connectors(read_file):
@@ -45,7 +45,7 @@ def test_modify(modify_file):
 
         file.remove_connection(Connection(start_element="Atmos", start_connector="Tamb",
                                           end_element="Consumer", end_connector="Tamb"))
-        file.__check_compliance__()
+        file.check_compliance()
 
 
 def test_create_ssd(write_file):

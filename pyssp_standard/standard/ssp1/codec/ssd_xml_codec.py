@@ -1,0 +1,180 @@
+from __future__ import annotations
+
+from xml.etree import ElementTree as ET
+
+from pyssp_standard.standard.ssp1.model.ssd_model import (
+    SsdComponent,
+    SsdConnection,
+    SsdConnector,
+    SsdDefaultExperiment,
+    SsdSystemStructureDescription,
+    SsdSystem,
+)
+
+
+NS_SSD = "http://ssp-standard.org/SSP1/SystemStructureDescription"
+NS_SSC = "http://ssp-standard.org/SSP1/SystemStructureCommon"
+TYPE_TAGS = {"Real", "Integer", "Boolean", "String", "Enumeration", "Binary"}
+
+
+class Ssp1SsdXmlCodec:
+    """Direct SSP1 SSD XML codec without generated bindings or archive logic."""
+
+    def parse(self, xml_text: str) -> SsdSystemStructureDescription:
+        root = ET.fromstring(xml_text)
+        self._require_root(root, "SystemStructureDescription")
+
+        document = SsdSystemStructureDescription(
+            name=root.attrib.get("name", ""),
+            version=root.attrib.get("version", "1.0"),
+        )
+        system = root.find(f"{{{NS_SSD}}}System")
+        if system is not None:
+            document.system = self._read_system(system)
+
+        default_experiment = root.find(f"{{{NS_SSD}}}DefaultExperiment")
+        if default_experiment is not None:
+            document.default_experiment = SsdDefaultExperiment(
+                start_time=self._parse_float(default_experiment.attrib.get("startTime")),
+                stop_time=self._parse_float(default_experiment.attrib.get("stopTime")),
+            )
+        return document
+
+    def serialize(self, document: SsdSystemStructureDescription) -> str:
+        root = ET.Element(
+            f"{{{NS_SSD}}}SystemStructureDescription",
+            attrib={"name": document.name, "version": document.version},
+        )
+        ET.register_namespace("ssd", NS_SSD)
+        ET.register_namespace("ssc", NS_SSC)
+
+        if document.system is not None:
+            root.append(self._write_system(document.system))
+        if document.default_experiment is not None:
+            attrib: dict[str, str] = {}
+            if document.default_experiment.start_time is not None:
+                attrib["startTime"] = str(document.default_experiment.start_time)
+            if document.default_experiment.stop_time is not None:
+                attrib["stopTime"] = str(document.default_experiment.stop_time)
+            ET.SubElement(root, f"{{{NS_SSD}}}DefaultExperiment", attrib=attrib)
+
+        tree = ET.ElementTree(root)
+        ET.indent(tree, space="  ")
+        return ET.tostring(root, encoding="unicode")
+
+    def _read_system(self, element: ET.Element) -> SsdSystem:
+        system = SsdSystem(name=element.attrib.get("name", ""))
+
+        connectors = element.find(f"{{{NS_SSD}}}Connectors")
+        if connectors is not None:
+            system.connectors = [self._read_connector(child) for child in list(connectors)]
+
+        elements = element.find(f"{{{NS_SSD}}}Elements")
+        if elements is not None:
+            for child in list(elements):
+                if self._local_name(child.tag) != "Component":
+                    continue
+                component = SsdComponent(
+                    name=child.attrib.get("name", ""),
+                    source=child.attrib.get("source", ""),
+                    component_type=child.attrib.get("type"),
+                    implementation=child.attrib.get("implementation"),
+                )
+                component_connectors = child.find(f"{{{NS_SSD}}}Connectors")
+                if component_connectors is not None:
+                    component.connectors = [self._read_connector(connector) for connector in list(component_connectors)]
+                system.elements.append(component)
+
+        connections = element.find(f"{{{NS_SSD}}}Connections")
+        if connections is not None:
+            system.connections = [
+                SsdConnection(
+                    start_element=connection.attrib.get("startElement"),
+                    start_connector=connection.attrib.get("startConnector", ""),
+                    end_element=connection.attrib.get("endElement"),
+                    end_connector=connection.attrib.get("endConnector", ""),
+                )
+                for connection in list(connections)
+                if self._local_name(connection.tag) == "Connection"
+            ]
+        return system
+
+    def _write_system(self, system: SsdSystem) -> ET.Element:
+        element = ET.Element(f"{{{NS_SSD}}}System", attrib={"name": system.name})
+
+        if system.connectors:
+            connectors = ET.SubElement(element, f"{{{NS_SSD}}}Connectors")
+            for connector in system.connectors:
+                connectors.append(self._write_connector(connector))
+
+        elements = ET.SubElement(element, f"{{{NS_SSD}}}Elements")
+        for component in system.elements:
+            component_attrib = {"name": component.name, "source": component.source}
+            if component.component_type is not None:
+                component_attrib["type"] = component.component_type
+            if component.implementation is not None:
+                component_attrib["implementation"] = component.implementation
+            component_element = ET.SubElement(elements, f"{{{NS_SSD}}}Component", attrib=component_attrib)
+            if component.connectors:
+                component_connectors = ET.SubElement(component_element, f"{{{NS_SSD}}}Connectors")
+                for connector in component.connectors:
+                    component_connectors.append(self._write_connector(connector))
+
+        if system.connections:
+            connections = ET.SubElement(element, f"{{{NS_SSD}}}Connections")
+            for connection in system.connections:
+                attrib = {
+                    "startConnector": connection.start_connector,
+                    "endConnector": connection.end_connector,
+                }
+                if connection.start_element is not None:
+                    attrib["startElement"] = connection.start_element
+                if connection.end_element is not None:
+                    attrib["endElement"] = connection.end_element
+                ET.SubElement(connections, f"{{{NS_SSD}}}Connection", attrib=attrib)
+
+        return element
+
+    def _read_connector(self, element: ET.Element) -> SsdConnector:
+        type_name = None
+        type_attributes: dict[str, str] = {}
+        for child in list(element):
+            local_name = self._local_name(child.tag)
+            if local_name in TYPE_TAGS:
+                type_name = local_name
+                type_attributes = dict(child.attrib)
+                break
+        return SsdConnector(
+            name=element.attrib.get("name", ""),
+            kind=element.attrib.get("kind", ""),
+            type_name=type_name,
+            type_attributes=type_attributes,
+        )
+
+    def _write_connector(self, connector: SsdConnector) -> ET.Element:
+        element = ET.Element(
+            f"{{{NS_SSD}}}Connector",
+            attrib={"name": connector.name, "kind": connector.kind},
+        )
+        if connector.type_name in TYPE_TAGS:
+            ET.SubElement(
+                element,
+                f"{{{NS_SSC}}}{connector.type_name}",
+                attrib=dict(connector.type_attributes),
+            )
+        return element
+
+    @staticmethod
+    def _require_root(root: ET.Element, expected_local_name: str) -> None:
+        if root.tag != f"{{{NS_SSD}}}{expected_local_name}":
+            raise ValueError(f"Unexpected SSD root tag '{root.tag}'")
+
+    @staticmethod
+    def _local_name(tag: str) -> str:
+        return tag.split("}", 1)[-1]
+
+    @staticmethod
+    def _parse_float(value: str | None) -> float | None:
+        if value is None:
+            return None
+        return float(value)

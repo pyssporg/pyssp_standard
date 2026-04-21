@@ -21,12 +21,12 @@ class XmlDocumentFacade(Generic[DocumentT]):
         if self.mode == "w":
             self._document = self._create_document()
         else:
-            self._document = self._load_document()
+            self._document = self.load_document()
         return self
 
     def __exit__(self, exc_type, exc, tb):
         if exc_type is None and self.mode in {"w", "a"}:
-            self._save_document()
+            self.save_document()
         return False
 
     @property

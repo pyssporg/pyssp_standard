@@ -13,4 +13,4 @@ def write_file():
 def test_create_ssb(write_file):
     with SSB(write_file, 'w') as file:
         file.add_dictionary_entry('test_a', ptype='Integer', value={"value": "10"})
-        file.__check_compliance__()
+        file.check_compliance()

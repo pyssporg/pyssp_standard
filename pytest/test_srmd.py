@@ -20,7 +20,7 @@ def test_read_srmd():
     print()
     test_file = Path('pytest/doc/test_schema_validation.srmd')
     with SRMD(test_file, 'r') as file:
-        file.__check_compliance__()
+        file.check_compliance()
 
 
 def test_create_srmd(write_file):
@@ -29,7 +29,7 @@ def test_create_srmd(write_file):
         classification = Classification('test')
         classification.add_classification_entry(ClassificationEntry('test', 'This is a test'))
         file.add_classification(classification)
-        file.__check_compliance__()
+        file.check_compliance()
 
 
 def test_read_write_srmd_simple(write_file):

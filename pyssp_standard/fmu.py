@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-from pyssp_standard.archive import ZipArchiveFacade
+from pyssp_standard.zip_archive import ZipArchiveFacade
 
 
 
