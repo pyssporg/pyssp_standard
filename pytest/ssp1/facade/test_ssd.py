@@ -112,3 +112,41 @@ def test_round_trip_preserves_metadata_and_connector_annotations(tmp_path):
         assert ssd.xml.system is not None
         assert ssd.xml.system.connectors[0].annotations[0].type_name == "com.example.connector"
         assert ssd.xml.system.connectors[0].annotations[0].elements[0].text == "signal"
+
+
+def test_round_trip_preserves_structural_order_in_serialized_xml(tmp_path):
+    path = tmp_path / "ordered.ssd"
+    path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<ssd:SystemStructureDescription xmlns:ssc="http://ssp-standard.org/SSP1/SystemStructureCommon" xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription" version="1.0" name="Ordered SSD">
+  <ssd:System name="system">
+    <ssd:Connectors>
+      <ssd:Connector kind="output" name="beta_bus"><ssc:Real /></ssd:Connector>
+      <ssd:Connector kind="output" name="alpha_bus"><ssc:Real /></ssd:Connector>
+    </ssd:Connectors>
+    <ssd:Elements>
+      <ssd:Component source="resources/beta.fmu" name="beta_component" type="application/x-fmu-sharedlibrary"><ssd:Connectors><ssd:Connector kind="output" name="beta_out"><ssc:Real /></ssd:Connector></ssd:Connectors></ssd:Component>
+      <ssd:Component name="alpha_component" source="resources/alpha.fmu" type="application/x-fmu-sharedlibrary"><ssd:Connectors><ssd:Connector name="alpha_out" kind="output"><ssc:Real /></ssd:Connector></ssd:Connectors></ssd:Component>
+    </ssd:Elements>
+    <ssd:Connections>
+      <ssd:Connection endConnector="beta_bus" startConnector="beta_out" startElement="beta_component" />
+      <ssd:Connection startElement="alpha_component" startConnector="alpha_out" endConnector="alpha_bus" />
+    </ssd:Connections>
+  </ssd:System>
+</ssd:SystemStructureDescription>
+""",
+        encoding="utf-8",
+    )
+
+    with SSD(path, mode="a"):
+        pass
+
+    with SSD(path, mode="r") as ssd:
+        assert [element.name for element in ssd.xml.system.elements] == ["beta_component", "alpha_component"]
+        assert [connector.name for connector in ssd.xml.system.connectors] == ["beta_bus", "alpha_bus"]
+        assert [connection.start_element for connection in ssd.xml.connections()] == ["beta_component", "alpha_component"]
+
+    xml_text = path.read_text(encoding="utf-8")
+    assert xml_text.index('name="beta_component"') < xml_text.index('name="alpha_component"')
+    assert xml_text.index('name="beta_bus"') < xml_text.index('name="alpha_bus"')
+    assert xml_text.index('startElement="beta_component"') < xml_text.index('startElement="alpha_component"')

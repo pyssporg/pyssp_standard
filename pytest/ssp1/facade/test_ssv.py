@@ -167,3 +167,41 @@ def test_round_trip_preserves_enumerations(tmp_path):
         assert [(item.name, item.value) for item in enumeration.items] == [("OFF", 0), ("ON", 1)]
         assert enumeration.annotations[0].elements[0].text == "states"
         assert ssv.xml.parameters[0].attributes == {"value": "1", "name": "ON"}
+
+
+def test_round_trip_preserves_parameter_unit_and_enumeration_order_in_serialized_xml(tmp_path):
+    path = tmp_path / "ordered.ssv"
+    path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<ssv:ParameterSet xmlns:ssc="http://ssp-standard.org/SSP1/SystemStructureCommon" xmlns:ssv="http://ssp-standard.org/SSP1/SystemStructureParameterValues" version="1.0" name="OrderedSet">
+  <ssv:Parameters>
+    <ssv:Parameter name="beta_param"><ssv:Real unit="kg" value="2.0" /></ssv:Parameter>
+    <ssv:Parameter name="alpha_param"><ssv:Integer value="1" /></ssv:Parameter>
+    <ssv:Parameter name="gamma_param"><ssv:Boolean value="true" /></ssv:Parameter>
+  </ssv:Parameters>
+  <ssv:Enumerations>
+    <ssc:Enumeration name="SecondEnum"><ssc:Item value="2" name="TWO" /></ssc:Enumeration>
+    <ssc:Enumeration name="FirstEnum"><ssc:Item name="ONE" value="1" /></ssc:Enumeration>
+  </ssv:Enumerations>
+  <ssv:Units>
+    <ssc:Unit name="kg"><ssc:BaseUnit kg="1" /></ssc:Unit>
+    <ssc:Unit name="m"><ssc:BaseUnit m="1" /></ssc:Unit>
+  </ssv:Units>
+</ssv:ParameterSet>
+""",
+        encoding="utf-8",
+    )
+
+    with SSV(path, "a"):
+        pass
+
+    with SSV(path) as ssv:
+        assert [parameter.name for parameter in ssv.xml.parameters] == ["beta_param", "alpha_param", "gamma_param"]
+        assert [unit.name for unit in ssv.xml.units] == ["kg", "m"]
+        assert [enumeration.name for enumeration in ssv.xml.enumerations] == ["SecondEnum", "FirstEnum"]
+
+    xml_text = path.read_text(encoding="utf-8")
+    assert xml_text.index('name="beta_param"') < xml_text.index('name="alpha_param"')
+    assert xml_text.index('name="alpha_param"') < xml_text.index('name="gamma_param"')
+    assert xml_text.index('Unit name="kg"') < xml_text.index('Unit name="m"')
+    assert xml_text.index('Enumeration name="SecondEnum"') < xml_text.index('Enumeration name="FirstEnum"')

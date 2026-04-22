@@ -45,13 +45,43 @@ These are inferred from the current implementation, tests, and user-facing docum
 
 ### Round-Trip Preservation
 
+Current support and future intent need to stay separate here. The library already preserves some round-trip properties, while others are only targets for future stabilization.
+
+#### Supported Now
+
 - Read-modify-write workflows shall preserve supported metadata across SSD, SSM, SSV, and FMI model description content.
 - Read-modify-write workflows shall preserve supported annotation and extension content rather than discarding it.
-- Read-modify-write workflows shall preserve input ordering for supported repeated elements whenever no intentional reordering was requested.
-- Output serialization shall reflect the original logical order of inputs so line-oriented and textual diff tools remain effective during review.
+- Read-modify-write workflows shall preserve the input order of supported repeated child elements whenever no intentional reordering was requested.
+- Output serialization shall preserve those logical collection orders so line-oriented and textual diff tools remain effective during review.
 - SSD round trips shall preserve supported structural content such as connectors, connections, component attributes, and default experiment data.
 - SSM round trips shall preserve mapping entries and transformation definitions.
 - SSV round trips shall preserve parameters, units, and enumerations.
+
+Examples of supported ordering today:
+- if an input `SSV` lists parameters in the order `beta`, `alpha`, `gamma`, the round-tripped document should preserve that logical parameter order
+- if an input `SSD` lists connections in the order `B -> bus` before `A -> bus`, the round-tripped document should preserve that connection order
+- if an input FMI `modelDescription.xml` lists variables or outputs in a specific order, the round-tripped document should preserve that order
+
+#### Not Guaranteed Now
+
+- XML lexical details that are not represented as ordered model data are not required to round-trip byte-for-byte.
+- This currently includes attribute order, namespace prefix choice, indentation, line wrapping, and serializer-chosen canonical section ordering.
+
+Examples of what is not currently guaranteed:
+- an input element with attributes written as `target="x" source="y"` may be serialized back as `source="y" target="x"`
+- an input document using one namespace prefix spelling may be serialized with a different prefix spelling
+- an input document that places sections in a non-canonical order may be serialized in the serializer's preferred section order
+  example: an input `modelDescription.xml` that lists `ModelVariables` before `UnitDefinitions` may be serialized back with `UnitDefinitions` before `ModelVariables`
+
+#### Future Compatibility Target
+
+- The library should converge on deterministic serializer-originated ordering for emitted tags and attributes so newly created or normalized files remain stable and reviewable as the library evolves.
+- Once serializer-originated ordering is defined per supported document type, it should be treated as an explicit compatibility target and covered by dedicated tests.
+
+Examples of future serializer-level guarantees:
+- newly created `SSM` files should emit mapping entry attributes in one documented order
+- newly created `SSV` files should emit top-level sections in one documented order
+- normalized `SSD` output should use one documented tag and attribute ordering strategy across releases
 
 ### Validation Expectations
 

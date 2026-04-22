@@ -77,3 +77,31 @@ def test_round_trip_preserves_metadata_and_mapping_annotations(tmp_path):
         assert ssm.xml.metadata.annotations[0].elements[0].text == "mapping"
         assert ssm.xml.mappings[0].annotations[0].type_name == "com.example.mapping"
         assert ssm.xml.mappings[0].annotations[0].elements[0].attrib == {"mode": "copy"}
+
+
+def test_round_trip_preserves_mapping_order_in_serialized_xml(tmp_path):
+    path = tmp_path / "ordered.ssm"
+    path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<ssm:ParameterMapping xmlns:ssc="http://ssp-standard.org/SSP1/SystemStructureCommon" xmlns:ssm="http://ssp-standard.org/SSP1/SystemStructureParameterMapping" version="1.0">
+  <ssm:MappingEntry target="target_b" source="source_b">
+    <ssc:LinearTransformation offset="1" factor="3" />
+  </ssm:MappingEntry>
+  <ssm:MappingEntry source="source_a" target="target_a" />
+  <ssm:MappingEntry target="target_c" source="source_c" />
+</ssm:ParameterMapping>
+""",
+        encoding="utf-8",
+    )
+
+    with SSM(path, "a"):
+        pass
+
+    with SSM(path) as ssm:
+        assert [mapping.target for mapping in ssm.xml.mappings] == ["target_b", "target_a", "target_c"]
+        assert ssm.xml.mappings[0].transformation is not None
+        assert ssm.xml.mappings[0].transformation.type_name == "LinearTransformation"
+
+    xml_text = path.read_text(encoding="utf-8")
+    assert xml_text.index('target="target_b"') < xml_text.index('target="target_a"')
+    assert xml_text.index('target="target_a"') < xml_text.index('target="target_c"')

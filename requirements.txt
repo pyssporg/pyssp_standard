@@ -1,4 +1,4 @@
 lxml
 xmlschema
 pint
-xsdata[cli]
+pytest
