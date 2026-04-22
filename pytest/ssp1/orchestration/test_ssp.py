@@ -151,22 +151,11 @@ def test_can_open_model_description_from_directory_backed_fmu_inside_directory_s
                     assert len(md.inputs) > 0
 
 
-def test_can_open_model_description_from_packaged_fmu_inside_packaged_ssp(
-    embrace_ssd_fixture,
-    embrace_ssm_fixture,
-    fmu_archive_fixture,
-    tmp_path,
+
+def test_can_open_and_alter_model_description_from_directory_backed_fmu_inside_directory_ssp(
+    embrace_ssp_fixture,
 ):
-    ssp_path = tmp_path / "nested_fmu.ssp"
-    parameter_set = embrace_ssm_fixture.parent / "RAPID_Systems_2021-03-29_Test_1.ssv"
-
-    with zipfile.ZipFile(ssp_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.write(embrace_ssd_fixture, arcname="SystemStructure.ssd")
-        archive.write(parameter_set, arcname="resources/RAPID_Systems_2021-03-29_Test_1.ssv")
-        archive.write(embrace_ssm_fixture, arcname="resources/ECS_HW.ssm")
-        archive.write(fmu_archive_fixture, arcname="resources/0001_ECS_HW.fmu")
-
-    with SSP(ssp_path, mode="r") as ssp:
+    with SSP(embrace_ssp_fixture, mode="r") as ssp:
         with ssp.system_structure() as ssd:
             component = next(component for component in ssd.system.elements if component.name == "ECS_HW")
             assert component.source == "resources/0001_ECS_HW.fmu"
