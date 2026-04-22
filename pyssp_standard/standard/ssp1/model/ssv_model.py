@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Annotation, Ssp1BaseUnit, Ssp1DocumentMetadata, Ssp1Unit
+from pyssp_standard.standard.ssp1.model.ssc_model import (
+    Ssp1Annotation,
+    Ssp1BaseUnit,
+    Ssp1DocumentMetadata,
+    Ssp1Enumeration,
+    Ssp1EnumerationItem,
+    Ssp1Unit,
+)
 from pyssp_standard.standard.unit_conversion import generate_base_unit
 
 
@@ -22,6 +29,7 @@ class Ssp1ParameterSet:
     version: str
     metadata: Ssp1DocumentMetadata = field(default_factory=Ssp1DocumentMetadata)
     parameters: list[Ssp1Parameter] = field(default_factory=list)
+    enumerations: list[Ssp1Enumeration] = field(default_factory=list)
     units: list[Ssp1Unit] = field(default_factory=list)
 
     def add_parameter(
@@ -74,3 +82,8 @@ class Ssp1ParameterSet:
             if unit.name == name:
                 return unit
         return None
+
+    def add_enumeration(self, name: str, items: list[Ssp1EnumerationItem]) -> Ssp1Enumeration:
+        enumeration = Ssp1Enumeration(name=name, items=list(items))
+        self.enumerations.append(enumeration)
+        return enumeration

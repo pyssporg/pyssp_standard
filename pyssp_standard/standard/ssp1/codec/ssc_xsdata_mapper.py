@@ -13,6 +13,8 @@ from pyssp_standard.standard.ssp1.model.ssc_model import (
     Ssp1Annotation,
     Ssp1BaseUnit,
     Ssp1DocumentMetadata,
+    Ssp1Enumeration,
+    Ssp1EnumerationItem,
     Ssp1Transformation,
     Ssp1Unit,
 )
@@ -165,6 +167,35 @@ class Ssp1SscXsdataMapper:
                 factor=unit.base_unit.factor if unit.base_unit.factor is not None else 1.0,
                 offset=unit.base_unit.offset if unit.base_unit.offset is not None else 0.0,
             ),
+        )
+
+    @staticmethod
+    def read_enumeration(entry: object) -> Ssp1Enumeration:
+        return Ssp1Enumeration(
+            name=entry.name,
+            id=getattr(entry, "id", None),
+            description=getattr(entry, "description", None),
+            annotations=Ssp1SscXsdataMapper.read_annotations(getattr(entry, "annotations", None)),
+            items=[
+                Ssp1EnumerationItem(name=item.name, value=item.value)
+                for item in getattr(entry, "item", [])
+            ],
+        )
+
+    @staticmethod
+    def write_enumeration(enumeration: Ssp1Enumeration, *, enumeration_cls, annotations_cls) -> object:
+        return enumeration_cls(
+            name=enumeration.name,
+            id=enumeration.id,
+            description=enumeration.description,
+            annotations=Ssp1SscXsdataMapper.write_annotations(
+                enumeration.annotations,
+                annotations_cls=annotations_cls,
+            ),
+            item=[
+                enumeration_cls.Item(name=item.name, value=item.value)
+                for item in enumeration.items
+            ],
         )
 
     @staticmethod

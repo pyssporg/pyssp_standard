@@ -56,6 +56,21 @@ class Ssp1Unit:
 
 
 @dataclass
+class Ssp1EnumerationItem:
+    name: str
+    value: int
+
+
+@dataclass
+class Ssp1Enumeration:
+    name: str
+    items: list[Ssp1EnumerationItem] = field(default_factory=list)
+    id: str | None = None
+    description: str | None = None
+    annotations: list[Ssp1Annotation] = field(default_factory=list)
+
+
+@dataclass
 class Ssp1Transformation:
     type_name: str
     attributes: dict[str, str] = field(default_factory=dict)

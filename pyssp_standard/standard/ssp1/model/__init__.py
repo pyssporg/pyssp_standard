@@ -4,6 +4,8 @@ from pyssp_standard.standard.ssp1.model.ssc_model import (
     Ssp1Annotation,
     Ssp1BaseUnit,
     Ssp1DocumentMetadata,
+    Ssp1Enumeration,
+    Ssp1EnumerationItem,
     Ssp1Transformation,
     Ssp1Unit,
 )
@@ -34,6 +36,8 @@ __all__ = [
     "Ssp1Annotation",
     "Ssp1BaseUnit",
     "Ssp1DocumentMetadata",
+    "Ssp1Enumeration",
+    "Ssp1EnumerationItem",
     "Ssp1MappingEntry",
     "Ssp1Parameter",
     "Ssp1ParameterMapping",

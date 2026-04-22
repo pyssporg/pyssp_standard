@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from xml.etree import ElementTree as ET
 
-from pyssp_standard.standard.ssp1.model import Ssp1Annotation
+from pyssp_standard.standard.ssp1.model import Ssp1Annotation, Ssp1EnumerationItem
 from pyssp_standard.ssv import SSV
 
 
@@ -139,3 +139,31 @@ def test_round_trip_preserves_metadata_parameter_and_unit_annotations(tmp_path):
         assert ssv.xml.parameters[0].annotations[0].elements[0].attrib == {"priority": "high"}
         assert ssv.xml.units[0].annotations[0].type_name == "com.example.unit"
         assert ssv.xml.units[0].annotations[0].elements[0].tag == "{urn:test}unitNote"
+
+
+def test_round_trip_preserves_enumerations(tmp_path):
+    path = tmp_path / "enumerations.ssv"
+
+    with SSV(path, "w") as ssv:
+        enumeration = ssv.xml.add_enumeration(
+            "AircraftState",
+            [
+                Ssp1EnumerationItem(name="OFF", value=0),
+                Ssp1EnumerationItem(name="ON", value=1),
+            ],
+        )
+        enumeration.annotations.append(
+            Ssp1Annotation(
+                type_name="com.example.enumeration",
+                elements=[ET.fromstring('<note xmlns="urn:test">states</note>')],
+            )
+        )
+        ssv.xml.add_parameter(parname="state", ptype="Enumeration", value="1", name="ON")
+
+    with SSV(path) as ssv:
+        assert len(ssv.xml.enumerations) == 1
+        enumeration = ssv.xml.enumerations[0]
+        assert enumeration.name == "AircraftState"
+        assert [(item.name, item.value) for item in enumeration.items] == [("OFF", 0), ("ON", 1)]
+        assert enumeration.annotations[0].elements[0].text == "states"
+        assert ssv.xml.parameters[0].attributes == {"value": "1", "name": "ON"}
