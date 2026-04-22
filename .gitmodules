@@ -10,3 +10,6 @@
 [submodule "3rdParty/FMI2"]
 	path = 3rdParty/FMI2
 	url = https://github.com/modelica/fmi-standard
+[submodule "3rdParty/ssp-ls-traceability"]
+	path = 3rdParty/ssp-ls-traceability
+	url = git@github.com:modelica/ssp-ls-traceability.git
