@@ -34,7 +34,8 @@ def test_requires_loading_before_access(model_description_fixture):
 def test_can_be_loaded_from_xml_text(model_description_fixture):
     xml_text = model_description_fixture.read_text(encoding="utf-8")
 
-    with ModelDescription(xml_text=xml_text) as md:
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(xml_text)
         assert md.xml.root.tag == "fmiModelDescription"
         assert len(md.xml.variables) > 0
         assert md.check_compliance() is True

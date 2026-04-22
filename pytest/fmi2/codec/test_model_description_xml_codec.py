@@ -22,7 +22,8 @@ def test_round_trip_preserves_schema_valid_fixture(model_description_fixture):
     document = codec.parse(xml_text)
     rendered = codec.serialize(document)
 
-    with ModelDescription(xml_text=rendered) as md:
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(rendered)
         assert md.check_compliance() is True
         assert len(md.xml.variables) == len(document.variables)
         assert len(md.xml.type_definitions) == len(document.type_definitions)

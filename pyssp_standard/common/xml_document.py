@@ -10,7 +10,7 @@ DocumentT = TypeVar("DocumentT")
 class XmlDocument(Generic[DocumentT]):
     """Shared public-API facade behavior for XML-backed documents."""
 
-    def __init__(self, path: str | Path, mode: str = "r"):
+    def __init__(self, path: str | Path, mode: str = "r",):
         self.path = Path(path)
         self.mode = mode
         self._document: DocumentT | None = None
@@ -46,10 +46,16 @@ class XmlDocument(Generic[DocumentT]):
 
         text = self.path.read_text(encoding="utf-8")
         return self._codec.parse(text)
+    
+    def from_xml(self, text):
+        self._document = self._codec.parse(text)
 
     def save_document(self):
         self.path.write_text(self._codec.serialize(self.xml), encoding="utf-8")
 
     def _create_document(self) -> DocumentT:
         raise NotImplementedError
+    
+
+
 
