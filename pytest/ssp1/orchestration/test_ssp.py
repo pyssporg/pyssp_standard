@@ -229,3 +229,25 @@ def test_resolves_external_parameter_mapping_at_archive_layer(embrace_ssp_dir_fi
             assert binding.parameter_mapping.source == "resources/ECS_HW.ssm"
             assert binding.parameter_mapping.mapping is not None
             assert len(binding.parameter_mapping.mapping.mappings) > 0
+
+
+def test_missing_external_parameter_set_does_not_break_archive_session(tmp_path):
+    ssp_path = tmp_path / "missing_external.ssp"
+    ssd_xml = """\
+<ssd:SystemStructureDescription xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription" version="1.0" name="Missing">
+  <ssd:System name="system">
+    <ssd:ParameterBindings>
+      <ssd:ParameterBinding source="missing_values.ssv" />
+    </ssd:ParameterBindings>
+  </ssd:System>
+</ssd:SystemStructureDescription>
+"""
+    with zipfile.ZipFile(ssp_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("SystemStructure.ssd", ssd_xml)
+
+    with SSP(ssp_path, mode="r") as ssp:
+        with ssp.system_structure() as ssd:
+            binding = ssd.xml.parameter_bindings[0]
+            assert binding.source == "missing_values.ssv"
+            assert binding.parameter_set is None
+            assert binding.parameter_mapping is None

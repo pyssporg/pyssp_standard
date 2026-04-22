@@ -1,6 +1,14 @@
 from __future__ import annotations
 
 from pyssp_standard.standard.ssp1.codec import Ssp1SsdCodec
+from pyssp_standard.standard.ssp1.model import (
+    Ssd1ParameterBinding,
+    Ssd1ParameterMappingReference,
+    Ssd1System,
+    Ssd1SystemStructureDescription,
+)
+from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1Transformation
+from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
 
 
 def test_parses_embrace_fixture(embrace_ssd_fixture):
@@ -50,3 +58,34 @@ def test_round_trip_preserves_inline_and_external_parameter_bindings(mixed_ssd_f
     assert reparsed.parameter_bindings[0].parameter_set is not None
     assert reparsed.parameter_bindings[0].parameter_set.parameters[0].attributes["value"] == "1.5"
     assert reparsed.parameter_bindings[1].source == "external_values.ssv"
+
+
+def test_round_trip_preserves_inline_parameter_mapping_document():
+    codec = Ssp1SsdCodec()
+    mapping = Ssp1ParameterMapping(version="1.0")
+    mapping.add_mapping(
+        "source_gain",
+        "Plant.gain",
+        suppress_unit_conversion=True,
+        transformation=Ssp1Transformation("LinearTransformation", {"factor": 2, "offset": 0}),
+    )
+    document = Ssd1SystemStructureDescription(
+        name="InlineMapping",
+        version="1.0",
+        system=Ssd1System(
+            name="system",
+            parameter_bindings=[
+                Ssd1ParameterBinding(
+                    parameter_mapping=Ssd1ParameterMappingReference(mapping=mapping),
+                )
+            ],
+        ),
+    )
+
+    reparsed = codec.parse(codec.serialize(document))
+
+    assert reparsed.parameter_bindings[0].parameter_mapping is not None
+    assert reparsed.parameter_bindings[0].parameter_mapping.source is None
+    assert reparsed.parameter_bindings[0].parameter_mapping.mapping is not None
+    assert reparsed.parameter_bindings[0].parameter_mapping.mapping.mappings[0].target == "Plant.gain"
+    assert reparsed.parameter_bindings[0].parameter_mapping.mapping.mappings[0].suppress_unit_conversion is True
