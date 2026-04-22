@@ -155,7 +155,7 @@ def test_can_open_model_description_from_directory_backed_fmu_inside_directory_s
 def test_can_open_and_alter_model_description_from_directory_backed_fmu_inside_directory_ssp(
     embrace_ssp_fixture,
 ):
-    with SSP(embrace_ssp_fixture, mode="w") as ssp:
+    with SSP(embrace_ssp_fixture, mode="a") as ssp:
         with ssp.system_structure() as ssd:
             component = next(component for component in ssd.system.elements if component.name == "ECS_HW")
             assert component.source == "resources/0001_ECS_HW.fmu"
@@ -164,7 +164,7 @@ def test_can_open_and_alter_model_description_from_directory_backed_fmu_inside_d
                 with fmu.model_description as md:
                     md.document.model_name = "New name"
 
-    with SSP(embrace_ssp_fixture, mode="w") as ssp:
+    with SSP(embrace_ssp_fixture, mode="r") as ssp:
         with ssp.system_structure() as ssd:
             component = next(component for component in ssd.system.elements if component.name == "ECS_HW")
             assert component.source == "resources/0001_ECS_HW.fmu"

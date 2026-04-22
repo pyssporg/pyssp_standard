@@ -31,4 +31,4 @@ class FMU:
 
     @property
     def model_description(self) -> ModelDescription:
-        return ModelDescription(self._archive.root / "modelDescription.xml")
+        return ModelDescription(self._archive.root / "modelDescription.xml", mode=self.mode)
