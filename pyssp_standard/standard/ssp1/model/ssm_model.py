@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Transformation
+from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Annotation, Ssp1DocumentMetadata, Ssp1Transformation
 
 
 @dataclass
@@ -11,11 +11,15 @@ class Ssp1MappingEntry:
     target: str
     suppress_unit_conversion: bool | None = None
     transformation: Ssp1Transformation | None = None
+    id: str | None = None
+    description: str | None = None
+    annotations: list[Ssp1Annotation] = field(default_factory=list)
 
 
 @dataclass
 class Ssp1ParameterMapping:
     version: str
+    metadata: Ssp1DocumentMetadata = field(default_factory=Ssp1DocumentMetadata)
     mappings: list[Ssp1MappingEntry] = field(default_factory=list)
 
     def add_mapping(

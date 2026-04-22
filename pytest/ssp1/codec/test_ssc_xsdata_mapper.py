@@ -1,15 +1,23 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from xml.etree import ElementTree as ET
 
 import pytest
 from xsdata.models.datatype import XmlDateTime
 
 from pyssp_standard.standard.ssp1.codec.ssc_xsdata_mapper import Ssp1SscXsdataMapper
 from pyssp_standard.standard.ssp1.generated.ssd_generated_types import ConnectorKind, Tconnectors
+from pyssp_standard.standard.ssp1.generated.ssv_generated_types import Tannotations
 from pyssp_standard.standard.ssp1.generated.ssm_generated_types import TmappingEntry
 from pyssp_standard.standard.ssp1.generated.ssv_generated_types import Tparameter, Tunit
-from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1BaseUnit, Ssp1DocumentMetadata, Ssp1Transformation, Ssp1Unit
+from pyssp_standard.standard.ssp1.model.ssc_model import (
+    Ssp1Annotation,
+    Ssp1BaseUnit,
+    Ssp1DocumentMetadata,
+    Ssp1Transformation,
+    Ssp1Unit,
+)
 
 
 def test_base_unit_from_dict_normalizes_schema_attribute_names():
@@ -34,7 +42,7 @@ def test_document_metadata_round_trip_preserves_common_fields():
     )
 
     metadata = Ssp1SscXsdataMapper.read_document_metadata(generated)
-    written = Ssp1SscXsdataMapper.write_document_metadata(metadata)
+    written = Ssp1SscXsdataMapper.write_document_metadata(metadata, annotations_cls=Tannotations)
 
     assert metadata == Ssp1DocumentMetadata(
         id="meta-id",
@@ -47,6 +55,23 @@ def test_document_metadata_round_trip_preserves_common_fields():
         generation_date_and_time="2026-04-22T09:15:00Z",
     )
     assert written["generation_date_and_time"] == "2026-04-22T09:15:00Z"
+
+
+def test_annotations_round_trip_preserves_type_and_xml_payload():
+    annotation = Ssp1Annotation(
+        type_name="com.example.note",
+        elements=[ET.fromstring('<note xmlns="urn:test" level="info">hello</note>')],
+    )
+
+    generated = Ssp1SscXsdataMapper.write_annotations([annotation], annotations_cls=Tannotations)
+    reparsed = Ssp1SscXsdataMapper.read_annotations(generated)
+
+    assert generated is not None
+    assert generated.annotation[0].type_value == "com.example.note"
+    assert reparsed[0].type_name == "com.example.note"
+    assert reparsed[0].elements[0].tag == "{urn:test}note"
+    assert reparsed[0].elements[0].attrib == {"level": "info"}
+    assert reparsed[0].elements[0].text == "hello"
 
 
 def test_unit_round_trip_preserves_common_content_fields():

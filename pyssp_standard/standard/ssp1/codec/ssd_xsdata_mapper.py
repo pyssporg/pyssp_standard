@@ -14,6 +14,7 @@ from pyssp_standard.standard.ssp1.generated.ssd_generated_types import (
     ParameterBindingSourceBase,
     ParameterMappingSourceBase,
     SystemStructureDescription,
+    Tannotations,
     Tcomponent,
     TcomponentImplementation,
     Tconnectors,
@@ -49,6 +50,7 @@ class Ssp1SsdXsdataMapper:
         return Ssd1SystemStructureDescription(
             name=generated.name,
             version=generated.version,
+            metadata=Ssp1SscXsdataMapper.read_document_metadata(generated),
             system=self._read_system(generated.system) if generated.system is not None else None,
             default_experiment=self._read_default_experiment(generated.default_experiment),
         )
@@ -62,6 +64,7 @@ class Ssp1SsdXsdataMapper:
             name=document.name,
             system=self._write_system(document.system) if document.system is not None else None,
             default_experiment=self._write_default_experiment(document.default_experiment),
+            **Ssp1SscXsdataMapper.write_document_metadata(document.metadata, annotations_cls=Tannotations),
         )
 
     @staticmethod
@@ -171,11 +174,20 @@ class Ssp1SsdXsdataMapper:
             kind=generated.kind.value,
             type_name=type_name,
             type_attributes=type_attributes,
+            id=generated.id,
+            description=generated.description,
+            annotations=Ssp1SscXsdataMapper.read_annotations(generated.annotations),
         )
 
     @staticmethod
     def _write_connector(model: Ssd1Connector) -> Tconnectors.Connector:
-        generated = Tconnectors.Connector(name=model.name, kind=ConnectorKind(model.kind))
+        generated = Tconnectors.Connector(
+            name=model.name,
+            kind=ConnectorKind(model.kind),
+            id=model.id,
+            description=model.description,
+            annotations=Ssp1SscXsdataMapper.write_annotations(model.annotations, annotations_cls=Tannotations),
+        )
         Ssp1SscXsdataMapper.apply_connector_type(generated, model.type_name, model.type_attributes)
         return generated
 

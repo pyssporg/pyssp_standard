@@ -1,6 +1,12 @@
 """SSP1 compact domain models."""
 
-from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1BaseUnit, Ssp1DocumentMetadata, Ssp1Transformation, Ssp1Unit
+from pyssp_standard.standard.ssp1.model.ssc_model import (
+    Ssp1Annotation,
+    Ssp1BaseUnit,
+    Ssp1DocumentMetadata,
+    Ssp1Transformation,
+    Ssp1Unit,
+)
 from pyssp_standard.standard.ssp1.model.ssd_model import (
     ExternalReference,
     Ssd1Component,
@@ -25,6 +31,7 @@ __all__ = [
     "Ssd1ParameterMappingReference",
     "Ssd1SystemStructureDescription",
     "Ssd1System",
+    "Ssp1Annotation",
     "Ssp1BaseUnit",
     "Ssp1DocumentMetadata",
     "Ssp1MappingEntry",

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import shutil
+from xml.etree import ElementTree as ET
 
 from pyssp_standard.ssd import Component, Connection, Connector, DefaultExperiment, SSD, System
+from pyssp_standard.standard.ssp1.model import Ssp1Annotation
 
 
 def test_check_compliance_accepts_reference_fixture(embrace_ssd_fixture):
@@ -81,3 +83,32 @@ def test_list_connectors_returns_component_connectors(embrace_ssd_fixture):
         found = ssd.list_connectors(parent="Consumer")
 
     assert len(found) == 76
+
+
+def test_round_trip_preserves_metadata_and_connector_annotations(tmp_path):
+    path = tmp_path / "annotations.ssd"
+
+    with SSD(path, mode="w") as ssd:
+        ssd.name = "Annotated SSD"
+        ssd.version = "1.0"
+        ssd.metadata.annotations.append(
+            Ssp1Annotation(
+                type_name="com.example.doc",
+                elements=[ET.fromstring('<doc xmlns="urn:test">ssd</doc>')],
+            )
+        )
+        connector = Connector(None, "x", "output", "Real")
+        connector.annotations.append(
+            Ssp1Annotation(
+                type_name="com.example.connector",
+                elements=[ET.fromstring('<connectorNote xmlns="urn:test">signal</connectorNote>')],
+            )
+        )
+        ssd.system = System(None, "system")
+        ssd.system.connectors.append(connector)
+
+    with SSD(path, mode="r") as ssd:
+        assert ssd.metadata.annotations[0].elements[0].text == "ssd"
+        assert ssd.system is not None
+        assert ssd.system.connectors[0].annotations[0].type_name == "com.example.connector"
+        assert ssd.system.connectors[0].annotations[0].elements[0].text == "signal"

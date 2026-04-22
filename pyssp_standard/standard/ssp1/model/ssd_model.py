@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
+from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Annotation, Ssp1DocumentMetadata
 from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1ParameterSet
 
@@ -23,6 +24,9 @@ class Ssd1Connector:
     kind: str = ""
     type_name: str | None = None
     type_attributes: dict[str, str] = field(default_factory=dict)
+    id: str | None = None
+    description: str | None = None
+    annotations: list[Ssp1Annotation] = field(default_factory=list)
 
 
 @dataclass
@@ -75,6 +79,7 @@ class Ssd1System:
 class Ssd1SystemStructureDescription:
     name: str
     version: str
+    metadata: Ssp1DocumentMetadata = field(default_factory=Ssp1DocumentMetadata)
     system: Ssd1System | None = None
     default_experiment: Ssd1DefaultExperiment | None = None
 

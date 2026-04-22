@@ -1,6 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from xml.etree import ElementTree as ET
+
+
+@dataclass
+class Ssp1Annotation:
+    type_name: str
+    elements: list[ET.Element] = field(default_factory=list)
 
 
 @dataclass
@@ -13,6 +20,7 @@ class Ssp1DocumentMetadata:
     license: str | None = None
     generation_tool: str | None = None
     generation_date_and_time: str | None = None
+    annotations: list[Ssp1Annotation] = field(default_factory=list)
 
 
 @dataclass
@@ -44,6 +52,7 @@ class Ssp1Unit:
     base_unit: Ssp1BaseUnit
     id: str | None = None
     description: str | None = None
+    annotations: list[Ssp1Annotation] = field(default_factory=list)
 
 
 @dataclass

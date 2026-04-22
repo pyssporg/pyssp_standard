@@ -1,12 +1,26 @@
 from __future__ import annotations
 
+import copy
+from xml.etree import ElementTree as ET
+
+from xsdata.formats.dataclass.models.generics import AnyElement
+from xsdata.formats.dataclass.serializers import XmlSerializer
+from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from pyssp_standard.standard.ssp1.generated.ssd_generated_types import Tconnectors
 from pyssp_standard.standard.ssp1.generated.ssm_generated_types import TmappingEntry
-from pyssp_standard.standard.ssp1.generated.ssv_generated_types import Tparameter, Tunit
-from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1BaseUnit, Ssp1DocumentMetadata, Ssp1Transformation, Ssp1Unit
+from pyssp_standard.standard.ssp1.generated.ssv_generated_types import Tannotations as SsvTannotations, Tparameter, Tunit
+from pyssp_standard.standard.ssp1.model.ssc_model import (
+    Ssp1Annotation,
+    Ssp1BaseUnit,
+    Ssp1DocumentMetadata,
+    Ssp1Transformation,
+    Ssp1Unit,
+)
 
 
 class Ssp1SscXsdataMapper:
+    _serializer = XmlSerializer(config=SerializerConfig(indent="  "))
+
     @staticmethod
     def read_document_metadata(generated: object) -> Ssp1DocumentMetadata:
         return Ssp1DocumentMetadata(
@@ -22,10 +36,11 @@ class Ssp1SscXsdataMapper:
                 if getattr(generated, "generation_date_and_time", None) is not None
                 else None
             ),
+            annotations=Ssp1SscXsdataMapper.read_annotations(getattr(generated, "annotations", None)),
         )
 
     @staticmethod
-    def write_document_metadata(metadata: Ssp1DocumentMetadata) -> dict[str, object]:
+    def write_document_metadata(metadata: Ssp1DocumentMetadata, *, annotations_cls) -> dict[str, object]:
         return {
             "id": metadata.id,
             "description": metadata.description,
@@ -35,7 +50,79 @@ class Ssp1SscXsdataMapper:
             "license": metadata.license,
             "generation_tool": metadata.generation_tool,
             "generation_date_and_time": metadata.generation_date_and_time,
+            "annotations": Ssp1SscXsdataMapper.write_annotations(metadata.annotations, annotations_cls=annotations_cls),
         }
+
+    @classmethod
+    def read_annotations(cls, generated: object | None) -> list[Ssp1Annotation]:
+        if generated is None:
+            return []
+
+        annotations: list[Ssp1Annotation] = []
+        for entry in generated.annotation:
+            elements = cls._normalize_wildcard(entry.any_element)
+            annotations.append(Ssp1Annotation(type_name=entry.type_value, elements=elements))
+        return annotations
+
+    @staticmethod
+    def write_annotations(annotations: list[Ssp1Annotation], *, annotations_cls) -> object | None:
+        if not annotations:
+            return None
+
+        generated = annotations_cls()
+        generated.annotation = [
+            annotations_cls.Annotation(
+                type_value=annotation.type_name,
+                any_element=Ssp1SscXsdataMapper._write_annotation_payload(annotation.elements),
+            )
+            for annotation in annotations
+        ]
+        return generated
+
+    @classmethod
+    def _normalize_wildcard(cls, value: object) -> list[ET.Element]:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            elements: list[ET.Element] = []
+            for item in value:
+                elements.extend(cls._normalize_wildcard(item))
+            return elements
+        if isinstance(value, ET.Element):
+            return [copy.deepcopy(value)]
+        if isinstance(value, AnyElement):
+            return [cls._any_element_to_etree(value)]
+        xml_text = cls._serializer.render(value)
+        return [ET.fromstring(xml_text)]
+
+    @staticmethod
+    def _write_annotation_payload(elements: list[ET.Element]) -> object:
+        if not elements:
+            return None
+        if len(elements) == 1:
+            return Ssp1SscXsdataMapper._etree_to_any_element(elements[0])
+        return [Ssp1SscXsdataMapper._etree_to_any_element(element) for element in elements]
+
+    @staticmethod
+    def _etree_to_any_element(element: ET.Element) -> AnyElement:
+        return AnyElement(
+            qname=element.tag,
+            text=element.text,
+            tail=element.tail,
+            attributes=dict(element.attrib),
+            children=[Ssp1SscXsdataMapper._etree_to_any_element(child) for child in list(element)],
+        )
+
+    @staticmethod
+    def _any_element_to_etree(element: AnyElement) -> ET.Element:
+        qname = element.qname or "value"
+        generated = ET.Element(qname, attrib=element.attributes)
+        generated.text = element.text
+        generated.tail = element.tail
+        for child in element.children:
+            if isinstance(child, AnyElement):
+                generated.append(Ssp1SscXsdataMapper._any_element_to_etree(child))
+        return generated
 
     @staticmethod
     def read_unit(entry: Tunit) -> Ssp1Unit:
@@ -44,6 +131,7 @@ class Ssp1SscXsdataMapper:
             name=entry.name,
             id=entry.id,
             description=entry.description,
+            annotations=Ssp1SscXsdataMapper.read_annotations(entry.annotations),
             base_unit=Ssp1BaseUnit(
                 kg=base.kg,
                 m=base.m,
@@ -64,6 +152,7 @@ class Ssp1SscXsdataMapper:
             name=unit.name,
             id=unit.id,
             description=unit.description,
+            annotations=Ssp1SscXsdataMapper.write_annotations(unit.annotations, annotations_cls=SsvTannotations),
             base_unit=Tunit.BaseUnit(
                 kg=unit.base_unit.kg or 0,
                 m=unit.base_unit.m or 0,

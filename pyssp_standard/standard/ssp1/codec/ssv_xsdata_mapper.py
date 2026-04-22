@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyssp_standard.standard.ssp1.generated.ssv_generated_types import ParameterSet, Tparameter, Tparameters, Tunits, Tunit
+from pyssp_standard.standard.ssp1.generated.ssv_generated_types import ParameterSet, Tannotations, Tparameter, Tparameters, Tunits, Tunit
 from pyssp_standard.standard.ssp1.codec.ssc_xsdata_mapper import Ssp1SscXsdataMapper
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter, Ssp1ParameterSet
 
@@ -13,6 +13,9 @@ class Ssp1SsvXsdataMapper:
             if ptype is None:
                 continue
             parameters.append(Ssp1Parameter(name=entry.name, type_name=ptype, attributes=attrs))
+            parameters[-1].id = entry.id
+            parameters[-1].description = entry.description
+            parameters[-1].annotations = Ssp1SscXsdataMapper.read_annotations(entry.annotations)
 
         units = [Ssp1SscXsdataMapper.read_unit(entry) for entry in generated.units.unit] if generated.units is not None else []
         metadata = Ssp1SscXsdataMapper.read_document_metadata(generated)
@@ -32,10 +35,18 @@ class Ssp1SsvXsdataMapper:
             name=model.name,
             parameters=Tparameters(
                 parameter=[
-                    Ssp1SscXsdataMapper.write_parameter_type(param.name, param.type_name, param.attributes)
+                    self._write_parameter(param)
                     for param in model.parameters
                 ]
             ),
             units=units,
-            **Ssp1SscXsdataMapper.write_document_metadata(model.metadata),
+            **Ssp1SscXsdataMapper.write_document_metadata(model.metadata, annotations_cls=Tannotations),
         )
+
+    @staticmethod
+    def _write_parameter(param: Ssp1Parameter) -> Tparameter:
+        generated = Ssp1SscXsdataMapper.write_parameter_type(param.name, param.type_name, param.attributes)
+        generated.id = param.id
+        generated.description = param.description
+        generated.annotations = Ssp1SscXsdataMapper.write_annotations(param.annotations, annotations_cls=Tannotations)
+        return generated

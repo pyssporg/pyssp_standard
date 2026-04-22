@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1BaseUnit, Ssp1DocumentMetadata, Ssp1Unit
+from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Annotation, Ssp1BaseUnit, Ssp1DocumentMetadata, Ssp1Unit
 from pyssp_standard.standard.unit_conversion import generate_base_unit
 
 
@@ -11,6 +11,9 @@ class Ssp1Parameter:
     name: str
     type_name: str
     attributes: dict[str, str] = field(default_factory=dict)
+    id: str | None = None
+    description: str | None = None
+    annotations: list[Ssp1Annotation] = field(default_factory=list)
 
 
 @dataclass

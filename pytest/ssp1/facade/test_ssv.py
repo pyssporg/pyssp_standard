@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import pytest
+from xml.etree import ElementTree as ET
 
+from pyssp_standard.standard.ssp1.model import Ssp1Annotation
 from pyssp_standard.ssv import SSV
 
 
@@ -103,3 +105,37 @@ def test_external_fixture_loads_as_plain_standalone_document(external_ssv_fixtur
         assert len(ssv.parameters) == 1
         assert ssv.parameters[0].name == "gain"
         assert ssv.parameters[0].attributes["value"] == "0.8"
+
+
+def test_round_trip_preserves_metadata_parameter_and_unit_annotations(tmp_path):
+    path = tmp_path / "annotations.ssv"
+
+    with SSV(path, "w") as ssv:
+        ssv.metadata.annotations.append(
+            Ssp1Annotation(
+                type_name="com.example.doc",
+                elements=[ET.fromstring('<doc xmlns="urn:test">top-level</doc>')],
+            )
+        )
+        parameter = ssv.add_parameter(parname="gain", ptype="Real", value=1.5, unit="kg")
+        parameter.annotations.append(
+            Ssp1Annotation(
+                type_name="com.example.parameter",
+                elements=[ET.fromstring('<hint xmlns="urn:test" priority="high">gain</hint>')],
+            )
+        )
+        unit = ssv.add_unit("kg", {"kg": 1})
+        unit.annotations.append(
+            Ssp1Annotation(
+                type_name="com.example.unit",
+                elements=[ET.fromstring('<unitNote xmlns="urn:test">mass</unitNote>')],
+            )
+        )
+
+    with SSV(path) as ssv:
+        assert ssv.metadata.annotations[0].type_name == "com.example.doc"
+        assert ssv.metadata.annotations[0].elements[0].text == "top-level"
+        assert ssv.parameters[0].annotations[0].type_name == "com.example.parameter"
+        assert ssv.parameters[0].annotations[0].elements[0].attrib == {"priority": "high"}
+        assert ssv.units[0].annotations[0].type_name == "com.example.unit"
+        assert ssv.units[0].annotations[0].elements[0].tag == "{urn:test}unitNote"
