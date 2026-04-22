@@ -24,13 +24,14 @@ class ArchiveRuntime:
             raise FileNotFoundError(f"Archive does not exist: {self.path}")
 
         self._temp_dir = tempfile.TemporaryDirectory(prefix=f"{self.path.stem}_archive_")
-        self._directory_runtime = DirectoryRuntime(self._temp_dir.name, mode="a")
+        self._directory_runtime = DirectoryRuntime(self._temp_dir.name, mode=self.mode)
         self._directory_runtime.__enter__()
 
         if self.mode in {"r", "a"} and self.path.exists() and self.path.stat().st_size > 0:
             with zipfile.ZipFile(self.path, "r") as archive:
-                archive.extractall(self.root)
-        return self._directory_runtime
+                archive.extractall(self._directory_runtime._root)
+
+        return self
 
     def __exit__(self, exc_type, exc, tb):
         try:
@@ -46,6 +47,9 @@ class ArchiveRuntime:
     @property
     def root(self) -> Path:
         return self._directory_runtime.root
+
+    def resolve(self, path: str | Path) -> Path:
+        return self._directory_runtime.resolve(path)
 
     def namelist(self) -> list[str]:
         return self._directory_runtime.namelist()
@@ -69,7 +73,7 @@ class ArchiveRuntime:
                     archive.write(entry, arcname=entry.relative_to(self.root).as_posix())
 
 
-def open_archive(path: str | Path, mode: str = "r") -> DirectoryRuntime | ArchiveRuntime:
+def create_runtime(path: str | Path, mode: str = "r") -> DirectoryRuntime | ArchiveRuntime:
     resolved_path = Path(path)
     if resolved_path.is_dir():
         return DirectoryRuntime(resolved_path, mode)

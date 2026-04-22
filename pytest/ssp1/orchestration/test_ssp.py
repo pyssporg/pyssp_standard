@@ -66,7 +66,7 @@ def test_archive_uses_temp_workdir_and_cleans_up_after_exit(embrace_ssp_archive_
     archive = SSP(embrace_ssp_archive_fixture, mode="r")
 
     with archive as ssp:
-        root = ssp._archive.root
+        root = ssp.runtime.root
         assert root.exists()
 
     assert not root.exists()
@@ -88,7 +88,7 @@ def test_create_mode_scaffolds_system_structure_entry(write_file):
             assert facade.path.exists() is False
 
     with SSP(write_file, mode="r") as ssp:
-        assert "SystemStructure.ssd" in ssp._archive.namelist()
+        assert "SystemStructure.ssd" in ssp.runtime.namelist()
 
 
 def test_directory_mode_uses_persistent_root_and_keeps_it_after_exit(embrace_ssd_fixture, tmp_path):
@@ -97,7 +97,7 @@ def test_directory_mode_uses_persistent_root_and_keeps_it_after_exit(embrace_ssd
 
     archive = SSP(unpacked_ssp_dir, mode="r")
     with archive as ssp:
-        root = ssp._archive.root
+        root = ssp.runtime.root
         assert root == unpacked_ssp_dir
         assert root.exists()
 

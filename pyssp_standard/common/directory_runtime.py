@@ -13,25 +13,23 @@ class DirectoryRuntime:
         self._root: Path | None = None
 
     def __enter__(self) -> "DirectoryRuntime":
-        if self.mode not in {"r", "a", "w"}:
-            raise ValueError(f"Unsupported archive mode '{self.mode}'")
-
         if self.mode == "r":
             if not self.path.is_dir():
                 raise FileNotFoundError(f"Directory does not exist: {self.path}")
-        elif self.mode == "a":
+        elif self.mode == "a" or self.mode == "w":
             if self.path.exists() and not self.path.is_dir():
                 raise NotADirectoryError(f"Path is not a directory: {self.path}")
             self.path.mkdir(parents=True, exist_ok=True)
+            
+            if self.mode == "w":
+                # Remove everything in directory
+                for entry in self.path.iterdir():
+                    if entry.is_dir():
+                        shutil.rmtree(entry)
+                    else:
+                        entry.unlink()
         else:
-            if self.path.exists() and not self.path.is_dir():
-                raise NotADirectoryError(f"Path is not a directory: {self.path}")
-            self.path.mkdir(parents=True, exist_ok=True)
-            for entry in self.path.iterdir():
-                if entry.is_dir():
-                    shutil.rmtree(entry)
-                else:
-                    entry.unlink()
+            raise ValueError(f"Unsupported archive mode '{self.mode}'")
 
         self._root = self.path
         return self

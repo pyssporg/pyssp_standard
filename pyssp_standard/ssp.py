@@ -3,23 +3,22 @@ from __future__ import annotations
 from pathlib import Path
 
 from pyssp_standard.ssd import SsdRuntime
-from pyssp_standard.common.archive_runtime import DirectoryRuntime, open_archive
+from pyssp_standard.common.archive_runtime import DirectoryRuntime, create_runtime, ArchiveRuntime
 
 
 class SSP:
     def __init__(self, path: str | Path, mode: str = "a"):
         self.path = Path(path)
         self.mode = mode
-        self._archive = open_archive(self.path, mode)
-        self._runtime: DirectoryRuntime | None = None
+        self._runtime : DirectoryRuntime | ArchiveRuntime = create_runtime(self.path, mode)
 
     def __enter__(self) -> "SSP":
-        self._runtime = self._archive.__enter__()
+        self._runtime.__enter__()
         return self
 
     def __exit__(self, exc_type, exc, tb):
         try:
-            return self._archive.__exit__(exc_type, exc, tb)
+            return self._runtime.__exit__(exc_type, exc, tb)
         finally:
             self._runtime = None
 

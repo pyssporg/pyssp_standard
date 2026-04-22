@@ -22,7 +22,7 @@ def test_archive_uses_temp_workdir_and_cleans_up_after_exit(fmu_archive_fixture,
 
     archive = FMU(test_fmu_file)
     with archive as fmu:
-        root = fmu._archive.root
+        root = fmu.runtime.root
         assert root.exists()
         assert (root / "modelDescription.xml").exists()
 
@@ -34,7 +34,7 @@ def test_model_description_facade_reads_from_archive_contents(fmu_archive_fixtur
     shutil.copy(fmu_archive_fixture, test_fmu_file)
 
     with FMU(test_fmu_file) as fmu:
-        archive_xml = fmu._archive.read_text("modelDescription.xml")
+        archive_xml = fmu.runtime.read_text("modelDescription.xml")
         with fmu.model_description as md:
             assert len(md.xml.inputs) > 0
             assert md.path.read_text(encoding="utf-8") == archive_xml
@@ -44,9 +44,9 @@ def test_model_description_facade_reads_from_archive_contents(fmu_archive_fixtur
 def test_directory_mode_reads_fmu_contents_from_persistent_root(fmu_directory_fixture):
     archive = FMU(fmu_directory_fixture, mode="r")
     with archive as fmu:
-        root = fmu._archive.root
+        root = fmu.runtime.root
         assert root == fmu_directory_fixture
-        assert "modelDescription.xml" in fmu._archive.namelist()
+        assert "modelDescription.xml" in fmu.runtime.namelist()
         assert len(fmu.binaries) > 0
         assert len(fmu.documentation) == 0
 
