@@ -24,6 +24,6 @@ def test_round_trip_preserves_schema_valid_fixture(model_description_fixture):
 
     with ModelDescription(xml_text=rendered) as md:
         assert md.check_compliance() is True
-        assert len(md.variables) == len(document.variables)
-        assert len(md.type_definitions) == len(document.type_definitions)
-        assert len(md.document.model_structure.outputs) == len(document.model_structure.outputs)
+        assert len(md.xml.variables) == len(document.variables)
+        assert len(md.xml.type_definitions) == len(document.type_definitions)
+        assert len(md.xml.model_structure.outputs) == len(document.model_structure.outputs)

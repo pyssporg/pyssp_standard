@@ -17,36 +17,6 @@ class ModelDescription(XmlDocument[Fmi2ModelDescriptionDocument]):
         self._codec = Fmi2ModelDescriptionXmlCodec()
         self._validator = Fmi2ModelDescriptionValidator()
 
-    @property
-    def root(self):
-        return self.document.root
-
-    @property
-    def variables(self):
-        return self.document.variables
-
-    @property
-    def inputs(self):
-        return self.document.inputs
-
-    @property
-    def outputs(self):
-        return self.document.outputs
-
-    @property
-    def parameters(self):
-        return self.document.parameters
-
-    @property
-    def type_definitions(self):
-        return self.document.type_definitions
-
-    @property
-    def model_structure(self):
-        return self.document.model_structure
-
-    def get(self, causality: str | None = None, variability: str | None = None):
-        return self.document.get(causality=causality, variability=variability)
 
     def load_document(self) -> Fmi2ModelDescriptionDocument:
         if self._xml_text is not None:

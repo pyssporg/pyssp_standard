@@ -19,16 +19,3 @@ class SSV(XmlDocument[Ssp1ParameterSet]):
     def _create_document(self) -> Ssp1ParameterSet:
         return Ssp1ParameterSet(name=self.path.stem or "parameters", version="1.0")
 
-    @property
-    def parameters(self):
-        return self.document.parameters
-
-    @property
-    def units(self):
-        return self.document.units
-
-    def add_parameter(self, *args, **kwargs):
-        return self.document.add_parameter(*args, **kwargs)
-
-    def add_unit(self, *args, **kwargs):
-        return self.document.add_unit(*args, **kwargs)

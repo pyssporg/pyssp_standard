@@ -4,7 +4,7 @@ from dataclasses import is_dataclass
 from pathlib import Path
 from typing import Any, Generic, TypeVar
 
-from pyssp_standard.common.zip_archive import DirectoryRuntime
+from pyssp_standard.common.archive_runtime import DirectoryRuntime
 
 
 FacadeT = TypeVar("FacadeT")
@@ -70,7 +70,7 @@ class DocumentRuntime(Generic[FacadeT]):
         return self._document_path
 
     def _enter_external_documents(self) -> None:
-        for owner, spec in self._iter_external_reference_targets(self._document.document):
+        for owner, spec in self._iter_external_reference_targets(self._document.xml):
             resolved = self._load_external_document(owner, spec)
             if resolved is None:
                 self._set_attr(owner, spec.document_attr, None)
@@ -135,7 +135,7 @@ class DocumentRuntime(Generic[FacadeT]):
 
         try:
             with spec.facade_type(path, mode="r") as facade:
-                resolved = _ResolvedExternalDocument(spec=spec, path=path, document=facade.document)
+                resolved = _ResolvedExternalDocument(spec=spec, path=path, document=facade.xml)
         except Exception:
             return None
 

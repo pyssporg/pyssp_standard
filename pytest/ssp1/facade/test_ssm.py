@@ -10,15 +10,15 @@ from pyssp_standard.standard.ssp1.codec.ssm_codec import NS_SSC, NS_SSM
 def test_check_compliance_accepts_reference_fixture(embrace_ssm_fixture):
     with SSM(embrace_ssm_fixture) as ssm:
         assert ssm.check_compliance() is True
-        assert len(ssm.mappings) == 203
+        assert len(ssm.xml.mappings) == 203
 
 
 def test_create_and_edit_round_trip(tmp_path):
     path = tmp_path / "test.ssm"
 
     with SSM(path, "w") as ssm:
-        ssm.add_mapping("dog", "shepard")
-        ssm.add_mapping(
+        ssm.xml.add_mapping("dog", "shepard")
+        ssm.xml.add_mapping(
             "cat",
             "odd",
             transformation=Ssp1Transformation("LinearTransformation", {"factor": 2, "offset": 0}),
@@ -26,22 +26,22 @@ def test_create_and_edit_round_trip(tmp_path):
         assert ssm.check_compliance() is True
 
     with SSM(path, "a") as ssm:
-        ssm.edit_mapping(target="shepard", source="tax", suppress_unit_conversion=True)
+        ssm.xml.edit_mapping(target="shepard", source="tax", suppress_unit_conversion=True)
         assert ssm.check_compliance() is True
 
     with SSM(path) as ssm:
-        assert len(ssm.mappings) == 2
-        assert ssm.mappings[0].source == "tax"
-        assert ssm.mappings[0].suppress_unit_conversion is True
-        assert ssm.mappings[1].transformation is not None
-        assert ssm.mappings[1].transformation.type_name == "LinearTransformation"
+        assert len(ssm.xml.mappings) == 2
+        assert ssm.xml.mappings[0].source == "tax"
+        assert ssm.xml.mappings[0].suppress_unit_conversion is True
+        assert ssm.xml.mappings[1].transformation is not None
+        assert ssm.xml.mappings[1].transformation.type_name == "LinearTransformation"
 
 
 def test_codec_constructs_transformation_xml(tmp_path):
     path = tmp_path / "test.ssm"
 
     with SSM(path, "w") as ssm:
-        ssm.add_mapping(
+        ssm.xml.add_mapping(
             "cat",
             "odd",
             transformation=Ssp1Transformation("LinearTransformation", {"factor": 1, "offset": 0}),
@@ -59,13 +59,13 @@ def test_round_trip_preserves_metadata_and_mapping_annotations(tmp_path):
     path = tmp_path / "annotations.ssm"
 
     with SSM(path, "w") as ssm:
-        ssm.metadata.annotations.append(
+        ssm.xml.metadata.annotations.append(
             Ssp1Annotation(
                 type_name="com.example.doc",
                 elements=[ET.fromstring('<doc xmlns="urn:test">mapping</doc>')],
             )
         )
-        entry = ssm.add_mapping("source", "target")
+        entry = ssm.xml.add_mapping("source", "target")
         entry.annotations.append(
             Ssp1Annotation(
                 type_name="com.example.mapping",
@@ -74,6 +74,6 @@ def test_round_trip_preserves_metadata_and_mapping_annotations(tmp_path):
         )
 
     with SSM(path) as ssm:
-        assert ssm.metadata.annotations[0].elements[0].text == "mapping"
-        assert ssm.mappings[0].annotations[0].type_name == "com.example.mapping"
-        assert ssm.mappings[0].annotations[0].elements[0].attrib == {"mode": "copy"}
+        assert ssm.xml.metadata.annotations[0].elements[0].text == "mapping"
+        assert ssm.xml.mappings[0].annotations[0].type_name == "com.example.mapping"
+        assert ssm.xml.mappings[0].annotations[0].elements[0].attrib == {"mode": "copy"}

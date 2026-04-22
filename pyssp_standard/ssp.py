@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pyssp_standard.ssd import SsdRuntime
-from pyssp_standard.common.zip_archive import DirectoryRuntime, open_archive
+from pyssp_standard.common.archive_runtime import DirectoryRuntime, open_archive
 
 
 class SSP:

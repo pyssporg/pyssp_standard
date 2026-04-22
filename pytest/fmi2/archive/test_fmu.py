@@ -36,7 +36,7 @@ def test_model_description_facade_reads_from_archive_contents(fmu_archive_fixtur
     with FMU(test_fmu_file) as fmu:
         archive_xml = fmu._archive.read_text("modelDescription.xml")
         with fmu.model_description as md:
-            assert len(md.inputs) > 0
+            assert len(md.xml.inputs) > 0
             assert md.path.read_text(encoding="utf-8") == archive_xml
             assert md.check_compliance() is True
 
@@ -56,17 +56,17 @@ def test_directory_mode_reads_fmu_contents_from_persistent_root(fmu_directory_fi
 def test_directory_mode_exposes_model_description(fmu_directory_fixture):
     with FMU(fmu_directory_fixture, mode="r") as fmu:
         with fmu.model_description as md:
-            assert len(md.inputs) > 0
+            assert len(md.xml.inputs) > 0
             assert md.path == fmu_directory_fixture / "modelDescription.xml"
 
 
 def test_archive_and_directory_modes_expose_same_model_name(fmu_archive_fixture, fmu_directory_fixture):
     with FMU(fmu_archive_fixture, mode="r") as archive_fmu:
         with archive_fmu.model_description as archive_md:
-            archive_name = archive_md.document.model_name
+            archive_name = archive_md.xml.model_name
 
     with FMU(fmu_directory_fixture, mode="r") as directory_fmu:
         with directory_fmu.model_description as directory_md:
-            directory_name = directory_md.document.model_name
+            directory_name = directory_md.xml.model_name
 
     assert archive_name == directory_name

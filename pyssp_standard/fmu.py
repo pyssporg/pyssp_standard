@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pyssp_standard.md import ModelDescription
-from pyssp_standard.common.zip_archive import open_archive
+from pyssp_standard.common.archive_runtime import open_archive
 
 
 class FMU:

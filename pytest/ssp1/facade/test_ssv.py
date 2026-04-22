@@ -16,38 +16,38 @@ def test_create_round_trip_preserves_units_and_metadata(tmp_path):
     path = tmp_path / "test.ssv"
 
     with SSV(path, "w") as ssv:
-        ssv.metadata.author = "tester"
-        ssv.metadata.description = "demo"
-        ssv.add_parameter(parname="Weight", ptype="Real", value=20.4, unit="kg")
-        ssv.add_unit("kg", {"kg": 1})
+        ssv.xml.metadata.author = "tester"
+        ssv.xml.metadata.description = "demo"
+        ssv.xml.add_parameter(parname="Weight", ptype="Real", value=20.4, unit="kg")
+        ssv.xml.add_unit("kg", {"kg": 1})
 
     with SSV(path) as ssv:
-        assert ssv.metadata.author == "tester"
-        assert ssv.metadata.description == "demo"
-        assert len(ssv.units) == 1
-        assert ssv.units[0].name == "kg"
-        assert ssv.parameters[0].attributes["unit"] == "kg"
+        assert ssv.xml.metadata.author == "tester"
+        assert ssv.xml.metadata.description == "demo"
+        assert len(ssv.xml.units) == 1
+        assert ssv.xml.units[0].name == "kg"
+        assert ssv.xml.parameters[0].attributes["unit"] == "kg"
 
 
 def test_round_trip_preserves_supported_parameter_types(tmp_path):
     path = tmp_path / "test.ssv"
 
     with SSV(path, "w") as ssv:
-        ssv.add_parameter(parname="real_param", ptype="Real", value=20.4, unit="kg")
-        ssv.add_parameter(parname="int_param", ptype="Integer", value=7)
-        ssv.add_parameter(parname="bool_param", ptype="Boolean", value=True)
-        ssv.add_parameter(parname="string_param", ptype="String", value="demo")
-        ssv.add_parameter(parname="enum_param", ptype="Enumeration", value="1", name="ON")
-        ssv.add_parameter(
+        ssv.xml.add_parameter(parname="real_param", ptype="Real", value=20.4, unit="kg")
+        ssv.xml.add_parameter(parname="int_param", ptype="Integer", value=7)
+        ssv.xml.add_parameter(parname="bool_param", ptype="Boolean", value=True)
+        ssv.xml.add_parameter(parname="string_param", ptype="String", value="demo")
+        ssv.xml.add_parameter(parname="enum_param", ptype="Enumeration", value="1", name="ON")
+        ssv.xml.add_parameter(
             parname="binary_param",
             ptype="Binary",
             value="cafe",
             mimetype="application/octet-stream",
         )
-        ssv.add_unit("kg", {"kg": 1})
+        ssv.xml.add_unit("kg", {"kg": 1})
 
     with SSV(path) as ssv:
-        params = {param.name: param for param in ssv.parameters}
+        params = {param.name: param for param in ssv.xml.parameters}
 
         assert params["real_param"].attributes == {"value": "20.4", "unit": "kg"}
         assert params["int_param"].attributes == {"value": "7"}
@@ -64,28 +64,28 @@ def test_add_unit_reuses_existing_definition(tmp_path):
     path = tmp_path / "test.ssv"
 
     with SSV(path, "w") as ssv:
-        first = ssv.add_unit("kg", {"kg": 1})
-        second = ssv.add_unit("kg", {"kg": 1})
+        first = ssv.xml.add_unit("kg", {"kg": 1})
+        second = ssv.xml.add_unit("kg", {"kg": 1})
 
         assert first is second
-        assert len(ssv.units) == 1
+        assert len(ssv.xml.units) == 1
 
 
 def test_add_unit_rejects_conflicting_definition(tmp_path):
     path = tmp_path / "test.ssv"
 
     with SSV(path, "w") as ssv:
-        ssv.add_unit("kg", {"kg": 1})
+        ssv.xml.add_unit("kg", {"kg": 1})
 
         with pytest.raises(ValueError, match="already exists with different definition"):
-            ssv.add_unit("kg", {"m": 1})
+            ssv.xml.add_unit("kg", {"m": 1})
 
 
 def test_compliance_accepts_builtin_bracket_unit(tmp_path):
     path = tmp_path / "test.ssv"
 
     with SSV(path, "w") as ssv:
-        ssv.add_parameter(parname="distance", ptype="Real", value=1.2, unit="[m]")
+        ssv.xml.add_parameter(parname="distance", ptype="Real", value=1.2, unit="[m]")
         assert ssv.check_compliance() is True
 
 
@@ -93,7 +93,7 @@ def test_compliance_rejects_unknown_custom_unit(tmp_path):
     path = tmp_path / "test.ssv"
 
     with SSV(path, "w") as ssv:
-        ssv.add_parameter(parname="distance", ptype="Real", value=1.2, unit="parsec")
+        ssv.xml.add_parameter(parname="distance", ptype="Real", value=1.2, unit="parsec")
 
         with pytest.raises(ValueError, match="references unknown unit 'parsec'"):
             ssv.check_compliance()
@@ -101,30 +101,30 @@ def test_compliance_rejects_unknown_custom_unit(tmp_path):
 
 def test_external_fixture_loads_as_plain_standalone_document(external_ssv_fixture):
     with SSV(external_ssv_fixture) as ssv:
-        assert ssv.document.name == "ControllerExternal"
-        assert len(ssv.parameters) == 1
-        assert ssv.parameters[0].name == "gain"
-        assert ssv.parameters[0].attributes["value"] == "0.8"
+        assert ssv.xml.name == "ControllerExternal"
+        assert len(ssv.xml.parameters) == 1
+        assert ssv.xml.parameters[0].name == "gain"
+        assert ssv.xml.parameters[0].attributes["value"] == "0.8"
 
 
 def test_round_trip_preserves_metadata_parameter_and_unit_annotations(tmp_path):
     path = tmp_path / "annotations.ssv"
 
     with SSV(path, "w") as ssv:
-        ssv.metadata.annotations.append(
+        ssv.xml.metadata.annotations.append(
             Ssp1Annotation(
                 type_name="com.example.doc",
                 elements=[ET.fromstring('<doc xmlns="urn:test">top-level</doc>')],
             )
         )
-        parameter = ssv.add_parameter(parname="gain", ptype="Real", value=1.5, unit="kg")
+        parameter = ssv.xml.add_parameter(parname="gain", ptype="Real", value=1.5, unit="kg")
         parameter.annotations.append(
             Ssp1Annotation(
                 type_name="com.example.parameter",
                 elements=[ET.fromstring('<hint xmlns="urn:test" priority="high">gain</hint>')],
             )
         )
-        unit = ssv.add_unit("kg", {"kg": 1})
+        unit = ssv.xml.add_unit("kg", {"kg": 1})
         unit.annotations.append(
             Ssp1Annotation(
                 type_name="com.example.unit",
@@ -133,9 +133,9 @@ def test_round_trip_preserves_metadata_parameter_and_unit_annotations(tmp_path):
         )
 
     with SSV(path) as ssv:
-        assert ssv.metadata.annotations[0].type_name == "com.example.doc"
-        assert ssv.metadata.annotations[0].elements[0].text == "top-level"
-        assert ssv.parameters[0].annotations[0].type_name == "com.example.parameter"
-        assert ssv.parameters[0].annotations[0].elements[0].attrib == {"priority": "high"}
-        assert ssv.units[0].annotations[0].type_name == "com.example.unit"
-        assert ssv.units[0].annotations[0].elements[0].tag == "{urn:test}unitNote"
+        assert ssv.xml.metadata.annotations[0].type_name == "com.example.doc"
+        assert ssv.xml.metadata.annotations[0].elements[0].text == "top-level"
+        assert ssv.xml.parameters[0].annotations[0].type_name == "com.example.parameter"
+        assert ssv.xml.parameters[0].annotations[0].elements[0].attrib == {"priority": "high"}
+        assert ssv.xml.units[0].annotations[0].type_name == "com.example.unit"
+        assert ssv.xml.units[0].annotations[0].elements[0].tag == "{urn:test}unitNote"

@@ -142,13 +142,13 @@ def test_can_open_model_description_from_directory_backed_fmu_inside_directory_s
 ):
     with SSP(embrace_ssp_fixture, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            component = next(component for component in ssd.system.elements if component.name == "ECS_HW")
+            component = next(component for component in ssd.xml.system.elements if component.name == "ECS_HW")
             assert component.source == "resources/0001_ECS_HW.fmu"
 
             with FMU(ssp.runtime.resolve(component.source), mode="r") as fmu:
                 with fmu.model_description as md:
-                    assert md.document.model_name == "ECS_HW"
-                    assert len(md.inputs) > 0
+                    assert md.xml.model_name == "ECS_HW"
+                    assert len(md.xml.inputs) > 0
 
 
 
@@ -157,21 +157,21 @@ def test_can_open_and_alter_model_description_from_directory_backed_fmu_inside_d
 ):
     with SSP(embrace_ssp_fixture, mode="a") as ssp:
         with ssp.system_structure() as ssd:
-            component = next(component for component in ssd.system.elements if component.name == "ECS_HW")
+            component = next(component for component in ssd.xml.system.elements if component.name == "ECS_HW")
             assert component.source == "resources/0001_ECS_HW.fmu"
 
             with FMU(ssp.runtime.resolve(component.source), mode="a") as fmu:
                 with fmu.model_description as md:
-                    md.document.model_name = "New name"
+                    md.xml.model_name = "New name"
 
     with SSP(embrace_ssp_fixture, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            component = next(component for component in ssd.system.elements if component.name == "ECS_HW")
+            component = next(component for component in ssd.xml.system.elements if component.name == "ECS_HW")
             assert component.source == "resources/0001_ECS_HW.fmu"
 
             with FMU(ssp.runtime.resolve(component.source), mode="r") as fmu:
                 with fmu.model_description as md:
-                     assert md.document.model_name == "New name"
+                     assert md.xml.model_name == "New name"
 
 
 
@@ -182,12 +182,12 @@ def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):
         archive.write("pytest/__fixture__/external_values.ssv", arcname="external_values.ssv")
 
     with SSD("pytest/__fixture__/mixed_example.ssd") as standalone_ssd:
-        external_binding = next(binding for binding in standalone_ssd.parameter_bindings if binding.source is not None)
+        external_binding = next(binding for binding in standalone_ssd.xml.parameter_bindings if binding.source is not None)
         assert external_binding.parameter_set is None
 
     with SSP(ssp_path, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
+            external_binding = next(binding for binding in ssd.xml.parameter_bindings if binding.source is not None)
             assert external_binding.parameter_set is not None
             assert external_binding.parameter_set.name == "ControllerExternal"
             assert external_binding.parameter_set.parameters[0].attributes["value"] == "0.8"
@@ -202,12 +202,12 @@ def test_persists_resolved_external_parameter_sets(tmp_path):
 
     with SSP(ssp_path, mode="a") as ssp:
         with ssp.system_structure() as ssd:
-            external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
+            external_binding = next(binding for binding in ssd.xml.parameter_bindings if binding.source is not None)
             external_binding.parameter_set.parameters[0].attributes["value"] = "1.25"
 
     with SSP(ssp_path, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
+            external_binding = next(binding for binding in ssd.xml.parameter_bindings if binding.source is not None)
             assert external_binding.parameter_set is not None
             assert external_binding.parameter_set.parameters[0].attributes["value"] == "1.25"
 
@@ -215,13 +215,13 @@ def test_persists_resolved_external_parameter_sets(tmp_path):
     with zipfile.ZipFile(ssp_path, "r") as archive:
         archive.extract("external_values.ssv", path=tmp_path)
     with SSV(extracted_ssv) as ssv:
-        assert ssv.parameters[0].attributes["value"] == "1.25"
+        assert ssv.xml.parameters[0].attributes["value"] == "1.25"
 
 
 def test_resolves_external_parameter_mapping_at_archive_layer(embrace_ssp_dir_fixture):
     with SSP(embrace_ssp_dir_fixture, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            binding = ssd.parameter_bindings[0]
+            binding = ssd.xml.parameter_bindings[0]
             assert binding.source == "resources/RAPID_Systems_2021-03-29_Test_1.ssv"
             assert binding.parameter_set is not None
             assert len(binding.parameter_set.parameters) > 0
