@@ -7,7 +7,7 @@ from typing import Generic, TypeVar
 DocumentT = TypeVar("DocumentT")
 
 
-class XmlDocumentFacade(Generic[DocumentT]):
+class XmlDocument(Generic[DocumentT]):
     """Shared public-API facade behavior for XML-backed documents."""
 
     def __init__(self, path: str | Path, mode: str = "r"):

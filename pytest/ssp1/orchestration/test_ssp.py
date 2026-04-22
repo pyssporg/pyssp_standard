@@ -72,7 +72,7 @@ def test_archive_uses_temp_workdir_and_cleans_up_after_exit(embrace_ssp_fixture)
 
 def test_system_structure_uses_extracted_archive_file(embrace_ssp_fixture):
     with SSP(embrace_ssp_fixture, mode="r") as ssp:
-        system_structure = ssp.system_structure
+        system_structure = ssp.system_structure()
         assert system_structure.path.exists()
         assert system_structure.path.name == "SystemStructure.ssd"
         assert system_structure.path.read_text(encoding="utf-8").startswith("<?xml")
@@ -80,7 +80,7 @@ def test_system_structure_uses_extracted_archive_file(embrace_ssp_fixture):
 
 def test_create_mode_scaffolds_system_structure_entry(write_file):
     with SSP(write_file, mode="w") as ssp:
-        facade = ssp.system_structure
+        facade = ssp.system_structure()
         assert not facade.path.exists()
         with facade:
             assert facade.path.exists() is False
@@ -120,7 +120,7 @@ def test_directory_write_mode_scaffolds_system_structure(tmp_path):
     unpacked_ssp_dir = tmp_path / "new_ssp_dir"
 
     with SSP(unpacked_ssp_dir, mode="w") as ssp:
-        facade = ssp.system_structure
+        facade = ssp.system_structure()
         assert not facade.path.exists()
         with facade:
             assert facade.path.exists() is False
@@ -139,7 +139,7 @@ def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):
         assert external_binding.parameter_set is None
 
     with SSP(ssp_path, mode="r") as ssp:
-        with ssp.system_structure as ssd:
+        with ssp.system_structure() as ssd:
             external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
             assert external_binding.parameter_set is not None
             assert external_binding.parameter_set.name == "ControllerExternal"
@@ -154,12 +154,12 @@ def test_persists_resolved_external_parameter_sets(tmp_path):
         archive.write("pytest/__fixture__/external_values.ssv", arcname="external_values.ssv")
 
     with SSP(ssp_path, mode="a") as ssp:
-        with ssp.system_structure as ssd:
+        with ssp.system_structure() as ssd:
             external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
             external_binding.parameter_set.parameters[0].attributes["value"] = "1.25"
 
     with SSP(ssp_path, mode="r") as ssp:
-        with ssp.system_structure as ssd:
+        with ssp.system_structure() as ssd:
             external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
             assert external_binding.parameter_set is not None
             assert external_binding.parameter_set.parameters[0].attributes["value"] == "1.25"
@@ -173,7 +173,7 @@ def test_persists_resolved_external_parameter_sets(tmp_path):
 
 def test_resolves_external_parameter_mapping_at_archive_layer(embrace_ssp_fixture):
     with SSP(embrace_ssp_fixture, mode="r") as ssp:
-        with ssp.system_structure as ssd:
+        with ssp.system_structure() as ssd:
             binding = ssd.parameter_bindings[0]
             assert binding.source == "resources/RAPID_Systems_2021-03-29_Test_1.ssv"
             assert binding.parameter_set is None

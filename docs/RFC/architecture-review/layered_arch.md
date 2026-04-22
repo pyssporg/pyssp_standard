@@ -140,6 +140,8 @@ Rule:
 - keep one canonical domain model
 - let the mapper/codec distinguish inline vs external XML representation
 - let orchestration resolve external artifacts
+- let archive orchestration temporarily hydrate external documents into the in-memory tree during an open session
+- let archive orchestration persist external documents first, then clear temporary attachments before saving the parent XML document
 
 Do not:
 - resolve external files during plain parse

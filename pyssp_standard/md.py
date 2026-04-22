@@ -5,10 +5,10 @@ from pathlib import Path
 from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
 from pyssp_standard.standard.fmi2.model import Fmi2ModelDescriptionDocument
 from pyssp_standard.standard.fmi2.validation import Fmi2ModelDescriptionValidator
-from pyssp_standard.common.xml_document import XmlDocumentFacade
+from pyssp_standard.common.xml_document import XmlDocument
 
 
-class ModelDescription(XmlDocumentFacade[Fmi2ModelDescriptionDocument]):
+class ModelDescription(XmlDocument[Fmi2ModelDescriptionDocument]):
     def __init__(self, path: str | Path | None = None, mode: str = "r", *, xml_text: str | None = None):
         if path is None and xml_text is None:
             raise ValueError("Either path or xml_text must be provided")

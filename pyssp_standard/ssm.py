@@ -5,10 +5,10 @@ from pathlib import Path
 from pyssp_standard.standard.ssp1.codec.ssm_xml_codec import Ssp1SsmXmlCodec
 from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping, Ssp1Transformation
 from pyssp_standard.standard.ssp1.validation import Ssp1SsmValidator
-from pyssp_standard.common.xml_document import XmlDocumentFacade
+from pyssp_standard.common.xml_document import XmlDocument
 
 
-class SSM(XmlDocumentFacade[Ssp1ParameterMapping]):
+class SSM(XmlDocument[Ssp1ParameterMapping]):
     """Public SSM facade following the same layered pattern as SSV."""
 
     def __init__(self, path: str | Path, mode: str = "r"):

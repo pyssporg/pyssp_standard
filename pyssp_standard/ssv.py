@@ -5,10 +5,10 @@ from pathlib import Path
 from pyssp_standard.standard.ssp1.codec.ssv_xsdata_codec import Ssp1SsvXsdataCodec
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1ParameterSet
 from pyssp_standard.standard.ssp1.validation import Ssp1SsvValidator
-from pyssp_standard.common.xml_document import XmlDocumentFacade
+from pyssp_standard.common.xml_document import XmlDocument
 
 
-class SSV(XmlDocumentFacade[Ssp1ParameterSet]):
+class SSV(XmlDocument[Ssp1ParameterSet]):
     """Public SSV facade following the layered package layout."""
 
     def __init__(self, path: str | Path, mode: str = "r"):

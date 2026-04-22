@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pyssp_standard.common.document_runtime import DocumentRuntime, ExternalReferenceSpec
 from pyssp_standard.standard.ssp1.codec.ssd_xml_codec import Ssp1SsdXmlCodec
 from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1Component,
@@ -9,11 +10,15 @@ from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1Connector,
     Ssd1DefaultExperiment,
     Ssd1ParameterBinding,
+    Ssd1ParameterMappingReference,
     Ssd1SystemStructureDescription,
     Ssd1System,
 )
 from pyssp_standard.standard.ssp1.validation import Ssp1SsdValidator
-from pyssp_standard.common.xml_document import XmlDocumentFacade
+from pyssp_standard.common.xml_document import XmlDocument
+from pyssp_standard.common.zip_archive import DirectoryRuntime
+from pyssp_standard.ssm import SSM
+from pyssp_standard.ssv import SSV
 
 
 Connection = Ssd1Connection
@@ -24,9 +29,7 @@ Connector = Ssd1Connector
 ParameterBinding = Ssd1ParameterBinding
 
 
-# Should we break out the context manager from all the file and archive based type to better handle external dependencies?
-
-class SSD(XmlDocumentFacade[Ssd1SystemStructureDescription]):
+class SSD(XmlDocument[Ssd1SystemStructureDescription]):
     """Public SSD facade.
 
     This facade is intentionally limited to SSD file/model operations.
@@ -88,3 +91,32 @@ class SSD(XmlDocumentFacade[Ssd1SystemStructureDescription]):
     @property
     def parameter_bindings(self):
         return self.document.parameter_bindings
+
+
+EXTERNAL_REFERENCE_SPECS = (
+    ExternalReferenceSpec(
+        owner_type=Ssd1ParameterBinding,
+        source_attr="source",
+        document_attr="parameter_set",
+        facade_type=SSV,
+    ),
+    ExternalReferenceSpec(
+        owner_type=Ssd1ParameterMappingReference,
+        source_attr="source",
+        document_attr="mapping",
+        facade_type=SSM,
+    ),
+)
+
+
+class SsdRuntime(DocumentRuntime[SSD]):
+    """Archive-level SSD facade with dependency resolution."""
+
+    def __init__(self, runtime: DirectoryRuntime, ssd_path: str = "SystemStructure.ssd", mode: str = "r"):
+        super().__init__(
+            runtime,
+            document_path=ssd_path,
+            document_type=SSD,
+            external_reference_specs=EXTERNAL_REFERENCE_SPECS,
+            mode=mode,
+        )

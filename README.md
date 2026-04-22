@@ -15,6 +15,22 @@ Here follows a number of examples of how to use the library.
 
 ### SSD
 
+#### External References
+External SSP references are resolved at the `SSP` archive layer, not by the standalone `SSD` facade.
+
+Current behavior:
+- `with SSP(...) as ssp` opens the archive or directory runtime.
+- `with ssp.system_structure as ssd` opens `SystemStructure.ssd`.
+- On entry, external references such as parameter bindings (`.ssv`) and parameter mappings (`.ssm`) are found by walking the SSD tree.
+- Referenced files are opened once, cached by path and document type, and their parsed documents are attached into the in-memory SSD model.
+- While the context is open, callers work against the hydrated in-memory model.
+- On exit, modified external documents are written back to their original files.
+- Before the SSD itself is saved, the temporary in-memory attachments are removed again so `SystemStructure.ssd` is persisted with references, not with inlined copies.
+
+This means:
+- `SSD(path)` keeps external references unresolved and works only on the SSD file itself.
+- `SSP(path).system_structure` is the supported entry point when edits need to span `ssd` + external `ssv`/`ssm` files in one session.
+
 #### Example
 Example code for creating an SSP wrapper around an FMU.
 ```python
