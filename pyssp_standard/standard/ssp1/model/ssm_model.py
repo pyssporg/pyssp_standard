@@ -2,14 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-
-@dataclass
-class Ssp1Transformation:
-    type_name: str
-    attributes: dict[str, str] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        self.attributes = {key: str(value) for key, value in self.attributes.items()}
+from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Transformation
 
 
 @dataclass

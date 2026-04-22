@@ -6,6 +6,7 @@ from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
+from pyssp_standard.standard.ssp1.codec.ssc_xsdata_mapper import Ssp1SscXsdataMapper
 from pyssp_standard.standard.ssp1.codec.ssm_xsdata_mapper import Ssp1SsmXsdataMapper
 from pyssp_standard.standard.ssp1.codec.ssv_xsdata_mapper import Ssp1SsvXsdataMapper
 from pyssp_standard.standard.ssp1.generated.ssd_generated_types import (
@@ -163,25 +164,7 @@ class Ssp1SsdXsdataMapper:
 
     @staticmethod
     def _read_connector(generated: Tconnectors.Connector) -> Ssd1Connector:
-        type_name = None
-        type_attributes: dict[str, str] = {}
-
-        if generated.real is not None:
-            type_name = "Real"
-            if generated.real.unit is not None:
-                type_attributes["unit"] = generated.real.unit
-        elif generated.integer is not None:
-            type_name = "Integer"
-        elif generated.boolean is not None:
-            type_name = "Boolean"
-        elif generated.string is not None:
-            type_name = "String"
-        elif generated.enumeration is not None:
-            type_name = "Enumeration"
-            type_attributes["name"] = generated.enumeration.name
-        elif generated.binary is not None:
-            type_name = "Binary"
-            type_attributes["mime-type"] = generated.binary.mime_type
+        type_name, type_attributes = Ssp1SscXsdataMapper.read_connector_type(generated)
 
         return Ssd1Connector(
             name=str(generated.name),
@@ -193,20 +176,7 @@ class Ssp1SsdXsdataMapper:
     @staticmethod
     def _write_connector(model: Ssd1Connector) -> Tconnectors.Connector:
         generated = Tconnectors.Connector(name=model.name, kind=ConnectorKind(model.kind))
-        if model.type_name == "Real":
-            generated.real = Tconnectors.Connector.Real(unit=model.type_attributes.get("unit"))
-        elif model.type_name == "Integer":
-            generated.integer = ""
-        elif model.type_name == "Boolean":
-            generated.boolean = ""
-        elif model.type_name == "String":
-            generated.string = ""
-        elif model.type_name == "Enumeration":
-            generated.enumeration = Tconnectors.Connector.Enumeration(name=model.type_attributes.get("name", ""))
-        elif model.type_name == "Binary":
-            generated.binary = Tconnectors.Connector.Binary(
-                mime_type=model.type_attributes.get("mime-type", "application/octet-stream")
-            )
+        Ssp1SscXsdataMapper.apply_connector_type(generated, model.type_name, model.type_attributes)
         return generated
 
     def _read_parameter_binding(self, generated: TparameterBindings.ParameterBinding) -> Ssd1ParameterBinding:

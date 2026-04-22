@@ -3,7 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from pyssp_standard.standard.ssp1.codec.ssm_codec import Ssp1SsmCodec
-from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping, Ssp1Transformation
+from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Transformation
+from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
 from pyssp_standard.standard.ssp1.validation import Ssp1SsmValidator
 from pyssp_standard.common.xml_document import XmlDocument
 
