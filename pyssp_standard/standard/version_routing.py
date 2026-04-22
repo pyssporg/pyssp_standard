@@ -26,6 +26,15 @@ class ParseStackSpec:
 
 
 CODEC_STACK: dict[StandardVersion, ParseStackSpec] = {
+    StandardVersion(family="SSP", format="SSB", version="1.0"): ParseStackSpec(
+        standard=StandardVersion(family="SSP", format="SSB", version="1.0"),
+        schema_path=TARGETS["ssp1_ssb"].schema_path,
+        generated_module="pyssp_standard.standard.ssp1.generated.ssb_generated_types",
+        generated_output_path=TARGETS["ssp1_ssb"].binding_output_path,
+        root_type="SignalDictionary",
+        codec_id="ssp1_ssb_codec",
+        mapper_id="ssp1_ssb_etree",
+    ),
     StandardVersion(family="SSP", format="SSV", version="1.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSV", version="1.0"),
         schema_path=TARGETS["ssp1_ssv"].schema_path,
@@ -86,6 +95,8 @@ def get_standard_version(xml_text: str) -> StandardVersion:
 
     if tag == "ParameterSet":
         return StandardVersion(family="SSP", format="SSV", version=version)
+    if tag == "SignalDictionary":
+        return StandardVersion(family="SSP", format="SSB", version=version)
     if tag == "SystemStructureDescription":
         return StandardVersion(family="SSP", format="SSD", version=version)
     if tag == "ParameterMapping":

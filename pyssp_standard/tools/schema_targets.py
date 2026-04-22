@@ -33,6 +33,13 @@ TARGETS: dict[str, SchemaTarget] = {
         schema_path=resolve_schema_path("SSP1", "SystemStructureDescription.xsd"),
         binding_output_path=PACKAGE_ROOT / "standard" / "ssp1" / "generated" / "ssd_generated_types.py",
     ),
+    "ssp1_ssb": SchemaTarget(
+        name="ssp1_ssb",
+        family="SSP",
+        version="1.0",
+        schema_path=resolve_schema_path("SSP1", "SystemStructureSignalDictionary.xsd"),
+        binding_output_path=PACKAGE_ROOT / "standard" / "ssp1" / "generated" / "ssb_generated_types.py",
+    ),
     "ssp1_ssm": SchemaTarget(
         name="ssp1_ssm",
         family="SSP",

@@ -9,6 +9,7 @@ from pyssp_standard.standard.ssp1.model.ssc_model import (
     Ssp1Transformation,
     Ssp1Unit,
 )
+from pyssp_standard.standard.ssp1.model.ssb_model import Ssp1DictionaryEntry, Ssp1SignalDictionary
 from pyssp_standard.standard.ssp1.model.ssd_model import (
     ExternalReference,
     Ssd1Component,
@@ -35,6 +36,7 @@ __all__ = [
     "Ssd1System",
     "Ssp1Annotation",
     "Ssp1BaseUnit",
+    "Ssp1DictionaryEntry",
     "Ssp1DocumentMetadata",
     "Ssp1Enumeration",
     "Ssp1EnumerationItem",
@@ -42,6 +44,7 @@ __all__ = [
     "Ssp1Parameter",
     "Ssp1ParameterMapping",
     "Ssp1ParameterSet",
+    "Ssp1SignalDictionary",
     "Ssp1Transformation",
     "Ssp1Unit",
 ]

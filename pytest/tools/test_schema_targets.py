@@ -6,12 +6,14 @@ from pyssp_standard.tools.schema_targets import TARGETS
 
 
 def test_schema_targets_have_separated_versioned_outputs():
+    assert "ssp1_ssb" in TARGETS
     assert "ssp1_ssv" in TARGETS
     assert "ssp1_ssd" in TARGETS
     assert "ssp1_ssm" in TARGETS
     assert "ssp2_ssv" in TARGETS
     assert "fmi2_model_description" in TARGETS
 
+    ssb = TARGETS["ssp1_ssb"]
     ssp1 = TARGETS["ssp1_ssv"]
     ssp2 = TARGETS["ssp2_ssv"]
     ssd = TARGETS["ssp1_ssd"]
@@ -19,11 +21,14 @@ def test_schema_targets_have_separated_versioned_outputs():
     fmi2 = TARGETS["fmi2_model_description"]
 
     assert ssp1.binding_output_path != ssp2.binding_output_path
+    assert "standard/ssp1/generated" in str(ssb.binding_output_path)
     assert "standard/ssp1/generated" in str(ssp1.binding_output_path)
     assert "standard/ssp2/generated" in str(ssp2.binding_output_path)
+    assert ssb.binding_output_path.name == "ssb_generated_types.py"
     assert ssd.binding_output_path.name == "ssd_generated_types.py"
     assert ssm.binding_output_path.name == "ssm_generated_types.py"
     assert fmi2.binding_output_path.name == "model_description_generated_types.py"
+    assert ssb.schema_path.name == "SystemStructureSignalDictionary.xsd"
     assert ssp1.schema_path.name == "SystemStructureParameterValues.xsd"
     assert ssp2.schema_path.name == "SystemStructureParameterValues.xsd"
     assert ssd.schema_path.name == "SystemStructureDescription.xsd"

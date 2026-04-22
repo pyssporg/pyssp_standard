@@ -15,6 +15,7 @@ from pyssp_standard.standard.ssp1.model.ssc_model import (
 
 
 NS_SSC = "http://ssp-standard.org/SSP1/SystemStructureCommon"
+NS_SSB = "http://ssp-standard.org/SSP1/SystemStructureSignalDictionary"
 NS_SSD = "http://ssp-standard.org/SSP1/SystemStructureDescription"
 NS_SSM = "http://ssp-standard.org/SSP1/SystemStructureParameterMapping"
 NS_SSV = "http://ssp-standard.org/SSP1/SystemStructureParameterValues"
