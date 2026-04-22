@@ -107,6 +107,28 @@ def test_unit_round_trip_preserves_common_content_fields():
     ]
 
 
+def test_parse_units_container_reads_raw_ssp_unit_xml_with_schema_attribute_names():
+    units_element = ET.fromstring(
+        f"""\
+<ssd:Units xmlns:ssc="{NS_SSC}" xmlns:ssd="{NS_SSD}">
+  <ssc:Unit name="V">
+    <ssc:BaseUnit kg="1" m="2" s="-3" A="-1" />
+  </ssc:Unit>
+</ssd:Units>
+"""
+    )
+
+    reparsed = parse_units_container(units_element)
+
+    assert len(reparsed) == 1
+    unit = reparsed[0]
+    assert unit.name == "V"
+    assert unit.base_unit.kg == 1
+    assert unit.base_unit.m == 2
+    assert unit.base_unit.s == -3
+    assert unit.base_unit.a == -1
+
+
 def test_enumeration_round_trip_preserves_items_and_annotations():
     root = ET.Element(qname(NS_SSD, "SystemStructureDescription"))
     enumeration = Ssp1Enumeration(

@@ -7,7 +7,6 @@ dist
 site
 docs/_build
 3rdParty
-pytest/legacy_unsupported
 *.pyc
 *.pyo
 *.fmu

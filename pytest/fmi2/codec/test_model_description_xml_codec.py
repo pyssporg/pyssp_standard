@@ -66,3 +66,31 @@ def test_round_trip_supports_model_exchange_without_optional_sections():
     assert reparsed.default_experiment is None
     assert reparsed.model_structure.outputs == []
     assert reparsed.variables[0].name == "u"
+
+
+def test_parses_fmi_unit_definitions_base_units_from_raw_xml():
+    codec = Fmi2ModelDescriptionXmlCodec()
+    xml_text = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<fmiModelDescription fmiVersion="2.0" modelName="UnitModel" guid="{unit-guid}">
+  <CoSimulation modelIdentifier="UnitModel" />
+  <UnitDefinitions>
+    <Unit name="V">
+      <BaseUnit kg="1" m="2" s="-3" A="-1" />
+    </Unit>
+  </UnitDefinitions>
+  <ModelVariables>
+    <ScalarVariable name="u" valueReference="1">
+      <Real />
+    </ScalarVariable>
+  </ModelVariables>
+  <ModelStructure />
+</fmiModelDescription>
+"""
+
+    document = codec.parse(xml_text)
+
+    assert len(document.unit_definitions) == 1
+    unit = document.unit_definitions[0]
+    assert unit.name == "V"
+    assert unit.base_unit == {"kg": "1", "m": "2", "s": "-3", "A": "-1"}
