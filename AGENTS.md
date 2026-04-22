@@ -26,6 +26,7 @@ Avoid reading these paths unless the task explicitly requires them:
 - `__pycache__/`
 - `3rdParty/`
 - `pytest/legacy_unsupported/`
+- `pyssp_standard/schema`
 - large binary or archive fixtures such as `*.fmu`, `*.ssp`, `*.zip`
 
 For tests, do not scan all fixtures up front. Open only the fixture files referenced by the test you are editing.
