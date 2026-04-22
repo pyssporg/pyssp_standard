@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pyssp_standard.common.document_runtime import DocumentRuntime, ExternalReferenceSpec
-from pyssp_standard.standard.ssp1.codec.ssd_xml_codec import Ssp1SsdXmlCodec
+from pyssp_standard.standard.ssp1.codec.ssd_codec import Ssp1SsdCodec
 from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1Component,
     Ssd1Connection,
@@ -38,7 +38,7 @@ class SSD(XmlDocument[Ssd1SystemStructureDescription]):
 
     def __init__(self, path: str | Path, mode: str = "r"):
         super().__init__(path, mode)
-        self._codec = Ssp1SsdXmlCodec()
+        self._codec = Ssp1SsdCodec()
         self._validator = Ssp1SsdValidator()
 
     def _create_document(self) -> Ssd1SystemStructureDescription:

@@ -27,14 +27,35 @@ TARGETS: dict[str, BindingTarget] = {
         family="SSP",
         version="1.0",
         schema_path=REPO_ROOT / "3rdParty" / "SSP1" / "schema" / "SystemStructureParameterValues.xsd",
-        output_path=REPO_ROOT / "pyssp_standard" / "ssp1" / "generated" / "ssv_generated_types.py",
+        output_path=REPO_ROOT / "pyssp_standard" / "standard" / "ssp1" / "generated" / "ssv_generated_types.py",
+    ),
+    "ssp1_ssd": BindingTarget(
+        name="ssp1_ssd",
+        family="SSP",
+        version="1.0",
+        schema_path=REPO_ROOT / "3rdParty" / "SSP1" / "schema" / "SystemStructureDescription.xsd",
+        output_path=REPO_ROOT / "pyssp_standard" / "standard" / "ssp1" / "generated" / "ssd_generated_types.py",
+    ),
+    "ssp1_ssm": BindingTarget(
+        name="ssp1_ssm",
+        family="SSP",
+        version="1.0",
+        schema_path=REPO_ROOT / "3rdParty" / "SSP1" / "schema" / "SystemStructureParameterMapping.xsd",
+        output_path=REPO_ROOT / "pyssp_standard" / "standard" / "ssp1" / "generated" / "ssm_generated_types.py",
     ),
     "ssp2_ssv": BindingTarget(
         name="ssp2_ssv",
         family="SSP",
         version="2.0",
         schema_path=REPO_ROOT / "3rdParty" / "SSP2" / "schema" / "SystemStructureParameterValues.xsd",
-        output_path=REPO_ROOT / "pyssp_standard" / "ssp2" / "generated" / "ssv_generated_types.py",
+        output_path=REPO_ROOT / "pyssp_standard" / "standard" / "ssp2" / "generated" / "ssv_generated_types.py",
+    ),
+    "fmi2_model_description": BindingTarget(
+        name="fmi2_model_description",
+        family="FMI",
+        version="2.0",
+        schema_path=REPO_ROOT / "3rdParty" / "FMI2" / "schema" / "fmi2ModelDescription.xsd",
+        output_path=REPO_ROOT / "pyssp_standard" / "standard" / "fmi2" / "generated" / "model_description_generated_types.py",
     ),
 }
 

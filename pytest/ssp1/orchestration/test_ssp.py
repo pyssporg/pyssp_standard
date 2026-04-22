@@ -15,12 +15,13 @@ from pyssp_standard.ssv import SSV
 def test_lists_existing_resources(embrace_ssp_fixture):
     with SSP(embrace_ssp_fixture, mode="r") as ssp:
         assert len(ssp.resources) > 0
-        assert "0001_ECS_HW.fmu" in ssp.resources
+        assert "0001_ECS_HW/modelDescription.xml" in ssp.resources
+        assert "0002_ECS_SW.fmu" in ssp.resources
 
 
-def test_add_resource_persists_to_archive(embrace_ssp_fixture, tmp_path):
+def test_add_resource_persists_to_archive(embrace_ssp_archive_fixture, tmp_path):
     test_ssp_file = tmp_path / "embrace.ssp"
-    shutil.copy(embrace_ssp_fixture, test_ssp_file)
+    shutil.copy(embrace_ssp_archive_fixture, test_ssp_file)
     file_to_add = Path("pytest/__fixture__/test.txt")
 
     with SSP(test_ssp_file) as ssp:
@@ -32,9 +33,9 @@ def test_add_resource_persists_to_archive(embrace_ssp_fixture, tmp_path):
         assert file_to_add.name in ssp.resources
 
 
-def test_remove_resource_persists_to_archive(embrace_ssp_fixture, tmp_path):
+def test_remove_resource_persists_to_archive(embrace_ssp_archive_fixture, tmp_path):
     test_ssp_file = tmp_path / "embrace.ssp"
-    shutil.copy(embrace_ssp_fixture, test_ssp_file)
+    shutil.copy(embrace_ssp_archive_fixture, test_ssp_file)
 
     with SSP(test_ssp_file) as ssp:
         file_to_remove = ssp.resources[0]
@@ -60,8 +61,8 @@ def test_create_empty_archive(write_file):
     assert Path(write_file).exists()
 
 
-def test_archive_uses_temp_workdir_and_cleans_up_after_exit(embrace_ssp_fixture):
-    archive = SSP(embrace_ssp_fixture, mode="r")
+def test_archive_uses_temp_workdir_and_cleans_up_after_exit(embrace_ssp_archive_fixture):
+    archive = SSP(embrace_ssp_archive_fixture, mode="r")
 
     with archive as ssp:
         root = ssp._archive.root
@@ -70,8 +71,8 @@ def test_archive_uses_temp_workdir_and_cleans_up_after_exit(embrace_ssp_fixture)
     assert not root.exists()
 
 
-def test_system_structure_uses_extracted_archive_file(embrace_ssp_fixture):
-    with SSP(embrace_ssp_fixture, mode="r") as ssp:
+def test_system_structure_uses_extracted_archive_file(embrace_ssp_archive_fixture):
+    with SSP(embrace_ssp_archive_fixture, mode="r") as ssp:
         system_structure = ssp.system_structure()
         assert system_structure.path.exists()
         assert system_structure.path.name == "SystemStructure.ssd"
@@ -128,6 +129,13 @@ def test_directory_write_mode_scaffolds_system_structure(tmp_path):
     assert (unpacked_ssp_dir / "SystemStructure.ssd").exists()
 
 
+def test_directory_system_structure_uses_fixture_file_directly(embrace_ssp_fixture):
+    with SSP(embrace_ssp_fixture, mode="r") as ssp:
+        facade = ssp.system_structure()
+        assert facade.path == embrace_ssp_fixture / "SystemStructure.ssd"
+        assert facade.path.exists()
+
+
 def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):
     ssp_path = tmp_path / "mixed.ssp"
     with zipfile.ZipFile(ssp_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -176,7 +184,8 @@ def test_resolves_external_parameter_mapping_at_archive_layer(embrace_ssp_fixtur
         with ssp.system_structure() as ssd:
             binding = ssd.parameter_bindings[0]
             assert binding.source == "resources/RAPID_Systems_2021-03-29_Test_1.ssv"
-            assert binding.parameter_set is None
+            assert binding.parameter_set is not None
+            assert len(binding.parameter_set.parameters) > 0
             assert binding.parameter_mapping is not None
             assert binding.parameter_mapping.source == "resources/ECS_HW.ssm"
             assert binding.parameter_mapping.mapping is not None

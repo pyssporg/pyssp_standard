@@ -3,7 +3,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 from pyssp_standard.ssm import SSM, Ssp1Transformation
-from pyssp_standard.standard.ssp1.codec.ssm_xml_codec import NS_SSC, NS_SSM
+from pyssp_standard.standard.ssp1.codec.ssm_codec import NS_SSC, NS_SSM
 
 
 def test_check_compliance_accepts_reference_fixture(embrace_ssm_fixture):

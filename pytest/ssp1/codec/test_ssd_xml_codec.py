@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from pyssp_standard.standard.ssp1.codec import Ssp1SsdXmlCodec
+from pyssp_standard.standard.ssp1.codec import Ssp1SsdCodec
 
 
 def test_parses_embrace_fixture(embrace_ssd_fixture):
-    document = Ssp1SsdXmlCodec().parse(embrace_ssd_fixture.read_text(encoding="utf-8"))
+    document = Ssp1SsdCodec().parse(embrace_ssd_fixture.read_text(encoding="utf-8"))
 
     assert document.name == "embrace"
     assert document.version == "1.0"
@@ -15,7 +15,7 @@ def test_parses_embrace_fixture(embrace_ssd_fixture):
 
 
 def test_parses_external_parameter_binding_and_mapping_references(embrace_ssd_fixture):
-    document = Ssp1SsdXmlCodec().parse(embrace_ssd_fixture.read_text(encoding="utf-8"))
+    document = Ssp1SsdCodec().parse(embrace_ssd_fixture.read_text(encoding="utf-8"))
 
     assert len(document.parameter_bindings) == 1
     binding = document.parameter_bindings[0]
@@ -27,7 +27,7 @@ def test_parses_external_parameter_binding_and_mapping_references(embrace_ssd_fi
 
 
 def test_round_trip_preserves_inline_and_external_parameter_bindings(mixed_ssd_fixture):
-    codec = Ssp1SsdXmlCodec()
+    codec = Ssp1SsdCodec()
     document = codec.parse(mixed_ssd_fixture.read_text(encoding="utf-8"))
 
     assert len(document.parameter_bindings) == 2
