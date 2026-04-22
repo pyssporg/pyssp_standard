@@ -118,6 +118,7 @@ Responsibility:
 - preserve the user-facing workflow
 - keep file and session usage simple
 - hide version-specific implementation choices
+- expose a small set of entry points for SSP, SSD, SSM, SSV, FMU, and model description workflows
 
 Rules:
 
@@ -161,6 +162,7 @@ Design rule:
 
 - keep one canonical model shape regardless of inline or external storage
 - let codecs handle representation differences
+- let standalone document facades remain file-local
 - let orchestration resolve external files during archive-aware sessions
 
 This keeps file-local parse and serialize logic simple and keeps cross-file behavior out of codecs.

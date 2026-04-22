@@ -12,6 +12,7 @@ getting_started
 command_reference
 user/python_api
 dev/repo_map
+dev/requirements
 dev/architecture
 dev/repo_status
 dev/guidelines
@@ -27,6 +28,7 @@ integrations/read_the_docs
 ## Developer Docs
 
 - [Repo map](dev/repo_map.md) for a fast orientation of the codebase
+- [Requirements baseline](dev/requirements.md) for the current explicit and implicit application requirements
 - [Architecture](dev/architecture.md) for intended internal layer boundaries
 - [Repo status](dev/repo_status.md) for what is currently implemented
 - [Guidelines](dev/guidelines.md) for code and documentation conventions

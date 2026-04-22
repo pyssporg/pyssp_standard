@@ -2,6 +2,25 @@
 
 This page is for users who want practical Python entry points without reading the full codebase.
 
+## Public Entry Points
+
+The main user-facing entry points are:
+- `SSP` for archive-level or directory-level SSP workflows
+- `SSD` for standalone `SystemStructure.ssd` files
+- `SSM` for `.ssm` parameter mappings
+- `SSV` for `.ssv` parameter sets
+- `FMU` for `.fmu` archives or unpacked FMU directories
+- `ModelDescription` for direct work on `modelDescription.xml`
+
+## Common Facade Pattern
+
+The document and archive facades are designed to be used as context managers.
+
+Typical mode usage is:
+- `mode="r"` to inspect existing content without writing changes
+- `mode="a"` to edit existing content and persist changes on normal exit
+- `mode="w"` to create new content and persist it on normal exit
+
 ## SSV
 
 Use `SSV` for standalone parameter sets.
@@ -85,6 +104,17 @@ with FMU("component.fmu", mode="r") as fmu:
     with fmu.model_description as md:
         print(md.xml.model_name)
         print(len(md.xml.inputs))
+```
+
+## ModelDescription
+
+Use `ModelDescription` when you already have a direct path to `modelDescription.xml` and do not need FMU archive handling.
+
+```python
+from pyssp_standard import ModelDescription
+
+with ModelDescription("modelDescription.xml", mode="r") as md:
+    print(md.xml.model_name)
 ```
 
 ## Validation
