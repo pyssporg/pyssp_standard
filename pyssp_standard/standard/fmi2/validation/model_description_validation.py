@@ -2,32 +2,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from lxml import etree
-
+from pyssp_standard.common.xml_schema_validation import XmlSchemaValidator, resolve_schema_path
 from pyssp_standard.standard.fmi2.model.model_description import Fmi2ModelDescriptionDocument
 
 
-class Fmi2ModelDescriptionSchemaValidator:
-    def __init__(self, schema_path: Path | None = None):
-        if schema_path is None:
-            schema_path = (
-                Path(__file__).resolve().parents[4]
-                / "3rdParty"
-                / "FMI2"
-                / "schema"
-                / "fmi2ModelDescription.xsd"
-            )
-        self.schema_path = schema_path
-        self._schema = etree.XMLSchema(etree.parse(str(self.schema_path)))
+DEFAULT_FMI2_MODEL_DESCRIPTION_SCHEMA_PATH = resolve_schema_path("FMI2", "fmi2ModelDescription.xsd")
 
-    def validate_xml(self, xml_text: str) -> None:
-        document = etree.fromstring(xml_text.encode("utf-8"))
-        if self._schema.validate(document):
-            return
-        error = self._schema.error_log.last_error
-        if error is None:
-            raise ValueError("FMI2 modelDescription XML failed XSD validation")
-        raise ValueError(f"FMI2 modelDescription XML failed XSD validation: {error.message}")
+
+class Fmi2ModelDescriptionSchemaValidator(XmlSchemaValidator):
+    def __init__(self, schema_path: Path | None = None):
+        super().__init__(
+            schema_path or DEFAULT_FMI2_MODEL_DESCRIPTION_SCHEMA_PATH,
+            error_prefix="FMI2 modelDescription XML failed XSD validation",
+        )
 
 
 class Fmi2ModelDescriptionSemanticValidator:

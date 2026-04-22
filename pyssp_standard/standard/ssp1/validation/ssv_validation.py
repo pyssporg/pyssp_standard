@@ -2,33 +2,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from lxml import etree
-
+from pyssp_standard.common.xml_schema_validation import XmlSchemaValidator, resolve_schema_path
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1ParameterSet
 
 
-class Ssp1SsvSchemaValidator:
+DEFAULT_SSP1_SSV_SCHEMA_PATH = resolve_schema_path("SSP1", "SystemStructureParameterValues.xsd")
+
+
+class Ssp1SsvSchemaValidator(XmlSchemaValidator):
     def __init__(self, schema_path: Path | None = None):
-        if schema_path is None:
-            schema_path = (
-                Path(__file__).resolve().parents[4]
-                / "3rdParty"
-                / "SSP1"
-                / "schema"
-                / "SystemStructureParameterValues.xsd"
-            )
-        self.schema_path = schema_path
-        self._schema = etree.XMLSchema(etree.parse(str(self.schema_path)))
-
-    def validate_xml(self, xml_text: str) -> None:
-        document = etree.fromstring(xml_text.encode("utf-8"))
-        if self._schema.validate(document):
-            return
-
-        error = self._schema.error_log.last_error
-        if error is None:
-            raise ValueError("SSV XML failed XSD validation")
-        raise ValueError(f"SSV XML failed XSD validation: {error.message}")
+        super().__init__(
+            schema_path or DEFAULT_SSP1_SSV_SCHEMA_PATH,
+            error_prefix="SSV XML failed XSD validation",
+        )
 
 
 class Ssp1SsvSemanticValidator:
