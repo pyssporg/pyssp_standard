@@ -162,4 +162,4 @@ cython_debug/
 # script for setting dev env
 set_env*
 
-AGENTS.md
+_build/
