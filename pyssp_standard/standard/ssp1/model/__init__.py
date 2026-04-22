@@ -1,11 +1,13 @@
 """SSP1 compact domain models."""
 
 from pyssp_standard.standard.ssp1.model.ssd_model import (
+    ExternalReference,
     Ssd1Component,
     Ssd1Connection,
     Ssd1Connector,
     Ssd1DefaultExperiment,
     Ssd1ParameterBinding,
+    Ssd1ParameterMappingReference,
     Ssd1SystemStructureDescription,
     Ssd1System,
 )
@@ -17,7 +19,9 @@ __all__ = [
     "Ssd1Connection",
     "Ssd1Connector",
     "Ssd1DefaultExperiment",
+    "ExternalReference",
     "Ssd1ParameterBinding",
+    "Ssd1ParameterMappingReference",
     "Ssd1SystemStructureDescription",
     "Ssd1System",
     "Ssp1ParameterMapping",

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Generic, TypeVar
 
 from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1ParameterSet
+
+
+ReferenceT = TypeVar("ReferenceT")
 
 
 @dataclass
@@ -39,15 +43,20 @@ class Ssd1Component:
 
 
 @dataclass
-class Ssd1ParameterMappingReference:
+class ExternalReference:
     source: str | None = None
-    mapping: Ssp1ParameterMapping | None = None
 
+    @property
+    def is_external(self) -> bool:
+        return self.source is not None
 
 @dataclass
-class Ssd1ParameterBinding:
-    prefix: str | None
-    source: str | None = None
+class Ssd1ParameterMappingReference(ExternalReference):
+    mapping: Ssp1ParameterMapping | None = None
+
+@dataclass
+class Ssd1ParameterBinding(ExternalReference):
+    prefix: str | None = None
     parameter_set: Ssp1ParameterSet | None = None
     parameter_mapping: Ssd1ParameterMappingReference | None = None
 

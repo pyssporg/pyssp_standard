@@ -5,6 +5,7 @@ from xml.etree import ElementTree as ET
 from pyssp_standard.standard.ssp1.codec.ssm_xml_codec import Ssp1SsmXmlCodec
 from pyssp_standard.standard.ssp1.codec.ssv_xsdata_codec import NS_SSV, Ssp1SsvXsdataCodec
 from pyssp_standard.standard.ssp1.model.ssd_model import (
+    ExternalReference,
     Ssd1Component,
     Ssd1Connection,
     Ssd1Connector,
@@ -186,28 +187,18 @@ class Ssp1SsdXmlCodec:
         return element
 
     def _read_parameter_binding(self, element: ET.Element) -> Ssd1ParameterBinding:
-        prefix = element.attrib.get("prefix")
-        if prefix:
-            prefix = prefix[:-1] if prefix.endswith(".") else prefix
-        external_path = element.attrib.get("source")
+        prefix = self._normalize_prefix(element.attrib.get("prefix"))
+        source = element.attrib.get("source")
         parameter_mapping = self._read_parameter_mapping(element)
-        if external_path is not None:
+
+        if source is not None:
             return Ssd1ParameterBinding(
+                source=source,
                 prefix=prefix,
-                parameter_set_source=external_path,
                 parameter_mapping=parameter_mapping,
             )
 
-        parameter_values = next(
-            (child for child in list(element) if self._local_name(child.tag) == "ParameterValues"),
-            None,
-        )
-        inline_parameter_set = None
-        if parameter_values is not None:
-            inline_parameter_set = next(iter(parameter_values), None)
-        elif list(element):
-            # Backward-compatible parse path for earlier demo-style fixtures.
-            inline_parameter_set = next((child for child in list(element) if self._local_name(child.tag) == "ParameterSet"), None)
+        inline_parameter_set = self._read_inline_parameter_set(element)
 
         if inline_parameter_set is not None:
             xml_text = ET.tostring(inline_parameter_set, encoding="unicode")
@@ -228,12 +219,12 @@ class Ssp1SsdXmlCodec:
             attrib["prefix"] = f"{binding.prefix}."
         element = ET.Element(f"{{{NS_SSD}}}ParameterBinding", attrib=attrib)
 
-        if binding.parameter_set_source is None and binding.parameter_set is not None:
+        if binding.source is not None:
+            element.set("source", binding.source)
+        elif binding.parameter_set is not None:
             xml_text = self._ssv_codec.serialize(binding.parameter_set)
             values_element = ET.SubElement(element, f"{{{NS_SSD}}}ParameterValues")
             values_element.append(ET.fromstring(xml_text))
-        elif binding.parameter_set_source:
-            element.set("source", binding.parameter_set_source)
 
         if binding.parameter_mapping is not None:
             mapping_element = ET.SubElement(element, f"{{{NS_SSD}}}ParameterMapping")
@@ -262,6 +253,23 @@ class Ssp1SsdXmlCodec:
 
         xml_text = ET.tostring(inline_mapping, encoding="unicode")
         return Ssd1ParameterMappingReference(mapping=self._ssm_codec.parse(xml_text))
+
+    def _read_inline_parameter_set(self, binding_element: ET.Element) -> ET.Element | None:
+        parameter_values = self._find_child(binding_element, "ParameterValues")
+        if parameter_values is not None:
+            return next(iter(parameter_values), None)
+
+        # Backward-compatible parse path for earlier demo-style fixtures.
+        return self._find_child(binding_element, "ParameterSet")
+
+    def _find_child(self, element: ET.Element, local_name: str) -> ET.Element | None:
+        return next((child for child in element if self._local_name(child.tag) == local_name), None)
+
+    @staticmethod
+    def _normalize_prefix(prefix: str | None) -> str | None:
+        if prefix and prefix.endswith("."):
+            return prefix[:-1]
+        return prefix
 
     @staticmethod
     def _require_root(root: ET.Element, expected_local_name: str) -> None:
