@@ -55,5 +55,6 @@ Do not read these by default:
 
 Open these only if the task needs them:
 - `README.md` for package overview and user-facing positioning
-- `pyssp_standard/__README__.md` for deeper architecture background
+- `docs/dev/architecture.md` for intended internal layer boundaries
+- `docs/dev/repo_status.md` for current implementation reality
 - `docs/dev/guidelines.md` for project-wide code and documentation conventions

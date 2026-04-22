@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from pyssp_standard.tools.xsdata_generation import TARGETS
+from pyssp_standard.tools.schema_targets import TARGETS
 
 
 @dataclass(frozen=True)
@@ -30,46 +30,46 @@ CODEC_STACK: dict[StandardVersion, ParseStackSpec] = {
         standard=StandardVersion(family="SSP", format="SSV", version="1.0"),
         schema_path=TARGETS["ssp1_ssv"].schema_path,
         generated_module="pyssp_standard.standard.ssp1.generated.ssv_generated_types",
-        generated_output_path=TARGETS["ssp1_ssv"].output_path,
+        generated_output_path=TARGETS["ssp1_ssv"].binding_output_path,
         root_type="ParameterSet",
-        codec_id="ssp1_ssv_xsdata_codec",
-        mapper_id="ssp1_ssv_mapper",
+        codec_id="ssp1_ssv_codec",
+        mapper_id="ssp1_ssv_etree",
     ),
     StandardVersion(family="SSP", format="SSD", version="1.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSD", version="1.0"),
         schema_path=TARGETS["ssp1_ssd"].schema_path,
         generated_module="pyssp_standard.standard.ssp1.generated.ssd_generated_types",
-        generated_output_path=TARGETS["ssp1_ssd"].output_path,
+        generated_output_path=TARGETS["ssp1_ssd"].binding_output_path,
         root_type="SystemStructureDescription",
-        codec_id="ssp1_ssd_xsdata_codec",
-        mapper_id="ssp1_ssd_mapper",
+        codec_id="ssp1_ssd_codec",
+        mapper_id="ssp1_ssd_etree",
     ),
     StandardVersion(family="SSP", format="SSM", version="1.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSM", version="1.0"),
         schema_path=TARGETS["ssp1_ssm"].schema_path,
         generated_module="pyssp_standard.standard.ssp1.generated.ssm_generated_types",
-        generated_output_path=TARGETS["ssp1_ssm"].output_path,
+        generated_output_path=TARGETS["ssp1_ssm"].binding_output_path,
         root_type="ParameterMapping",
-        codec_id="ssp1_ssm_xsdata_codec",
-        mapper_id="ssp1_ssm_mapper",
+        codec_id="ssp1_ssm_codec",
+        mapper_id="ssp1_ssm_etree",
     ),
     StandardVersion(family="SSP", format="SSV", version="2.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSV", version="2.0"),
         schema_path=TARGETS["ssp2_ssv"].schema_path,
         generated_module="pyssp_standard.standard.ssp2.generated.ssv_generated_types",
-        generated_output_path=TARGETS["ssp2_ssv"].output_path,
+        generated_output_path=TARGETS["ssp2_ssv"].binding_output_path,
         root_type="ParameterSet",
-        codec_id="ssp2_ssv_xsdata_codec",
-        mapper_id="ssp2_ssv_mapper",
+        codec_id="ssp2_ssv_codec",
+        mapper_id="ssp2_ssv_generated",
     ),
     StandardVersion(family="FMI", format="MD", version="2.0"): ParseStackSpec(
         standard=StandardVersion(family="FMI", format="MD", version="2.0"),
         schema_path=TARGETS["fmi2_model_description"].schema_path,
         generated_module="pyssp_standard.standard.fmi2.generated.model_description_generated_types",
-        generated_output_path=TARGETS["fmi2_model_description"].output_path,
+        generated_output_path=TARGETS["fmi2_model_description"].binding_output_path,
         root_type="FmiModelDescription",
-        codec_id="fmi2_model_description_xsdata_codec",
-        mapper_id="fmi2_model_description_mapper",
+        codec_id="fmi2_model_description_codec",
+        mapper_id="fmi2_model_description_etree",
     ),
 }
 
