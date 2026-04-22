@@ -21,10 +21,17 @@ from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1SystemStructureDescription,
     Ssd1System,
 )
+from pyssp_standard.standard.ssp1.model.srmd_model import (
+    Ssp1Classification,
+    Ssp1ClassificationEntry,
+    Ssp1SimulationResourceMetaData,
+)
 from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping, Ssp1MappingEntry
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter, Ssp1ParameterSet
 
 __all__ = [
+    "Ssp1Classification",
+    "Ssp1ClassificationEntry",
     "Ssd1Component",
     "Ssd1Connection",
     "Ssd1Connector",
@@ -44,6 +51,7 @@ __all__ = [
     "Ssp1Parameter",
     "Ssp1ParameterMapping",
     "Ssp1ParameterSet",
+    "Ssp1SimulationResourceMetaData",
     "Ssp1SignalDictionary",
     "Ssp1Transformation",
     "Ssp1Unit",

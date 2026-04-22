@@ -62,6 +62,15 @@ CODEC_STACK: dict[StandardVersion, ParseStackSpec] = {
         codec_id="ssp1_ssm_codec",
         mapper_id="ssp1_ssm_etree",
     ),
+    StandardVersion(family="SSP", format="SRMD", version="1.0.0-beta2"): ParseStackSpec(
+        standard=StandardVersion(family="SSP", format="SRMD", version="1.0.0-beta2"),
+        schema_path=TARGETS["ssp1_srmd"].schema_path,
+        generated_module="pyssp_standard.standard.ssp1.generated.srmd_generated_types",
+        generated_output_path=TARGETS["ssp1_srmd"].binding_output_path,
+        root_type="SimulationResourceMetaData",
+        codec_id="ssp1_srmd_codec",
+        mapper_id="ssp1_srmd_etree",
+    ),
     StandardVersion(family="SSP", format="SSV", version="2.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSV", version="2.0"),
         schema_path=TARGETS["ssp2_ssv"].schema_path,
@@ -101,6 +110,8 @@ def get_standard_version(xml_text: str) -> StandardVersion:
         return StandardVersion(family="SSP", format="SSD", version=version)
     if tag == "ParameterMapping":
         return StandardVersion(family="SSP", format="SSM", version=version)
+    if tag == "SimulationResourceMetaData":
+        return StandardVersion(family="SSP", format="SRMD", version=version)
     if tag == "fmiModelDescription":
         return StandardVersion(family="FMI", format="MD", version=root.attrib.get("fmiVersion"))
 

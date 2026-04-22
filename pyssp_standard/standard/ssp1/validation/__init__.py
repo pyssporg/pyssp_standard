@@ -5,6 +5,11 @@ from pyssp_standard.standard.ssp1.validation.ssb_validation import (
     Ssp1SsbSemanticValidator,
     Ssp1SsbValidator,
 )
+from pyssp_standard.standard.ssp1.validation.srmd_validation import (
+    Ssp1SrmdSchemaValidator,
+    Ssp1SrmdSemanticValidator,
+    Ssp1SrmdValidator,
+)
 from pyssp_standard.standard.ssp1.validation.ssd_validation import (
     Ssp1SsdSchemaValidator,
     Ssp1SsdSemanticValidator,
@@ -25,6 +30,9 @@ __all__ = [
     "Ssp1SsbSchemaValidator",
     "Ssp1SsbSemanticValidator",
     "Ssp1SsbValidator",
+    "Ssp1SrmdSchemaValidator",
+    "Ssp1SrmdSemanticValidator",
+    "Ssp1SrmdValidator",
     "Ssp1SsdSchemaValidator",
     "Ssp1SsdSemanticValidator",
     "Ssp1SsdValidator",

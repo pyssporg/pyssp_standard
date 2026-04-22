@@ -47,6 +47,13 @@ TARGETS: dict[str, SchemaTarget] = {
         schema_path=resolve_schema_path("SSP1", "SystemStructureParameterMapping.xsd"),
         binding_output_path=PACKAGE_ROOT / "standard" / "ssp1" / "generated" / "ssm_generated_types.py",
     ),
+    "ssp1_srmd": SchemaTarget(
+        name="ssp1_srmd",
+        family="SSP",
+        version="1.0.0-beta2",
+        schema_path=resolve_schema_path("SSP-LS-Traceability", "SRMD.xsd"),
+        binding_output_path=PACKAGE_ROOT / "standard" / "ssp1" / "generated" / "srmd_generated_types.py",
+    ),
     "ssp2_ssv": SchemaTarget(
         name="ssp2_ssv",
         family="SSP",
