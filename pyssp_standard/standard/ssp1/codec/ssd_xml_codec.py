@@ -10,6 +10,7 @@ from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1Connector,
     Ssd1DefaultExperiment,
     Ssd1ParameterBinding,
+    Ssd1ParameterMappingReference,
     Ssd1SystemStructureDescription,
     Ssd1System,
 )
@@ -193,12 +194,8 @@ class Ssp1SsdXmlCodec:
         if external_path is not None:
             return Ssd1ParameterBinding(
                 prefix=prefix,
-                is_inlined=False,
-                external_path=external_path,
-                is_resolved=False,
-                parameter_mapping=parameter_mapping[0],
-                parameter_mapping_path=parameter_mapping[1],
-                is_mapping_resolved=parameter_mapping[0] is not None,
+                parameter_set_source=external_path,
+                parameter_mapping=parameter_mapping,
             )
 
         parameter_values = next(
@@ -216,20 +213,13 @@ class Ssp1SsdXmlCodec:
             xml_text = ET.tostring(inline_parameter_set, encoding="unicode")
             return Ssd1ParameterBinding(
                 prefix=prefix,
-                is_inlined=True,
                 parameter_set=self._ssv_codec.parse(xml_text),
-                is_resolved=True,
-                parameter_mapping=parameter_mapping[0],
-                parameter_mapping_path=parameter_mapping[1],
-                is_mapping_resolved=parameter_mapping[0] is not None,
+                parameter_mapping=parameter_mapping,
             )
 
         return Ssd1ParameterBinding(
             prefix=prefix,
-            is_inlined=True,
-            parameter_mapping=parameter_mapping[0],
-            parameter_mapping_path=parameter_mapping[1],
-            is_mapping_resolved=parameter_mapping[0] is not None,
+            parameter_mapping=parameter_mapping,
         )
 
     def _write_parameter_binding(self, binding: Ssd1ParameterBinding) -> ET.Element:
@@ -238,40 +228,40 @@ class Ssp1SsdXmlCodec:
             attrib["prefix"] = f"{binding.prefix}."
         element = ET.Element(f"{{{NS_SSD}}}ParameterBinding", attrib=attrib)
 
-        if binding.is_inlined and binding.parameter_set is not None:
+        if binding.parameter_set_source is None and binding.parameter_set is not None:
             xml_text = self._ssv_codec.serialize(binding.parameter_set)
             values_element = ET.SubElement(element, f"{{{NS_SSD}}}ParameterValues")
             values_element.append(ET.fromstring(xml_text))
-        elif not binding.is_inlined and binding.external_path:
-            element.set("source", binding.external_path)
+        elif binding.parameter_set_source:
+            element.set("source", binding.parameter_set_source)
 
-        if binding.parameter_mapping is not None or binding.parameter_mapping_path is not None:
+        if binding.parameter_mapping is not None:
             mapping_element = ET.SubElement(element, f"{{{NS_SSD}}}ParameterMapping")
-            if binding.parameter_mapping_path:
-                mapping_element.set("source", binding.parameter_mapping_path)
-            elif binding.parameter_mapping is not None:
-                xml_text = self._ssm_codec.serialize(binding.parameter_mapping)
+            if binding.parameter_mapping.source:
+                mapping_element.set("source", binding.parameter_mapping.source)
+            elif binding.parameter_mapping.mapping is not None:
+                xml_text = self._ssm_codec.serialize(binding.parameter_mapping.mapping)
                 mapping_element.append(ET.fromstring(xml_text))
         return element
 
-    def _read_parameter_mapping(self, element: ET.Element):
+    def _read_parameter_mapping(self, element: ET.Element) -> Ssd1ParameterMappingReference | None:
         mapping_element = next(
             (child for child in list(element) if self._local_name(child.tag) == "ParameterMapping"),
             None,
         )
         if mapping_element is None:
-            return None, None
+            return None
 
         mapping_path = mapping_element.attrib.get("source")
         if mapping_path is not None:
-            return None, mapping_path
+            return Ssd1ParameterMappingReference(source=mapping_path)
 
         inline_mapping = next(iter(mapping_element), None)
         if inline_mapping is None:
-            return None, None
+            return Ssd1ParameterMappingReference()
 
         xml_text = ET.tostring(inline_mapping, encoding="unicode")
-        return self._ssm_codec.parse(xml_text), None
+        return Ssd1ParameterMappingReference(mapping=self._ssm_codec.parse(xml_text))
 
     @staticmethod
     def _require_root(root: ET.Element, expected_local_name: str) -> None:

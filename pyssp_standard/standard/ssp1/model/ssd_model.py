@@ -39,15 +39,17 @@ class Ssd1Component:
 
 
 @dataclass
+class Ssd1ParameterMappingReference:
+    source: str | None = None
+    mapping: Ssp1ParameterMapping | None = None
+
+
+@dataclass
 class Ssd1ParameterBinding:
-    prefix: str
-    is_inlined: bool
+    prefix: str | None
+    source: str | None = None
     parameter_set: Ssp1ParameterSet | None = None
-    external_path: str | None = None
-    is_resolved: bool = False
-    parameter_mapping: Ssp1ParameterMapping | None = None
-    parameter_mapping_path: str | None = None
-    is_mapping_resolved: bool = False
+    parameter_mapping: Ssd1ParameterMappingReference | None = None
 
 
 @dataclass

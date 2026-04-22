@@ -135,17 +135,15 @@ def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):
         archive.write("pytest/__fixture__/external_values.ssv", arcname="external_values.ssv")
 
     with SSD("pytest/__fixture__/mixed_example.ssd") as standalone_ssd:
-        external_binding = next(binding for binding in standalone_ssd.parameter_bindings if not binding.is_inlined)
+        external_binding = next(binding for binding in standalone_ssd.parameter_bindings if binding.source is not None)
         assert external_binding.parameter_set is None
-        assert external_binding.is_resolved is False
 
     with SSP(ssp_path, mode="r") as ssp:
         with ssp.system_structure as ssd:
-            external_binding = next(binding for binding in ssd.parameter_bindings if not binding.is_inlined)
+            external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
             assert external_binding.parameter_set is not None
             assert external_binding.parameter_set.name == "ControllerExternal"
             assert external_binding.parameter_set.parameters[0].attributes["value"] == "0.8"
-            assert external_binding.is_resolved is True
             assert external_binding.parameter_mapping is None
 
 
@@ -157,12 +155,12 @@ def test_persists_resolved_external_parameter_sets(tmp_path):
 
     with SSP(ssp_path, mode="a") as ssp:
         with ssp.system_structure as ssd:
-            external_binding = next(binding for binding in ssd.parameter_bindings if not binding.is_inlined)
+            external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
             external_binding.parameter_set.parameters[0].attributes["value"] = "1.25"
 
     with SSP(ssp_path, mode="r") as ssp:
         with ssp.system_structure as ssd:
-            external_binding = next(binding for binding in ssd.parameter_bindings if not binding.is_inlined)
+            external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
             assert external_binding.parameter_set is not None
             assert external_binding.parameter_set.parameters[0].attributes["value"] == "1.25"
 
@@ -177,10 +175,9 @@ def test_resolves_external_parameter_mapping_at_archive_layer(embrace_ssp_fixtur
     with SSP(embrace_ssp_fixture, mode="r") as ssp:
         with ssp.system_structure as ssd:
             binding = ssd.parameter_bindings[0]
-            assert binding.external_path == "resources/RAPID_Systems_2021-03-29_Test_1.ssv"
+            assert binding.source == "resources/RAPID_Systems_2021-03-29_Test_1.ssv"
             assert binding.parameter_set is None
-            assert binding.is_resolved is False
-            assert binding.parameter_mapping_path == "resources/ECS_HW.ssm"
             assert binding.parameter_mapping is not None
-            assert len(binding.parameter_mapping.mappings) > 0
-            assert binding.is_mapping_resolved is True
+            assert binding.parameter_mapping.source == "resources/ECS_HW.ssm"
+            assert binding.parameter_mapping.mapping is not None
+            assert len(binding.parameter_mapping.mapping.mappings) > 0

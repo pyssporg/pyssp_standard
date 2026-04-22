@@ -69,9 +69,9 @@ def test_editing_connections_preserves_compliance(tmp_path, embrace_ssd_fixture)
 def test_standalone_facade_preserves_external_binding_reference_without_resolution(mixed_ssd_fixture):
     with SSD(mixed_ssd_fixture) as ssd:
         assert len(ssd.parameter_bindings) == 2
-        external_binding = next(binding for binding in ssd.parameter_bindings if not binding.is_inlined)
+        external_binding = next(binding for binding in ssd.parameter_bindings if binding.source is not None)
         assert external_binding.prefix == "Controller"
-        assert external_binding.external_path == "external_values.ssv"
+        assert external_binding.source == "external_values.ssv"
         assert external_binding.parameter_set is None
         assert external_binding.parameter_mapping is None
 

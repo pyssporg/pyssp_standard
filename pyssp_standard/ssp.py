@@ -37,45 +37,39 @@ class _SspSystemStructureFacade:
 
     def _load_external_references(self) -> None:
         for binding in self._ssd.parameter_bindings:
-            if not binding.is_inlined and binding.external_path:
-                external_path = self._runtime.resolve(binding.external_path)
+            if binding.source:
+                external_path = self._runtime.resolve(binding.source)
                 if external_path.exists():
                     try:
                         with SSV(external_path, mode="r") as ssv:
                             binding.parameter_set = ssv.document
-                        binding.is_resolved = True
                     except Exception:
                         binding.parameter_set = None
-                        binding.is_resolved = False
                 else:
                     binding.parameter_set = None
-                    binding.is_resolved = False
 
-            if binding.parameter_mapping_path:
-                mapping_path = self._runtime.resolve(binding.parameter_mapping_path)
+            if binding.parameter_mapping is not None and binding.parameter_mapping.source:
+                mapping_path = self._runtime.resolve(binding.parameter_mapping.source)
                 if mapping_path.exists():
                     try:
                         with SSM(mapping_path, mode="r") as ssm:
-                            binding.parameter_mapping = ssm.document
-                        binding.is_mapping_resolved = True
+                            binding.parameter_mapping.mapping = ssm.document
                     except Exception:
-                        binding.parameter_mapping = None
-                        binding.is_mapping_resolved = False
+                        binding.parameter_mapping.mapping = None
                 else:
-                    binding.parameter_mapping = None
-                    binding.is_mapping_resolved = False
+                    binding.parameter_mapping.mapping = None
 
     def _persist_external_references(self) -> None:
         for binding in self._ssd.parameter_bindings:
-            if not binding.is_inlined and binding.external_path and binding.parameter_set is not None:
-                external_path = self._runtime.resolve(binding.external_path)
+            if binding.source and binding.parameter_set is not None:
+                external_path = self._runtime.resolve(binding.source)
                 with SSV(external_path, mode="w") as ssv:
                     ssv._document = binding.parameter_set
 
-            if binding.parameter_mapping_path and binding.parameter_mapping is not None:
-                mapping_path = self._runtime.resolve(binding.parameter_mapping_path)
+            if binding.parameter_mapping is not None and binding.parameter_mapping.source and binding.parameter_mapping.mapping is not None:
+                mapping_path = self._runtime.resolve(binding.parameter_mapping.source)
                 with SSM(mapping_path, mode="w") as ssm:
-                    ssm._document = binding.parameter_mapping
+                    ssm._document = binding.parameter_mapping.mapping
 
 
 class SSP:
