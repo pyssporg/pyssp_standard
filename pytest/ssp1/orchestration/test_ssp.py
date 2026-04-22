@@ -7,13 +7,14 @@ from pathlib import Path
 
 import pytest
 
+from pyssp_standard.fmu import FMU
 from pyssp_standard.ssd import SSD
 from pyssp_standard.ssp import SSP
 from pyssp_standard.ssv import SSV
 
 
-def test_lists_existing_resources(embrace_ssp_fixture):
-    with SSP(embrace_ssp_fixture, mode="r") as ssp:
+def test_lists_existing_resources(embrace_ssp_dir_fixture):
+    with SSP(embrace_ssp_dir_fixture, mode="r") as ssp:
         assert len(ssp.resources) > 0
         assert "0001_ECS_HW/modelDescription.xml" in ssp.resources
         assert "0002_ECS_SW.fmu" in ssp.resources
@@ -129,11 +130,51 @@ def test_directory_write_mode_scaffolds_system_structure(tmp_path):
     assert (unpacked_ssp_dir / "SystemStructure.ssd").exists()
 
 
-def test_directory_system_structure_uses_fixture_file_directly(embrace_ssp_fixture):
-    with SSP(embrace_ssp_fixture, mode="r") as ssp:
+def test_directory_system_structure_uses_fixture_file_directly(embrace_ssp_dir_fixture):
+    with SSP(embrace_ssp_dir_fixture, mode="r") as ssp:
         facade = ssp.system_structure()
-        assert facade.path == embrace_ssp_fixture / "SystemStructure.ssd"
+        assert facade.path == embrace_ssp_dir_fixture / "SystemStructure.ssd"
         assert facade.path.exists()
+
+
+def test_can_open_model_description_from_directory_backed_fmu_inside_directory_ssp(
+    embrace_ssp_fixture,
+):
+    with SSP(embrace_ssp_fixture, mode="r") as ssp:
+        with ssp.system_structure() as ssd:
+            component = next(component for component in ssd.system.elements if component.name == "ECS_HW")
+            assert component.source == "resources/0001_ECS_HW.fmu"
+
+            with FMU(ssp.runtime.resolve(component.source), mode="r") as fmu:
+                with fmu.model_description as md:
+                    assert md.document.model_name == "ECS_HW"
+                    assert len(md.inputs) > 0
+
+
+def test_can_open_model_description_from_packaged_fmu_inside_packaged_ssp(
+    embrace_ssd_fixture,
+    embrace_ssm_fixture,
+    fmu_archive_fixture,
+    tmp_path,
+):
+    ssp_path = tmp_path / "nested_fmu.ssp"
+    parameter_set = embrace_ssm_fixture.parent / "RAPID_Systems_2021-03-29_Test_1.ssv"
+
+    with zipfile.ZipFile(ssp_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.write(embrace_ssd_fixture, arcname="SystemStructure.ssd")
+        archive.write(parameter_set, arcname="resources/RAPID_Systems_2021-03-29_Test_1.ssv")
+        archive.write(embrace_ssm_fixture, arcname="resources/ECS_HW.ssm")
+        archive.write(fmu_archive_fixture, arcname="resources/0001_ECS_HW.fmu")
+
+    with SSP(ssp_path, mode="r") as ssp:
+        with ssp.system_structure() as ssd:
+            component = next(component for component in ssd.system.elements if component.name == "ECS_HW")
+            assert component.source == "resources/0001_ECS_HW.fmu"
+
+            with FMU(ssp.runtime.resolve(component.source), mode="r") as fmu:
+                with fmu.model_description as md:
+                    assert md.document.model_name == "ECS_HW"
+                    assert len(md.inputs) > 0
 
 
 def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):
@@ -179,8 +220,8 @@ def test_persists_resolved_external_parameter_sets(tmp_path):
         assert ssv.parameters[0].attributes["value"] == "1.25"
 
 
-def test_resolves_external_parameter_mapping_at_archive_layer(embrace_ssp_fixture):
-    with SSP(embrace_ssp_fixture, mode="r") as ssp:
+def test_resolves_external_parameter_mapping_at_archive_layer(embrace_ssp_dir_fixture):
+    with SSP(embrace_ssp_dir_fixture, mode="r") as ssp:
         with ssp.system_structure() as ssd:
             binding = ssd.parameter_bindings[0]
             assert binding.source == "resources/RAPID_Systems_2021-03-29_Test_1.ssv"

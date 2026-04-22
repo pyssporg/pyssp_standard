@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
 import zipfile
 
 import pytest
@@ -29,8 +30,22 @@ def embrace_ssm_fixture() -> Path:
 
 
 @pytest.fixture
-def embrace_ssp_fixture() -> Path:
+def embrace_ssp_dir_fixture() -> Path:
     return EMBRACE_DIR
+
+
+@pytest.fixture
+def embrace_ssp_fixture(tmp_path: Path, embrace_ssp_dir_fixture: Path) -> Path:
+    ssp_dir = tmp_path / "embrace_dir"
+    shutil.copytree(embrace_ssp_dir_fixture, ssp_dir)
+
+    fmu_dir = ssp_dir / "resources" / "0001_ECS_HW"
+    fmu_path = ssp_dir / "resources" / "0001_ECS_HW.fmu"
+    _write_zip_from_tree(fmu_dir, fmu_path)
+    shutil.rmtree(fmu_dir)
+
+    ssp_path = tmp_path / "embrace.ssp"
+    return _write_zip_from_tree(ssp_dir, ssp_path)
 
 
 @pytest.fixture
