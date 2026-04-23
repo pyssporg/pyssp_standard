@@ -6,7 +6,7 @@ Purpose:
 
 Boundary:
 - Knows both domain models and XML helper functions.
-- Contains read/apply logic, but not document ownership or catalog orchestration.
+- Contains read/apply logic, including aggregate-level translation.
 - Avoids direct user-facing document APIs.
 """
 
@@ -14,10 +14,11 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
-from layer_example.domain import Book, Newspaper, Publisher
+from layer_example.domain import Book, Catalog, Newspaper, Publisher
 from layer_example.xml_model import (
     AUTHOR,
     BOOK,
+    CATALOG,
     CITY,
     ISSUE,
     NAME,
@@ -25,11 +26,12 @@ from layer_example.xml_model import (
     PUBLISHER,
     TITLE,
     YEAR,
-    get_or_create_child,
-    insert_child_schema_ordered,
     replace_text_content,
-    set_or_insert_attr,
-    set_or_insert_singleton_child,
+    sync_keyed_children,
+    sync_nested_child,
+    sync_optional_attr,
+    sync_optional_singleton_child,
+    sync_repeated_text_children,
 )
 
 
@@ -37,6 +39,13 @@ def read_publisher(element: ET.Element) -> Publisher:
     return Publisher(
         name=element.findtext(NAME, default=""),
         city=element.findtext(CITY),
+    )
+
+
+def read_catalog(root: ET.Element) -> Catalog:
+    return Catalog(
+        books=[read_book(element) for element in root.findall(BOOK)],
+        newspapers=[read_newspaper(element) for element in root.findall(NEWSPAPER)],
     )
 
 
@@ -69,62 +78,44 @@ def apply_publisher(
     ordered_names: list[str],
 ) -> None:
     replace_text_content(element, NAME, publisher.name)
-    if publisher.city is not None:
-        set_or_insert_singleton_child(element, CITY, publisher.city, ordered_names)
+    sync_optional_singleton_child(element, CITY, publisher.city, ordered_names)
 
-# TODO: Generic xml_model?
-def sync_repeated_text_children(
-    parent: ET.Element,
-    child_name: str,
-    values: list[str],
-    ordered_names: list[str],
-) -> None:
-    existing_children = list(parent.findall(child_name))
 
-    for child in existing_children:
-        parent.remove(child)
-
-    for value in values:
-        child = ET.Element(child_name)
-        child.text = value
-        insert_child_schema_ordered(parent, child, ordered_names)
-
-# TODO: CAn parts here be moved to the generic xml model?
 def apply_book(book: Book, element: ET.Element) -> None:
     attr_order = ["id", "lang", "edition"]
     child_order = [TITLE, AUTHOR, PUBLISHER, YEAR]
-    publisher_child_order = [NAME, CITY]
 
-    set_or_insert_attr(element, "id", book.book_id, attr_order)
-    set_or_insert_attr(element, "lang", book.lang, attr_order)
-    if book.edition is not None:
-        set_or_insert_attr(element, "edition", book.edition, attr_order)
-
+    sync_optional_attr(element, "id", book.book_id, attr_order)
+    sync_optional_attr(element, "lang", book.lang, attr_order)
+    sync_optional_attr(element, "edition", book.edition, attr_order)
     replace_text_content(element, TITLE, book.title)
     sync_repeated_text_children(element, AUTHOR, book.authors, child_order)
-    publisher_element = get_or_create_child(element, PUBLISHER, child_order)
-    apply_publisher(book.publisher, publisher_element, publisher_child_order)
-
-    if book.year is not None:
-        set_or_insert_singleton_child(element, YEAR, book.year, child_order)
+    sync_nested_child(
+        element,
+        PUBLISHER,
+        book.publisher,
+        child_order,
+        lambda model, child: apply_publisher(model, child, [NAME, CITY]),
+    )
+    sync_optional_singleton_child(element, YEAR, book.year, child_order)
 
 
 def apply_newspaper(newspaper: Newspaper, element: ET.Element) -> None:
     attr_order = ["id", "lang", "frequency"]
     child_order = [TITLE, PUBLISHER, ISSUE]
-    publisher_child_order = [NAME, CITY]
 
-    set_or_insert_attr(element, "id", newspaper.paper_id, attr_order)
-    set_or_insert_attr(element, "lang", newspaper.lang, attr_order)
-    if newspaper.frequency is not None:
-        set_or_insert_attr(element, "frequency", newspaper.frequency, attr_order)
-
+    sync_optional_attr(element, "id", newspaper.paper_id, attr_order)
+    sync_optional_attr(element, "lang", newspaper.lang, attr_order)
+    sync_optional_attr(element, "frequency", newspaper.frequency, attr_order)
     replace_text_content(element, TITLE, newspaper.title)
-    publisher_element = get_or_create_child(element, PUBLISHER, child_order)
-    apply_publisher(newspaper.publisher, publisher_element, publisher_child_order)
-
-    if newspaper.issue is not None:
-        set_or_insert_singleton_child(element, ISSUE, newspaper.issue, child_order)
+    sync_nested_child(
+        element,
+        PUBLISHER,
+        newspaper.publisher,
+        child_order,
+        lambda model, child: apply_publisher(model, child, [NAME, CITY]),
+    )
+    sync_optional_singleton_child(element, ISSUE, newspaper.issue, child_order)
 
 
 def make_book_element() -> ET.Element:
@@ -133,3 +124,29 @@ def make_book_element() -> ET.Element:
 
 def make_newspaper_element() -> ET.Element:
     return ET.Element(NEWSPAPER)
+
+
+def publish_catalog(catalog: Catalog, root: ET.Element) -> None:
+    if root.tag != CATALOG:
+        raise ValueError(f"Expected catalog root, got: {root.tag}")
+
+    sync_keyed_children(
+        root,
+        catalog.books,
+        BOOK,
+        [BOOK, NEWSPAPER],
+        get_item_key=lambda model: model.book_id,
+        get_element_key=lambda element: element.attrib.get("id"),
+        make_child=make_book_element,
+        apply_child=apply_book,
+    )
+    sync_keyed_children(
+        root,
+        catalog.newspapers,
+        NEWSPAPER,
+        [BOOK, NEWSPAPER],
+        get_item_key=lambda model: model.paper_id,
+        get_element_key=lambda element: element.attrib.get("id"),
+        make_child=make_newspaper_element,
+        apply_child=apply_newspaper,
+    )

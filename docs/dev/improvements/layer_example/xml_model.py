@@ -12,6 +12,7 @@ Boundary:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import xml.etree.ElementTree as ET
 
 
@@ -65,6 +66,22 @@ def set_or_insert_attr(
     element.attrib.update(updated)
 
 
+def remove_attr(element: ET.Element, name: str) -> None:
+    element.attrib.pop(name, None)
+
+
+def sync_optional_attr(
+    element: ET.Element,
+    name: str,
+    value: str | None,
+    ordered_names: list[str],
+) -> None:
+    if value is None:
+        remove_attr(element, name)
+        return
+    set_or_insert_attr(element, name, value, ordered_names)
+
+
 def replace_text_content(parent: ET.Element, child_name: str, value: str) -> None:
     child = parent.find(child_name)
     if child is None:
@@ -105,6 +122,24 @@ def set_or_insert_singleton_child(
     insert_child_schema_ordered(parent, child, ordered_names)
 
 
+def remove_child(parent: ET.Element, child_name: str) -> None:
+    existing = parent.find(child_name)
+    if existing is not None:
+        parent.remove(existing)
+
+
+def sync_optional_singleton_child(
+    parent: ET.Element,
+    child_name: str,
+    value: str | None,
+    ordered_names: list[str],
+) -> None:
+    if value is None:
+        remove_child(parent, child_name)
+        return
+    set_or_insert_singleton_child(parent, child_name, value, ordered_names)
+
+
 def get_or_create_child(
     parent: ET.Element,
     child_name: str,
@@ -117,6 +152,63 @@ def get_or_create_child(
     child = ET.Element(child_name)
     insert_child_schema_ordered(parent, child, ordered_names)
     return child
+
+
+def sync_nested_child(
+    parent: ET.Element,
+    child_name: str,
+    model: object,
+    ordered_names: list[str],
+    apply_child: Callable[[object, ET.Element], None],
+) -> ET.Element:
+    child = get_or_create_child(parent, child_name, ordered_names)
+    apply_child(model, child)
+    return child
+
+
+def sync_repeated_text_children(
+    parent: ET.Element,
+    child_name: str,
+    values: list[str],
+    ordered_names: list[str],
+) -> None:
+    existing_children = list(parent.findall(child_name))
+
+    for child in existing_children:
+        parent.remove(child)
+
+    for value in values:
+        child = ET.Element(child_name)
+        child.text = value
+        insert_child_schema_ordered(parent, child, ordered_names)
+
+
+def sync_keyed_children(
+    parent: ET.Element,
+    items: list[object],
+    child_name: str,
+    ordered_names: list[str],
+    get_item_key: Callable[[object], str],
+    get_element_key: Callable[[ET.Element], str | None],
+    make_child: Callable[[], ET.Element],
+    apply_child: Callable[[object, ET.Element], None],
+) -> None:
+    existing_children = {
+        get_element_key(element): element for element in parent.findall(child_name)
+    }
+    item_keys = {get_item_key(item) for item in items}
+
+    for key, element in existing_children.items():
+        if key is not None and key not in item_keys:
+            parent.remove(element)
+
+    for item in items:
+        key = get_item_key(item)
+        element = existing_children.get(key)
+        if element is None:
+            element = make_child()
+            insert_child_schema_ordered(parent, element, ordered_names)
+        apply_child(item, element)
 
 
 def indent(element: ET.Element, level: int = 0) -> None:

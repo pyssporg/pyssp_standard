@@ -52,9 +52,10 @@ def main() -> None:
             frequency="weekly",
         )
     )
+    catalog.remove_newspaper("n1")
 
     assert len(catalog.books) == 2
-    assert len(catalog.newspapers) == 2
+    assert len(catalog.newspapers) == 1
 
     print(document.to_xml())
 

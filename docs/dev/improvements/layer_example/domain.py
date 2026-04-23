@@ -63,6 +63,18 @@ class Catalog:
         self.books.append(book)
         return book
 
+    def remove_book(self, book_id: str) -> Book:
+        for index, book in enumerate(self.books):
+            if book.book_id == book_id:
+                return self.books.pop(index)
+        raise KeyError(f"Unknown book id: {book_id}")
+
     def add_newspaper(self, newspaper: Newspaper) -> Newspaper:
         self.newspapers.append(newspaper)
         return newspaper
+
+    def remove_newspaper(self, paper_id: str) -> Newspaper:
+        for index, newspaper in enumerate(self.newspapers):
+            if newspaper.paper_id == paper_id:
+                return self.newspapers.pop(index)
+        raise KeyError(f"Unknown newspaper id: {paper_id}")
