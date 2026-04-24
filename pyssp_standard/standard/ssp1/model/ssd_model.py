@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
+from typing import Generic, Iterable, Mapping, TypeVar
 
 from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Annotation, Ssp1DocumentMetadata
 from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
@@ -45,6 +45,46 @@ class Ssd1Component:
     implementation: str | None = None
     connectors: list[Ssd1Connector] = field(default_factory=list)
     parameter_bindings: list["Ssd1ParameterBinding"] = field(default_factory=list)
+
+    def extend_inline_parameterset(
+        self,
+        parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object] | Mapping[str, object]],
+        *,
+        binding_name: str | None = None,
+        prefix: str | None = None,
+        version: str = "1.0",
+        metadata: Ssp1DocumentMetadata | None = None,
+    ) -> "Ssd1ParameterBinding":
+        binding = self._first_inline_parameter_binding()
+        if binding is None:
+            parameter_set = Ssp1ParameterSet(
+                name=binding_name or f"{self.name}_parameters",
+                version=version,
+                metadata=metadata or Ssp1DocumentMetadata(),
+            )
+            binding = Ssd1ParameterBinding(prefix=prefix, parameter_set=parameter_set)
+            self.parameter_bindings.append(binding)
+        else:
+            parameter_set = binding.parameter_set
+            if parameter_set is None:
+                raise RuntimeError(f"Inline parameter binding for component '{self.name}' has no parameter set")
+
+            if binding_name is not None:
+                parameter_set.name = binding_name
+            if prefix is not None:
+                binding.prefix = prefix
+            if metadata is not None:
+                parameter_set.metadata = metadata
+            parameter_set.version = version
+
+        parameter_set.extend_parameters(parameters)
+        return binding
+
+    def _first_inline_parameter_binding(self) -> "Ssd1ParameterBinding | None":
+        for binding in self.parameter_bindings:
+            if binding.parameter_set is not None and binding.source is None:
+                return binding
+        return None
 
 
 @dataclass

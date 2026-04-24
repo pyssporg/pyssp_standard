@@ -60,6 +60,34 @@ def test_round_trip_preserves_supported_parameter_types(tmp_path):
         }
 
 
+def test_extend_parameters_accepts_mappings_tuples_and_parameter_specs(tmp_path):
+    path = tmp_path / "test.ssv"
+
+    with SSV(path, "w") as ssv:
+        ssv.xml.extend_parameters(
+            [
+                ("gain", 3.5),
+                {"name": "enabled", "value": True},
+                {"name": "mode", "ptype": "Enumeration", "value": 1, "enum_name": "ON"},
+            ]
+        )
+        ssv.xml.extend_parameters({"offset": -2, "label": "demo"})
+
+    with SSV(path) as ssv:
+        params = {param.name: param for param in ssv.xml.parameters}
+
+        assert params["gain"].type_name == "Real"
+        assert params["gain"].attributes == {"value": "3.5"}
+        assert params["enabled"].type_name == "Boolean"
+        assert params["enabled"].attributes == {"value": "true"}
+        assert params["mode"].type_name == "Enumeration"
+        assert params["mode"].attributes == {"value": "1", "name": "ON"}
+        assert params["offset"].type_name == "Integer"
+        assert params["offset"].attributes == {"value": "-2"}
+        assert params["label"].type_name == "String"
+        assert params["label"].attributes == {"value": "demo"}
+
+
 def test_add_unit_reuses_existing_definition(tmp_path):
     path = tmp_path / "test.ssv"
 

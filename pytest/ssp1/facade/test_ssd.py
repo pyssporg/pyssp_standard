@@ -114,6 +114,38 @@ def test_round_trip_preserves_metadata_and_connector_annotations(tmp_path):
         assert ssd.xml.system.connectors[0].annotations[0].elements[0].text == "signal"
 
 
+def test_component_can_extend_first_inline_parameterset_from_mapping(tmp_path):
+    path = tmp_path / "inline_parameters.ssd"
+
+    with SSD(path, mode="w") as ssd:
+        component = Component(name="component", source="resources/example.fmu")
+        component.extend_inline_parameterset(
+            [
+                ("gain", 2.5),
+                {"name": "enabled", "value": True},
+            ]
+        )
+        component.extend_inline_parameterset({"offset": -1})
+
+        ssd.xml.name = "Inline Parameters"
+        ssd.xml.version = "1.0"
+        ssd.xml.system = System(None, "system")
+        ssd.xml.system.elements.append(component)
+
+    with SSD(path, mode="r") as ssd:
+        component = ssd.xml.system.elements[0]
+        binding = component.parameter_bindings[0]
+
+        assert binding.parameter_set is not None
+        assert binding.parameter_set.name == "component_parameters"
+        assert len(component.parameter_bindings) == 1
+        assert [(parameter.name, parameter.attributes["value"]) for parameter in binding.parameter_set.parameters] == [
+            ("gain", "2.5"),
+            ("enabled", "true"),
+            ("offset", "-1"),
+        ]
+
+
 def test_round_trip_preserves_structural_order_in_serialized_xml(tmp_path):
     path = tmp_path / "ordered.ssd"
     path.write_text(
