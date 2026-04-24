@@ -101,3 +101,19 @@ class Fmi2ModelDescriptionDocument:
     @property
     def parameters(self) -> list[Fmi2ScalarVariable]:
         return self.get(causality="parameter")
+
+    def get_type_definitions(self, name: str | None = None, type_name: str | None = None) -> list[Fmi2TypeDefinition]:
+        matches: list[Fmi2TypeDefinition] = []
+        for definition in self.type_definitions:
+            if name is not None and definition.name != name:
+                continue
+            if type_name is not None and definition.type_name != type_name:
+                continue
+            matches.append(definition)
+        return matches
+
+    def get_units(self, name: str | None = None) -> list[Fmi2Unit]:
+        if name is None:
+            return list(self.unit_definitions)
+        return [unit for unit in self.unit_definitions if unit.name == name]
+

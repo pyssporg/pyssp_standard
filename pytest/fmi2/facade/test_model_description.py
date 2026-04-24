@@ -32,6 +32,19 @@ def test_get_filters_by_causality_and_variability(model_description_fixture):
     assert len(matches_causality) >= len(matches_both)
 
 
+def test_get_type_definitions_and_units_support_name_filters(model_description_fixture):
+    with ModelDescription(model_description_fixture) as md:
+        all_units = md.xml.get_units()
+        named_units = md.xml.get_units("K")
+        all_type_definitions = md.xml.get_type_definitions()
+        enum_type_definitions = md.xml.get_type_definitions(type_name="Enumeration")
+
+    assert len(all_units) > 0
+    assert all(unit.name == "K" for unit in named_units)
+    assert len(all_type_definitions) > 0
+    assert all(type_definition.type_name == "Enumeration" for type_definition in enum_type_definitions)
+
+
 def test_requires_loading_before_access(model_description_fixture):
     md = ModelDescription(model_description_fixture)
 

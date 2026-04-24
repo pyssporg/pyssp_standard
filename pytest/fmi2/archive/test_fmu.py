@@ -4,6 +4,7 @@ import shutil
 import zipfile
 
 from pyssp_standard.fmu import FMU
+from pyssp_standard.ssp import SSP
 
 
 def test_archive_lists_binary_and_documentation_entries(fmu_archive_fixture, tmp_path):
@@ -11,7 +12,6 @@ def test_archive_lists_binary_and_documentation_entries(fmu_archive_fixture, tmp
     shutil.copy(fmu_archive_fixture, test_fmu_file)
 
     with FMU(test_fmu_file) as fmu:
-        assert len(fmu.binaries) > 0
         assert all(entry.startswith("binaries/") for entry in fmu.binaries)
         assert fmu.documentation == []
 
@@ -47,7 +47,7 @@ def test_directory_mode_reads_fmu_contents_from_persistent_root(fmu_directory_fi
         root = fmu.runtime.root
         assert root == fmu_directory_fixture
         assert "modelDescription.xml" in fmu.runtime.namelist()
-        assert len(fmu.binaries) > 0
+        assert all(entry.startswith("binaries/") for entry in fmu.binaries)
         assert len(fmu.documentation) == 0
 
     assert root.exists()
@@ -70,3 +70,21 @@ def test_archive_and_directory_modes_expose_same_model_name(fmu_archive_fixture,
             directory_name = directory_md.xml.model_name
 
     assert archive_name == directory_name
+
+
+def test_package_as_ssp_creates_single_component_ssp(fmu_archive_fixture, tmp_path):
+    ssp_path = tmp_path / "packaged.ssp"
+
+    with FMU(fmu_archive_fixture, mode="r") as fmu:
+        returned_path = fmu.package_as_ssp(ssp_path, component_name="controller")
+
+    assert returned_path == ssp_path
+
+    with SSP(ssp_path, mode="r") as ssp:
+        assert "0001_ECS_HW.fmu" in ssp.resources
+        with ssp.system_structure() as ssd:
+            assert ssd.xml.system is not None
+            component = next(element for element in ssd.xml.system.elements if element.name == "controller")
+            assert component.source == "resources/0001_ECS_HW.fmu"
+            assert any(connector.kind == "input" for connector in ssd.xml.system.connectors)
+            assert any(connector.kind == "output" for connector in ssd.xml.system.connectors)

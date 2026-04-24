@@ -4,6 +4,7 @@ from pathlib import Path
 
 from pyssp_standard.md import ModelDescription
 from pyssp_standard.common.archive_runtime import create_runtime
+from pyssp_standard.ssp import SSP
 
 
 class FMU:
@@ -32,3 +33,28 @@ class FMU:
     @property
     def model_description(self) -> ModelDescription:
         return ModelDescription(self.runtime.root / "modelDescription.xml", mode=self.mode)
+
+    def package_as_ssp(
+        self,
+        path: str | Path,
+        *,
+        component_name: str | None = None,
+        resource_name: str | None = None,
+        implementation: str | None = None,
+    ) -> Path:
+        path = Path(path)
+        component_name = component_name or self.path.stem
+
+        with self.model_description as md:
+            resolved_implementation = implementation or md.xml.interface_type or "ModelExchange"
+
+        with SSP(path, mode="w") as ssp:
+            ssp.add_fmu(
+                component_name=component_name,
+                fmu_path=self.path,
+                resource_name=resource_name,
+                implementation=resolved_implementation,
+                expose_system_connectors=True,
+            )
+
+        return path
