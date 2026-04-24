@@ -118,8 +118,8 @@ class Ssd1System:
 
 @dataclass
 class Ssd1SystemStructureDescription:
-    name: str
-    version: str
+    name: str = "system"
+    version: str = "1.0"
     metadata: Ssp1DocumentMetadata = field(default_factory=Ssp1DocumentMetadata)
     system: Ssd1System | None = None
     default_experiment: Ssd1DefaultExperiment | None = None

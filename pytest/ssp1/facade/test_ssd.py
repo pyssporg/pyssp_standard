@@ -146,6 +146,40 @@ def test_component_can_extend_first_inline_parameterset_from_mapping(tmp_path):
         ]
 
 
+def test_ssd_can_extend_component_inline_parametersets_by_name(tmp_path):
+    path = tmp_path / "facade_parameters.ssd"
+
+    with SSD(path, mode="w") as ssd:
+        component_a = Component(name="step", source="resources/step.fmu")
+        component_b = Component(name="gain", source="resources/gain.fmu")
+
+        ssd.xml.name = "Facade Parameters"
+        ssd.xml.version = "1.0"
+        ssd.xml.system = System(None, "system")
+        ssd.xml.system.elements.extend([component_a, component_b])
+
+        ssd.extend_parameterset(
+            {
+                "step": {"height": 2.0, "offset": 1.0},
+                "gain": {"k": 3.0},
+            }
+        )
+
+    with SSD(path, mode="r") as ssd:
+        step = next(element for element in ssd.xml.system.elements if element.name == "step")
+        gain = next(element for element in ssd.xml.system.elements if element.name == "gain")
+
+        assert step.parameter_bindings[0].parameter_set is not None
+        assert gain.parameter_bindings[0].parameter_set is not None
+        assert [(parameter.name, parameter.attributes["value"]) for parameter in step.parameter_bindings[0].parameter_set.parameters] == [
+            ("height", "2.0"),
+            ("offset", "1.0"),
+        ]
+        assert [(parameter.name, parameter.attributes["value"]) for parameter in gain.parameter_bindings[0].parameter_set.parameters] == [
+            ("k", "3.0"),
+        ]
+
+
 def test_round_trip_preserves_structural_order_in_serialized_xml(tmp_path):
     path = tmp_path / "ordered.ssd"
     path.write_text(

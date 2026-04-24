@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Iterable, Mapping
 
 from pyssp_standard.common.document_runtime import DocumentRuntime, ExternalReferenceSpec
 from pyssp_standard.standard.ssp1.codec.ssd_codec import Ssp1SsdCodec
@@ -19,6 +20,7 @@ from pyssp_standard.common.xml_document import XmlDocument
 from pyssp_standard.common.archive_runtime import DirectoryRuntime
 from pyssp_standard.ssm import SSM
 from pyssp_standard.ssv import SSV
+from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter
 
 
 Connection = Ssd1Connection
@@ -43,6 +45,29 @@ class SSD(XmlDocument[Ssd1SystemStructureDescription]):
 
     def _create_document(self) -> Ssd1SystemStructureDescription:
         return Ssd1SystemStructureDescription(name=self.path.stem or "system", version="1.0", system=Ssd1System(name="system"))
+
+    def extend_parameterset(
+        self,
+        parameters_by_component: Mapping[
+            str,
+            Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object] | Mapping[str, object]],
+        ],
+    ) -> None:
+        system = self.xml.system
+        if system is None:
+            raise RuntimeError("Cannot extend a parameter set without a system")
+
+        components_by_name = {
+            element.name: element
+            for element in system.elements
+            if isinstance(element, Ssd1Component)
+        }
+
+        for component_name, parameters in parameters_by_component.items():
+            component = components_by_name.get(component_name)
+            if component is None:
+                raise KeyError(f"Component not found in system '{system.name}': {component_name}")
+            component.extend_inline_parameterset(parameters)
 
 
 EXTERNAL_REFERENCE_SPECS = (
