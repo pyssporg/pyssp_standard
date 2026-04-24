@@ -38,12 +38,14 @@ class FMU:
         self,
         path: str | Path,
         *,
+        system_name: str | None = None,
         component_name: str | None = None,
         resource_name: str | None = None,
         implementation: str | None = None,
     ) -> Path:
         path = Path(path)
         component_name = component_name or self.path.stem
+        system_name = system_name or path.stem
 
         with self.model_description as md:
             resolved_implementation = implementation or md.xml.interface_type or "ModelExchange"
@@ -56,5 +58,9 @@ class FMU:
                 implementation=resolved_implementation,
                 expose_system_connectors=True,
             )
+            with ssp.system_structure() as ssd:
+                ssd.xml.name = system_name
+                if ssd.xml.system is not None:
+                    ssd.xml.system.name = system_name
 
         return path

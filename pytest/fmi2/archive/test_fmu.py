@@ -76,14 +76,20 @@ def test_package_as_ssp_creates_single_component_ssp(fmu_archive_fixture, tmp_pa
     ssp_path = tmp_path / "packaged.ssp"
 
     with FMU(fmu_archive_fixture, mode="r") as fmu:
-        returned_path = fmu.package_as_ssp(ssp_path, component_name="controller")
+        returned_path = fmu.package_as_ssp(
+            ssp_path,
+            system_name="custom_system",
+            component_name="controller",
+        )
 
     assert returned_path == ssp_path
 
     with SSP(ssp_path, mode="r") as ssp:
         assert "0001_ECS_HW.fmu" in ssp.resources
         with ssp.system_structure() as ssd:
+            assert ssd.xml.name == "custom_system"
             assert ssd.xml.system is not None
+            assert ssd.xml.system.name == "custom_system"
             component = next(element for element in ssd.xml.system.elements if element.name == "controller")
             assert component.source == "resources/0001_ECS_HW.fmu"
             assert any(connector.kind == "input" for connector in ssd.xml.system.connectors)

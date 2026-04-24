@@ -44,6 +44,7 @@ class Ssd1Component:
     component_type: str | None = None
     implementation: str | None = None
     connectors: list[Ssd1Connector] = field(default_factory=list)
+    parameter_bindings: list["Ssd1ParameterBinding"] = field(default_factory=list)
 
 
 @dataclass

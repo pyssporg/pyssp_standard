@@ -149,6 +149,12 @@ class Ssp1SsdCodec:
             component_type=element.attrib.get("type"),
             implementation=element.attrib.get("implementation"),
         )
+        parameter_bindings_element = first_child(element, NS_SSD, "ParameterBindings")
+        if parameter_bindings_element is not None:
+            component.parameter_bindings = [
+                self._parse_parameter_binding(binding)
+                for binding in parameter_bindings_element.findall(qname(NS_SSD, "ParameterBinding"))
+            ]
         connectors_element = first_child(element, NS_SSD, "Connectors")
         if connectors_element is not None:
             component.connectors = [
@@ -165,6 +171,10 @@ class Ssp1SsdCodec:
             element.set("type", component.component_type)
         if component.implementation is not None:
             element.set("implementation", component.implementation)
+        if component.parameter_bindings:
+            bindings_element = ET.SubElement(element, qname(NS_SSD, "ParameterBindings"))
+            for binding in component.parameter_bindings:
+                bindings_element.append(self._serialize_parameter_binding(binding))
         if component.connectors:
             connectors_element = ET.SubElement(element, qname(NS_SSD, "Connectors"))
             for connector in component.connectors:
