@@ -18,7 +18,6 @@ def extend_inline_parameter_binding(
     version: str = "1.0",
     metadata: Ssp1DocumentMetadata | None = None,
 ) -> Ssd1ParameterBinding:
-
     # TODO: Refactor parameter_set creation/extraction
     # Then inline the two remaining functions for clarity of what is done
     binding = _find_inline_parameter_binding(bindings)

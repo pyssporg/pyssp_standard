@@ -5,6 +5,7 @@ from typing import Iterable, Mapping
 
 from pyssp_standard.common.document_runtime import DocumentRuntime, ExternalReferenceSpec
 from pyssp_standard.standard.ssp1.codec.ssd_codec import Ssp1SsdCodec
+from pyssp_standard.standard.operations.ssd_parameters import extend_component_parametersets
 from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1Component,
     Ssd1Connection,
@@ -53,21 +54,8 @@ class SSD(XmlDocument[Ssd1SystemStructureDescription]):
             Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object] | Mapping[str, object]],
         ],
     ) -> None:
-        system = self.xml.system
-        if system is None:
-            raise RuntimeError("Cannot extend a parameter set without a system")
-
-        components_by_name = {
-            element.name: element
-            for element in system.elements
-            if isinstance(element, Ssd1Component)
-        }
-
-        for component_name, parameters in parameters_by_component.items():
-            component = components_by_name.get(component_name)
-            if component is None:
-                raise KeyError(f"Component not found in system '{system.name}': {component_name}")
-            component.extend_inline_parameterset(parameters)
+        # TODO: Add docstring exampe of parameters_by_component
+        extend_component_parametersets(self.xml, parameters_by_component)
 
 
 EXTERNAL_REFERENCE_SPECS = (

@@ -55,8 +55,9 @@ class Ssd1Component:
         version: str = "1.0",
         metadata: Ssp1DocumentMetadata | None = None,
     ) -> "Ssd1ParameterBinding":
-        from pyssp_standard.standard.ssp1.operations.parameter_bindings import extend_inline_parameter_binding
+        from pyssp_standard.standard.operations.ssd_parameter_bindings import extend_inline_parameter_binding
 
+        # TODO: CLear violation of dependency order, move extend_inline_parameter_binding into ss1 operation
         return extend_inline_parameter_binding(
             self.parameter_bindings,
             parameters,
@@ -106,7 +107,7 @@ class Ssd1System:
         version: str = "1.0",
         metadata: Ssp1DocumentMetadata | None = None,
     ) -> "Ssd1ParameterBinding":
-        from pyssp_standard.standard.ssp1.operations.parameter_bindings import extend_inline_parameter_binding
+        from pyssp_standard.standard.operations.ssd_parameter_bindings import extend_inline_parameter_binding
 
         return extend_inline_parameter_binding(
             self.parameter_bindings,
