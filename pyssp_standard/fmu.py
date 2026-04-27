@@ -42,6 +42,7 @@ class FMU:
         component_name: str | None = None,
         resource_name: str | None = None,
         implementation: str | None = None,
+        expose_system_connectors: bool = False,
     ) -> Path:
         path = Path(path)
         component_name = component_name or self.path.stem
@@ -56,7 +57,7 @@ class FMU:
                 fmu_path=self.path,
                 resource_name=resource_name,
                 implementation=resolved_implementation,
-                expose_system_connectors=True,
+                expose_system_connectors=expose_system_connectors,
             )
             with ssp.system_structure() as ssd:
                 ssd.xml.name = system_name
