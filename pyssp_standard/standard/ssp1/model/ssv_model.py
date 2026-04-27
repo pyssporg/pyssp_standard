@@ -15,7 +15,7 @@ from pyssp_standard.standard.ssp1.model.common_collections import (
     add_unit as add_common_unit,
     get_unit as get_common_unit,
 )
-from pyssp_standard.standard.ssp1.model.value_utils import infer_parameter_type_name, stringify_attribute_value
+from pyssp_standard.standard.common.utils import infer_parameter_type_name, merge_value_attribute
 
 
 @dataclass
@@ -63,8 +63,9 @@ class Ssp1ParameterSet:
 
     def extend_parameters(
         self,
-        parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object] | Mapping[str, object]],
+        parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
     ) -> list[Ssp1Parameter]:
+        """Append parameters from compact values or explicit parameters."""
         created: list[Ssp1Parameter] = []
         entries = parameters.items() if isinstance(parameters, Mapping) else parameters
 
@@ -72,9 +73,14 @@ class Ssp1ParameterSet:
             if isinstance(entry, Ssp1Parameter):
                 parameter = entry
             elif isinstance(entry, tuple):
-                parameter = self._coerce_parameter_tuple(entry)
-            elif isinstance(entry, Mapping):
-                parameter = self._coerce_parameter_mapping(entry)
+                if len(entry) != 2:
+                    raise ValueError(f"Parameter tuple entries must have exactly 2 items, got {len(entry)}")
+                name, value = entry
+                parameter = Ssp1Parameter(
+                    name=str(name),
+                    type_name=infer_parameter_type_name(value),
+                    attributes=merge_value_attribute({}, value),
+                )
             else:
                 raise TypeError(f"Unsupported parameter entry: {entry!r}")
             self.parameters.append(parameter)
@@ -90,55 +96,3 @@ class Ssp1ParameterSet:
 
     def add_enumeration(self, name: str, items: list[Ssp1EnumerationItem]) -> Ssp1Enumeration:
         return add_common_enumeration(self.enumerations, name, items)
-
-    @staticmethod
-    def _coerce_parameter_tuple(entry: tuple[str, object]) -> Ssp1Parameter:
-        if len(entry) != 2:
-            raise ValueError(f"Parameter tuple entries must have exactly 2 items, got {len(entry)}")
-        name, value = entry
-        return Ssp1Parameter(
-            name=str(name),
-            type_name=infer_parameter_type_name(value),
-            attributes=Ssp1ParameterSet._merge_value_attribute({}, value),
-        )
-
-    # TODO: Remove this option, too complex
-    @staticmethod
-    def _coerce_parameter_mapping(entry: Mapping[str, object]) -> Ssp1Parameter:
-        raw_name = entry.get("name")
-        if raw_name is None:
-            raise ValueError("Parameter mapping entries must define 'name'")
-
-        name = str(raw_name)
-        value = entry.get("value")
-        type_name = entry.get("type_name", entry.get("ptype"))
-        attributes = {
-            str(key): stringify_attribute_value(val)
-            for key, val in dict(entry.get("attributes", {})).items()
-            if val is not None
-        }
-
-        if "unit" in entry and entry["unit"] is not None:
-            attributes["unit"] = str(entry["unit"])
-        if "mime_type" in entry and entry["mime_type"] is not None:
-            attributes["mime-type"] = str(entry["mime_type"])
-        if "mime-type" in entry and entry["mime-type"] is not None:
-            attributes["mime-type"] = str(entry["mime-type"])
-        if "enum_name" in entry and entry["enum_name"] is not None:
-            attributes["name"] = str(entry["enum_name"])
-
-        return Ssp1Parameter(
-            name=name,
-            type_name=str(type_name) if type_name is not None else infer_parameter_type_name(value),
-            attributes=Ssp1ParameterSet._merge_value_attribute(attributes, value),
-            id=str(entry["id"]) if entry.get("id") is not None else None,
-            description=str(entry["description"]) if entry.get("description") is not None else None,
-            annotations=list(entry.get("annotations", [])),
-        )
-
-    @staticmethod
-    def _merge_value_attribute(attributes: dict[str, str], value: object) -> dict[str, str]:
-        merged = dict(attributes)
-        if value is not None:
-            merged["value"] = stringify_attribute_value(value)
-        return merged

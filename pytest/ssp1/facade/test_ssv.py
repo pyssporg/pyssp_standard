@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from xml.etree import ElementTree as ET
 
-from pyssp_standard.standard.ssp1.model import Ssp1Annotation, Ssp1EnumerationItem
+from pyssp_standard.standard.ssp1.model import Ssp1Annotation, Ssp1EnumerationItem, Ssp1Parameter
 from pyssp_standard.ssv import SSV
 
 
@@ -67,8 +67,8 @@ def test_extend_parameters_accepts_mappings_tuples_and_parameter_specs(tmp_path)
         ssv.xml.extend_parameters(
             [
                 ("gain", 3.5),
-                {"name": "enabled", "value": True},
-                {"name": "mode", "ptype": "Enumeration", "value": 1, "enum_name": "ON"},
+                Ssp1Parameter(name="enabled", type_name="Boolean", attributes={"value": "true"}),
+                Ssp1Parameter(name="mode", type_name="Enumeration", attributes={"value": "1", "name": "ON"}),
             ]
         )
         ssv.xml.extend_parameters({"offset": -2, "label": "demo"})

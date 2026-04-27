@@ -4,7 +4,7 @@ import shutil
 from xml.etree import ElementTree as ET
 
 from pyssp_standard.ssd import Component, Connection, Connector, DefaultExperiment, SSD, System
-from pyssp_standard.standard.ssp1.model import Ssp1Annotation
+from pyssp_standard.standard.ssp1.model import Ssp1Annotation, Ssp1Parameter
 
 
 def test_check_compliance_accepts_reference_fixture(embrace_ssd_fixture):
@@ -122,7 +122,7 @@ def test_component_can_extend_first_inline_parameterset_from_mapping(tmp_path):
         component.extend_inline_parameterset(
             [
                 ("gain", 2.5),
-                {"name": "enabled", "value": True},
+                Ssp1Parameter(name="enabled", type_name="Boolean", attributes={"value": "true"}),
             ]
         )
         component.extend_inline_parameterset({"offset": -1})
@@ -158,7 +158,7 @@ def test_ssd_can_extend_component_inline_parametersets_by_name(tmp_path):
         ssd.xml.system = System(None, "system")
         ssd.xml.system.elements.extend([component_a, component_b])
 
-        ssd.extend_parameterset(
+        ssd.extend_component_parameterset(
             {
                 "step": {"height": 2.0, "offset": 1.0},
                 "gain": {"k": 3.0},

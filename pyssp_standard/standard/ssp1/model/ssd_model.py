@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Generic, Iterable, Mapping, TypeVar
 
 from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Annotation, Ssp1DocumentMetadata
+from pyssp_standard.standard.common.utils import ExternalReference
 from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter, Ssp1ParameterSet
 
@@ -48,35 +49,24 @@ class Ssd1Component:
 
     def extend_inline_parameterset(
         self,
-        parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object] | Mapping[str, object]],
+        parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
         *,
         binding_name: str | None = None,
         prefix: str | None = None,
         version: str = "1.0",
         metadata: Ssp1DocumentMetadata | None = None,
     ) -> "Ssd1ParameterBinding":
-        from pyssp_standard.standard.operations.ssd_parameter_bindings import extend_inline_parameter_binding
 
-        # TODO: CLear violation of dependency order, move extend_inline_parameter_binding into ss1 operation
-        return extend_inline_parameter_binding(
+        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import get_or_create_inlined_parameter_set
+
+        parameter_set = get_or_create_inlined_parameter_set(
             self.parameter_bindings,
-            parameters,
-            default_name=f"{self.name}_parameters",
-            owner_name=f"component '{self.name}'",
-            binding_name=binding_name,
+            binding_name=binding_name or f"{self.name}_parameters",
             prefix=prefix,
             version=version,
             metadata=metadata,
         )
-
-# TODO: Move to common 
-@dataclass
-class ExternalReference:
-    source: str | None = None
-
-    @property
-    def is_external(self) -> bool:
-        return self.source is not None
+        parameter_set.extend_parameters(parameters)
 
 @dataclass
 class Ssd1ParameterMappingReference(ExternalReference):
@@ -100,25 +90,23 @@ class Ssd1System:
 
     def extend_inline_parameterset(
         self,
-        parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object] | Mapping[str, object]],
+        parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
         *,
         binding_name: str | None = None,
         prefix: str | None = None,
         version: str = "1.0",
         metadata: Ssp1DocumentMetadata | None = None,
     ) -> "Ssd1ParameterBinding":
-        from pyssp_standard.standard.operations.ssd_parameter_bindings import extend_inline_parameter_binding
+        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import get_or_create_inlined_parameter_set
 
-        return extend_inline_parameter_binding(
+        parameter_set = get_or_create_inlined_parameter_set(
             self.parameter_bindings,
-            parameters,
-            default_name=f"{self.name}_parameters",
-            owner_name=f"system '{self.name}'",
-            binding_name=binding_name,
+            binding_name=binding_name or f"{self.name}_parameters",
             prefix=prefix,
             version=version,
             metadata=metadata,
         )
+        parameter_set.extend_parameters(parameters)
 
 
 @dataclass

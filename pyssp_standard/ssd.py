@@ -47,15 +47,25 @@ class SSD(XmlDocument[Ssd1SystemStructureDescription]):
     def _create_document(self) -> Ssd1SystemStructureDescription:
         return Ssd1SystemStructureDescription(name=self.path.stem or "system", version="1.0", system=Ssd1System(name="system"))
 
-    def extend_parameterset(
+
+    def extend_component_parameterset(
         self,
         parameters_by_component: Mapping[
             str,
-            Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object] | Mapping[str, object]],
+            Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
         ],
     ) -> None:
-        # TODO: Add docstring exampe of parameters_by_component
+        """Extend inline parameter sets for components by component name.
+
+        Example:
+            ssd.extend_parameterset({
+                "controller": {"gain": 2.0, "enabled": True},
+                "plant": [("offset", -1.0)],
+            })
+        """
         extend_component_parametersets(self.xml, parameters_by_component)
+
+    # TODO: Add a extend_system_parameterset
 
 
 EXTERNAL_REFERENCE_SPECS = (

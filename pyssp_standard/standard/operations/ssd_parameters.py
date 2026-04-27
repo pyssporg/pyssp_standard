@@ -2,18 +2,20 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
-from pyssp_standard.standard.operations.ssd_parameter_bindings import extend_inline_parameter_binding
 from pyssp_standard.standard.ssp1.model.ssd_model import Ssd1Component, Ssd1SystemStructureDescription
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter
+
 
 
 def extend_component_parametersets(
     document: Ssd1SystemStructureDescription,
     parameters_by_component: Mapping[
         str,
-        Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object] | Mapping[str, object]],
+        Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
     ],
 ) -> None:
+    from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import get_or_create_inlined_parameter_set
+
     system = document.system
     if system is None:
         raise RuntimeError("Cannot extend a parameter set without a system")
@@ -29,9 +31,8 @@ def extend_component_parametersets(
         if component is None:
             raise KeyError(f"Component not found in system '{system.name}': {component_name}")
 
-        extend_inline_parameter_binding(
+        parameter_set = get_or_create_inlined_parameter_set(
             component.parameter_bindings,
-            parameters,
-            default_name=f"{component.name}_parameters",
-            owner_name=f"component '{component.name}'",
+            binding_name=f"{component.name}_parameters",
         )
+        parameter_set.extend_parameters(parameters)
