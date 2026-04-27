@@ -10,6 +10,24 @@ from pyssp_standard.standard.ssp1.model.ssd_model import (
 )
 
 
+def ssp_connector_type_attributes(variable) -> dict[str, str]:
+    if variable.type_name == "Real":
+        return {
+            key: value
+            for key, value in variable.type_attributes.items()
+            if key == "unit"
+        }
+    if variable.type_name == "Binary":
+        return {
+            key: value
+            for key, value in variable.type_attributes.items()
+            if key == "mime-type"
+        }
+    if variable.type_name == "Enumeration" and variable.declared_type is not None:
+        return {"name": variable.declared_type}
+    return {}
+
+
 def create_component_from_model_description(
     model_description: Fmi2ModelDescriptionDocument,
     *,
@@ -30,7 +48,7 @@ def create_component_from_model_description(
             name=variable.name,
             kind=variable.causality or "",
             type_name=variable.type_name,
-            type_attributes=dict(variable.type_attributes),
+            type_attributes=ssp_connector_type_attributes(variable),
         )
         component.connectors.append(connector)
 
