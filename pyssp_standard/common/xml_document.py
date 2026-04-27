@@ -26,6 +26,7 @@ class XmlDocument(Generic[DocumentT]):
 
     def __exit__(self, exc_type, exc, tb):
         if exc_type is None and self.mode in {"w", "a"}:
+            self.check_compliance()
             self.save_document()
         return False
 
@@ -56,6 +57,5 @@ class XmlDocument(Generic[DocumentT]):
     def _create_document(self) -> DocumentT:
         raise NotImplementedError
     
-
 
 

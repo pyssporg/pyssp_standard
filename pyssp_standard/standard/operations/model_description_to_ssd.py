@@ -32,10 +32,6 @@ def create_component_from_model_description(
             type_name=variable.type_name,
             type_attributes=dict(variable.type_attributes),
         )
-        if variable.declared_type is not None:
-            connector.type_attributes["declaredType"] = variable.declared_type
-        if variable.start is not None:
-            connector.type_attributes["start"] = variable.start
         component.connectors.append(connector)
 
     return component

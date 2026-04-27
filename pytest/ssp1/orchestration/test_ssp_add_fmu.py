@@ -93,9 +93,11 @@ def test_add_fmu_preserves_component_connector_type_metadata(fmu_archive_fixture
 
             assert integer_parameter.kind == "parameter"
             assert integer_parameter.type_name == "Integer"
-            assert integer_parameter.type_attributes["start"] == "1"
+            assert integer_parameter.type_attributes == {}
+            assert "start" not in integer_parameter.type_attributes
             assert real_parameter.kind == "parameter"
             assert real_parameter.type_name == "Real"
-            assert real_parameter.type_attributes["start"] == "0.015"
+            assert real_parameter.type_attributes == {}
+            assert "start" not in real_parameter.type_attributes
             assert mirrored_integer_parameter.type_attributes == integer_parameter.type_attributes
             assert mirrored_real_parameter.type_attributes == real_parameter.type_attributes

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 import shutil
 from xml.etree import ElementTree as ET
 
@@ -43,6 +44,19 @@ def test_create_round_trip(tmp_path):
         assert len(ssd.xml.system.connectors) == 1
         assert len(ssd.xml.connections()) == 1
         assert ssd.xml.system.elements[0].component_type == "application/x-fmu-sharedlibrary"
+
+
+def test_context_exit_validates_before_saving_invalid_document(tmp_path):
+    path = tmp_path / "invalid.ssd"
+
+    with pytest.raises(ValueError, match="SSD XML failed XSD validation"):
+        with SSD(path, mode="w") as ssd:
+            ssd.xml.name = "Invalid SSD"
+            ssd.xml.version = "1.0"
+            ssd.xml.system = System(None, "system")
+            ssd.xml.system.connectors.append(Connector(None, "x", "output", "Real", {"start": "0.0"}))
+
+    assert not path.exists()
 
 
 def test_editing_connections_preserves_compliance(tmp_path, embrace_ssd_fixture):
