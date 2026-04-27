@@ -43,6 +43,8 @@ class SSP:
     def system_structure(self, path="SystemStructure.ssd" ) -> SsdRuntime:
         return SsdRuntime(self.runtime, ssd_path=path, mode="a" if self.mode == "w" else self.mode)
 
+    # TODO: Move higher order functions to separate files under standard/, create them as functional and call them from the public API: SSP, SSV or FMU
+    # Do this for all and not only the ssp.
     def add_fmu(
         self,
         component_name: str,

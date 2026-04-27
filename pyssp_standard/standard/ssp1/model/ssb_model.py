@@ -4,13 +4,16 @@ from dataclasses import dataclass, field
 
 from pyssp_standard.standard.ssp1.model.ssc_model import (
     Ssp1Annotation,
-    Ssp1BaseUnit,
     Ssp1DocumentMetadata,
     Ssp1Enumeration,
     Ssp1EnumerationItem,
     Ssp1Unit,
 )
-from pyssp_standard.standard.unit_conversion import generate_base_unit
+from pyssp_standard.standard.ssp1.model.common_collections import (
+    add_enumeration as add_common_enumeration,
+    add_unit as add_common_unit,
+    get_unit as get_common_unit,
+)
 
 
 @dataclass
@@ -64,33 +67,10 @@ class Ssp1SignalDictionary:
         return entry
 
     def add_unit(self, name: str, base_unit: dict[str, object] | None = None) -> Ssp1Unit:
-        if base_unit is None:
-            base_unit = generate_base_unit(name)
-
-        unit = Ssp1Unit(name=name, base_unit=Ssp1BaseUnit.from_dict(base_unit))
-        existing = self.get_unit(name)
-        if existing is None:
-            self.units.append(unit)
-            return unit
-
-        if (
-            existing.base_unit is not None
-            and unit.base_unit is not None
-            and existing.base_unit != unit.base_unit
-        ):
-            raise ValueError(f"Unit {name} already exists with different definition")
-
-        if existing.base_unit is None:
-            existing.base_unit = unit.base_unit
-        return existing
+        return add_common_unit(self.units, name, base_unit)
 
     def get_unit(self, name: str) -> Ssp1Unit | None:
-        for unit in self.units:
-            if unit.name == name:
-                return unit
-        return None
+        return get_common_unit(self.units, name)
 
     def add_enumeration(self, name: str, items: list[Ssp1EnumerationItem]) -> Ssp1Enumeration:
-        enumeration = Ssp1Enumeration(name=name, items=list(items))
-        self.enumerations.append(enumeration)
-        return enumeration
+        return add_common_enumeration(self.enumerations, name, items)
