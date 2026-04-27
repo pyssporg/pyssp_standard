@@ -21,6 +21,7 @@ from pyssp_standard.common.xml_document import XmlDocument
 from pyssp_standard.common.archive_runtime import DirectoryRuntime
 from pyssp_standard.ssm import SSM
 from pyssp_standard.ssv import SSV
+from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1DocumentMetadata
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter
 
 
@@ -58,14 +59,32 @@ class SSD(XmlDocument[Ssd1SystemStructureDescription]):
         """Extend inline parameter sets for components by component name.
 
         Example:
-            ssd.extend_parameterset({
+            ssd.extend_component_parameterset({
                 "controller": {"gain": 2.0, "enabled": True},
                 "plant": [("offset", -1.0)],
             })
         """
         extend_component_parametersets(self.xml, parameters_by_component)
 
-    # TODO: Add a extend_system_parameterset
+    def extend_system_parameterset(
+        self,
+        parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
+        *,
+        binding_name: str | None = None,
+        prefix: str | None = None,
+        version: str = "1.0",
+        metadata: Ssp1DocumentMetadata | None = None,
+    ) -> None:
+        """Extend the top-level system's inline parameter set."""
+        if self.xml.system is None:
+            raise RuntimeError("Cannot extend a parameter set without a system")
+        self.xml.system.extend_inline_parameterset(
+            parameters,
+            binding_name=binding_name,
+            prefix=prefix,
+            version=version,
+            metadata=metadata,
+        )
 
 
 EXTERNAL_REFERENCE_SPECS = (

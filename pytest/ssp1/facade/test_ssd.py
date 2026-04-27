@@ -180,6 +180,36 @@ def test_ssd_can_extend_component_inline_parametersets_by_name(tmp_path):
         ]
 
 
+def test_ssd_can_extend_system_inline_parameterset(tmp_path):
+    path = tmp_path / "system_parameters.ssd"
+
+    with SSD(path, mode="w") as ssd:
+        ssd.xml.name = "System Parameters"
+        ssd.xml.version = "1.0"
+        ssd.xml.system = System(None, "system")
+
+        ssd.extend_system_parameterset(
+            {
+                "step.height": 2.0,
+                "gain.k": 3.0,
+            },
+            binding_name="simulation_parameters",
+        )
+        ssd.extend_system_parameterset({"step.offset": -1.0})
+
+    with SSD(path, mode="r") as ssd:
+        binding = ssd.xml.parameter_bindings[0]
+
+        assert len(ssd.xml.parameter_bindings) == 1
+        assert binding.parameter_set is not None
+        assert binding.parameter_set.name == "simulation_parameters"
+        assert [(parameter.name, parameter.attributes["value"]) for parameter in binding.parameter_set.parameters] == [
+            ("step.height", "2.0"),
+            ("gain.k", "3.0"),
+            ("step.offset", "-1.0"),
+        ]
+
+
 def test_round_trip_preserves_structural_order_in_serialized_xml(tmp_path):
     path = tmp_path / "ordered.ssd"
     path.write_text(
