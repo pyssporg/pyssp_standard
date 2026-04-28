@@ -1,9 +1,42 @@
 from __future__ import annotations
 
 import shutil
+import stat
 import tempfile
 import zipfile
 from pathlib import Path
+
+
+EXECUTABLE_PERMISSION_BITS = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+UNIX_PERMISSION_SHIFT = 16
+
+
+def _is_library_path(path: str | Path) -> bool:
+    return "binaries" in Path(path).parts
+
+
+def _with_executable_bits(file_mode: int) -> int:
+    return file_mode | EXECUTABLE_PERMISSION_BITS
+
+
+def _zip_external_attr(file_mode: int) -> int:
+    return (file_mode & 0xFFFF) << UNIX_PERMISSION_SHIFT
+
+
+def _chmod_library_files(root_dir: Path) -> None:
+    for path in root_dir.rglob("*"):
+        if path.is_file() and _is_library_path(path.relative_to(root_dir)):
+            path.chmod(_with_executable_bits(path.stat().st_mode))
+
+
+def _write_archive_file(archive: zipfile.ZipFile, path: Path, arcname: str) -> None:
+    info = zipfile.ZipInfo.from_file(path, arcname=arcname)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    if _is_library_path(arcname):
+        info.external_attr = _zip_external_attr(_with_executable_bits(path.stat().st_mode))
+
+    with path.open("rb") as source:
+        archive.writestr(info, source.read())
 
 
 def default_output_dir(archive_path: str | Path) -> Path:
@@ -31,6 +64,7 @@ def unpack_archive(
     output_dir.mkdir(parents=True, exist_ok=False)
     with zipfile.ZipFile(archive_path, "r") as archive:
         archive.extractall(output_dir)
+    _chmod_library_files(output_dir)
 
     if suffix == ".fmu":
         return output_dir
@@ -48,6 +82,7 @@ def unpack_archive(
         temp_unpack_dir.mkdir(parents=True, exist_ok=False)
         with zipfile.ZipFile(fmu_archive, "r") as archive:
             archive.extractall(temp_unpack_dir)
+        _chmod_library_files(temp_unpack_dir)
         fmu_archive.unlink()
         temp_unpack_dir.rename(unpack_dir)
 
@@ -96,14 +131,22 @@ def package_archive(
                 with zipfile.ZipFile(fmu_path, "w", compression=zipfile.ZIP_DEFLATED) as fmu_archive:
                     for path in sorted(candidate.rglob("*")):
                         if path.is_file():
-                            fmu_archive.write(path, arcname=path.relative_to(candidate).as_posix())
+                            _write_archive_file(
+                                fmu_archive,
+                                path,
+                                path.relative_to(candidate).as_posix(),
+                            )
                 shutil.rmtree(candidate)
 
     try:
         with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for path in sorted(archive_root.rglob("*")):
                 if path.is_file():
-                    archive.write(path, arcname=path.relative_to(archive_root).as_posix())
+                    _write_archive_file(
+                        archive,
+                        path,
+                        path.relative_to(archive_root).as_posix(),
+                    )
     finally:
         if temp_dir is not None:
             temp_dir.cleanup()
