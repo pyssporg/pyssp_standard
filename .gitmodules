@@ -13,3 +13,6 @@
 [submodule "3rdParty/ssp-ls-traceability"]
 	path = 3rdParty/ssp-ls-traceability
 	url = git@github.com:modelica/ssp-ls-traceability.git
+[submodule "3rdParty/ls-ref"]
+	path = 3rdParty/ls-ref
+	url = git@github.com:modelica/fmi-ls-ref.git
