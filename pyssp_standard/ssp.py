@@ -6,7 +6,7 @@ from pyssp_standard.standard.operations.model_description_to_ssd import (
     add_component_to_system_structure,
     create_component_from_model_description,
 )
-from pyssp_standard.ssd import SsdRuntime
+from pyssp_standard.ssd import ParameterBinding, SsdRuntime
 from pyssp_standard.common.archive_runtime import DirectoryRuntime, create_runtime, ArchiveRuntime
 
 
@@ -39,6 +39,45 @@ class SSP:
     def add_resource(self, source: str | Path) -> str:
         source_path = Path(source)
         return self.runtime.add_file(source_path, target_name=f"resources/{source_path.name}").removeprefix("resources/")
+
+    # TODO: Move to ssp1/operations, its only relating to one standard
+    def add_external_parameterset(
+        self,
+        parameter_set_path: str | Path,
+        mapping_path: str | Path | None = None,
+        *,
+        resource_name: str | None = None,
+        mapping_resource_name: str | None = None,
+        prefix: str | None = None,
+    ) -> ParameterBinding:
+        parameter_set_path = Path(parameter_set_path)
+        parameter_set_resource_name = (
+            self.add_resource(parameter_set_path)
+            if resource_name is None
+            else self.runtime.add_file(parameter_set_path, target_name=f"resources/{resource_name}").removeprefix("resources/")
+        )
+
+        mapping_resource_name = (
+            None
+            if mapping_path is None
+            else (
+                self.add_resource(mapping_path)
+                if mapping_resource_name is None
+                else self.runtime.add_file(
+                    Path(mapping_path),
+                    target_name=f"resources/{mapping_resource_name}",
+                ).removeprefix("resources/")
+            )
+        )
+
+        with self.system_structure() as ssd:
+            return ssd.xml.add_external_parameterset(
+                source=f"resources/{parameter_set_resource_name}",
+                mapping_source=(
+                    f"resources/{mapping_resource_name}" if mapping_resource_name is not None else None
+                ),
+                prefix=prefix,
+            )
 
     def remove_resource(self, resource_name: str) -> None:
         self.runtime.remove_file(f"resources/{resource_name}")

@@ -10,6 +10,7 @@ import pytest
 from pyssp_standard.fmu import FMU
 from pyssp_standard.ssd import SSD
 from pyssp_standard.ssp import SSP
+from pyssp_standard.ssm import SSM
 from pyssp_standard.ssv import SSV
 
 
@@ -250,4 +251,75 @@ def test_missing_external_parameter_set_does_not_break_archive_session(tmp_path)
             binding = ssd.xml.parameter_bindings[0]
             assert binding.source == "missing_values.ssv"
             assert binding.parameter_set is None
+            assert binding.parameter_mapping is None
+
+
+def test_add_external_parameterset_persists_binding_and_resolves_source_files(tmp_path):
+    ssp_path = tmp_path / "external_parameters.ssp"
+    ssv_path = tmp_path / "external_values.ssv"
+    ssm_path = tmp_path / "external_mapping.ssm"
+
+    with SSV(ssv_path, "w") as ssv:
+        ssv.xml.name = "ExternalParameters"
+        ssv.xml.add_parameter(parname="step_height", ptype="Real", value=2.0)
+        ssv.xml.add_parameter(parname="gain_k", ptype="Real", value=3.0)
+
+    with SSM(ssm_path, "w") as ssm:
+        ssm.xml.add_mapping("step_height", "step.height")
+        ssm.xml.add_mapping("gain_k", "gain.k")
+
+    with SSP(ssp_path, mode="w") as ssp:
+        binding = ssp.add_external_parameterset(ssv_path, ssm_path)
+        assert binding.source == "resources/external_values.ssv"
+        assert binding.parameter_mapping is not None
+        assert binding.parameter_mapping.source == "resources/external_mapping.ssm"
+        assert "external_values.ssv" in ssp.resources
+        assert "external_mapping.ssm" in ssp.resources
+
+    with SSP(ssp_path, mode="r") as ssp:
+        assert "external_values.ssv" in ssp.resources
+        assert "external_mapping.ssm" in ssp.resources
+        with ssp.system_structure() as ssd:
+            binding = ssd.xml.parameter_bindings[0]
+            assert binding.source == "resources/external_values.ssv"
+            assert binding.parameter_set is not None
+            assert binding.parameter_set.name == "ExternalParameters"
+            assert [(parameter.name, parameter.attributes["value"]) for parameter in binding.parameter_set.parameters] == [
+                ("step_height", "2.0"),
+                ("gain_k", "3.0"),
+            ]
+            assert binding.parameter_mapping is not None
+            assert binding.parameter_mapping.source == "resources/external_mapping.ssm"
+            assert binding.parameter_mapping.mapping is not None
+            assert [(mapping.source, mapping.target) for mapping in binding.parameter_mapping.mapping.mappings] == [
+                ("step_height", "step.height"),
+                ("gain_k", "gain.k"),
+            ]
+
+
+def test_add_external_parameterset_without_mapping_persists_source_file(tmp_path):
+    ssp_path = tmp_path / "external_parameters_no_mapping.ssp"
+    ssv_path = tmp_path / "external_values.ssv"
+
+    with SSV(ssv_path, "w") as ssv:
+        ssv.xml.name = "ExternalParameters"
+        ssv.xml.add_parameter(parname="step.height", ptype="Real", value=2.0)
+        ssv.xml.add_parameter(parname="gain.k", ptype="Real", value=3.0)
+
+    with SSP(ssp_path, mode="w") as ssp:
+        binding = ssp.add_external_parameterset(ssv_path)
+        assert binding.source == "resources/external_values.ssv"
+        assert binding.parameter_mapping is None
+        assert "external_values.ssv" in ssp.resources
+
+    with SSP(ssp_path, mode="r") as ssp:
+        assert "external_values.ssv" in ssp.resources
+        with ssp.system_structure() as ssd:
+            binding = ssd.xml.parameter_bindings[0]
+            assert binding.source == "resources/external_values.ssv"
+            assert binding.parameter_set is not None
+            assert [(parameter.name, parameter.attributes["value"]) for parameter in binding.parameter_set.parameters] == [
+                ("step.height", "2.0"),
+                ("gain.k", "3.0"),
+            ]
             assert binding.parameter_mapping is None

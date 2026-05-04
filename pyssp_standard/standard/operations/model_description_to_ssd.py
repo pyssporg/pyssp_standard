@@ -9,7 +9,7 @@ from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1SystemStructureDescription,
 )
 
-
+#  TODO: Move to ssp1/operations
 def ssp_connector_type_attributes(variable) -> dict[str, str]:
     if variable.type_name == "Real":
         return {
@@ -54,7 +54,7 @@ def create_component_from_model_description(
 
     return component
 
-
+#  TODO: Move to ssp1/operations
 def add_component_to_system_structure(
     document: Ssd1SystemStructureDescription,
     component: Ssd1Component,

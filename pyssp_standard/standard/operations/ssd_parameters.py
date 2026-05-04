@@ -6,7 +6,7 @@ from pyssp_standard.standard.ssp1.model.ssd_model import Ssd1Component, Ssd1Syst
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter
 
 
-
+#  TODO: Move to ssp1/operations
 def extend_component_parametersets(
     document: Ssd1SystemStructureDescription,
     parameters_by_component: Mapping[

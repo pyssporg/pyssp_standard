@@ -57,6 +57,7 @@ class Ssd1Component:
         metadata: Ssp1DocumentMetadata | None = None,
     ) -> "Ssd1ParameterBinding":
 
+        #TODO: Could point directly to pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings.extend_inline_parameter_binding
         from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import get_or_create_inlined_parameter_set
 
         parameter_set = get_or_create_inlined_parameter_set(
@@ -67,6 +68,7 @@ class Ssd1Component:
             metadata=metadata,
         )
         parameter_set.extend_parameters(parameters)
+        return next(binding for binding in self.parameter_bindings if binding.parameter_set is parameter_set and binding.source is None)
 
 @dataclass
 class Ssd1ParameterMappingReference(ExternalReference):
@@ -97,6 +99,7 @@ class Ssd1System:
         version: str = "1.0",
         metadata: Ssp1DocumentMetadata | None = None,
     ) -> "Ssd1ParameterBinding":
+        #TODO: Could point directly to pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings.extend_inline_parameter_binding
         from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import get_or_create_inlined_parameter_set
 
         parameter_set = get_or_create_inlined_parameter_set(
@@ -107,8 +110,10 @@ class Ssd1System:
             metadata=metadata,
         )
         parameter_set.extend_parameters(parameters)
+        return next(binding for binding in self.parameter_bindings if binding.parameter_set is parameter_set and binding.source is None)
 
 
+# TODO: Move all system related functionality to Ssd1System
 @dataclass
 class Ssd1SystemStructureDescription:
     name: str = "system"
@@ -116,6 +121,9 @@ class Ssd1SystemStructureDescription:
     metadata: Ssp1DocumentMetadata = field(default_factory=Ssp1DocumentMetadata)
     system: Ssd1System | None = None
     default_experiment: Ssd1DefaultExperiment | None = None
+
+
+
 
     def connections(self) -> list[Ssd1Connection]:
         if self.system is None:
@@ -152,6 +160,25 @@ class Ssd1SystemStructureDescription:
         if self.system is None:
             return []
         return self.system.parameter_bindings
+
+
+    def add_external_parameterset(
+        self,
+        source: str,
+        *,
+        mapping_source: str | None = None,
+        prefix: str | None = None,
+    ) -> "Ssd1ParameterBinding":
+        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import add_external_parameterset
+
+        if self.system is None:
+            self.system = Ssd1System(name=self.name or "system")
+        return add_external_parameterset(
+            self.system.parameter_bindings,
+            source=source,
+            mapping_source=mapping_source,
+            prefix=prefix,
+        )
 
     @staticmethod
     def _connections_equal(left: Ssd1Connection, right: Ssd1Connection) -> bool:
