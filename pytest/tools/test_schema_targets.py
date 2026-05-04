@@ -12,6 +12,8 @@ def test_schema_targets_have_separated_versioned_outputs():
     assert "ssp1_ssm" in TARGETS
     assert "ssp2_ssv" in TARGETS
     assert "fmi2_model_description" in TARGETS
+    assert "ls_ref_manifest" in TARGETS
+    assert "ls_ref_experiments" in TARGETS
 
     ssb = TARGETS["ssp1_ssb"]
     ssp1 = TARGETS["ssp1_ssv"]
@@ -19,6 +21,8 @@ def test_schema_targets_have_separated_versioned_outputs():
     ssd = TARGETS["ssp1_ssd"]
     ssm = TARGETS["ssp1_ssm"]
     fmi2 = TARGETS["fmi2_model_description"]
+    ls_ref_manifest = TARGETS["ls_ref_manifest"]
+    ls_ref_experiments = TARGETS["ls_ref_experiments"]
 
     assert ssp1.binding_output_path != ssp2.binding_output_path
     assert "standard/ssp1/generated" in str(ssb.binding_output_path)
@@ -28,12 +32,16 @@ def test_schema_targets_have_separated_versioned_outputs():
     assert ssd.binding_output_path.name == "ssd_generated_types.py"
     assert ssm.binding_output_path.name == "ssm_generated_types.py"
     assert fmi2.binding_output_path.name == "model_description_generated_types.py"
+    assert ls_ref_manifest.binding_output_path.name == "manifest_generated_types.py"
+    assert ls_ref_experiments.binding_output_path.name == "experiments_generated_types.py"
     assert ssb.schema_path.name == "SystemStructureSignalDictionary.xsd"
     assert ssp1.schema_path.name == "SystemStructureParameterValues.xsd"
     assert ssp2.schema_path.name == "SystemStructureParameterValues.xsd"
     assert ssd.schema_path.name == "SystemStructureDescription.xsd"
     assert ssm.schema_path.name == "SystemStructureParameterMapping.xsd"
     assert fmi2.schema_path.name == "fmi2ModelDescription.xsd"
+    assert ls_ref_manifest.schema_path.name == "fmi3LayeredStandardReferenceManifest.xsd"
+    assert ls_ref_experiments.schema_path.name == "fmi3LayeredStandardReferenceExperiments.xsd"
 
 
 def test_schema_target_paths_are_repo_relative():

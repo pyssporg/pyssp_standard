@@ -54,6 +54,20 @@ TARGETS: dict[str, SchemaTarget] = {
         schema_path=resolve_schema_path("SSP-LS-Traceability", "SRMD.xsd"),
         binding_output_path=PACKAGE_ROOT / "standard" / "ssp1" / "generated" / "srmd_generated_types.py",
     ),
+    "ls_ref_manifest": SchemaTarget(
+        name="ls_ref_manifest",
+        family="FMI",
+        version="1.0.0-alpha.1",
+        schema_path=resolve_schema_path("FMI3", "fmi3LayeredStandardReferenceManifest.xsd"),
+        binding_output_path=PACKAGE_ROOT / "standard" / "ls_ref" / "generated" / "manifest_generated_types.py",
+    ),
+    "ls_ref_experiments": SchemaTarget(
+        name="ls_ref_experiments",
+        family="FMI",
+        version="1.0.0-alpha.1",
+        schema_path=resolve_schema_path("FMI3", "fmi3LayeredStandardReferenceExperiments.xsd"),
+        binding_output_path=PACKAGE_ROOT / "standard" / "ls_ref" / "generated" / "experiments_generated_types.py",
+    ),
     "ssp2_ssv": SchemaTarget(
         name="ssp2_ssv",
         family="SSP",

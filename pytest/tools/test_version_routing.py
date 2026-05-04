@@ -30,6 +30,8 @@ def test_resolves_registered_parse_stacks():
     ssm1 = get_parse_stack(StandardVersion(format="SSM", family="SSP", version="1.0"))
     ssp2 = get_parse_stack(StandardVersion(format="SSV", family="SSP", version="2.0"))
     fmi2 = get_parse_stack(StandardVersion(format="MD", family="FMI", version="2.0"))
+    ls_ref_manifest = get_parse_stack(StandardVersion(format="LS-REF-MANIFEST", family="FMI", version="1.0.0-alpha.1"))
+    ls_ref_experiments = get_parse_stack(StandardVersion(format="LS-REF-EXPERIMENTS", family="FMI", version="1.0.0-alpha.1"))
 
     assert ssb1.generated_module.endswith("standard.ssp1.generated.ssb_generated_types")
     assert ssp1.generated_module.endswith("standard.ssp1.generated.ssv_generated_types")
@@ -37,24 +39,32 @@ def test_resolves_registered_parse_stacks():
     assert ssm1.generated_module.endswith("standard.ssp1.generated.ssm_generated_types")
     assert ssp2.generated_module.endswith("standard.ssp2.generated.ssv_generated_types")
     assert fmi2.generated_module.endswith("standard.fmi2.generated.model_description_generated_types")
+    assert ls_ref_manifest.generated_module.endswith("standard.ls_ref.generated.manifest_generated_types")
+    assert ls_ref_experiments.generated_module.endswith("standard.ls_ref.generated.experiments_generated_types")
     assert ssb1.generated_output_path.name == "ssb_generated_types.py"
     assert ssp1.generated_output_path.name == "ssv_generated_types.py"
     assert ssd1.generated_output_path.name == "ssd_generated_types.py"
     assert ssm1.generated_output_path.name == "ssm_generated_types.py"
     assert ssp2.generated_output_path.name == "ssv_generated_types.py"
     assert fmi2.generated_output_path.name == "model_description_generated_types.py"
+    assert ls_ref_manifest.generated_output_path.name == "manifest_generated_types.py"
+    assert ls_ref_experiments.generated_output_path.name == "experiments_generated_types.py"
     assert "pyssp_standard/standard/ssp1/generated" in str(ssb1.generated_output_path.parent)
     assert "pyssp_standard/standard/ssp1/generated" in str(ssp1.generated_output_path.parent)
     assert "pyssp_standard/standard/ssp1/generated" in str(ssd1.generated_output_path.parent)
     assert "pyssp_standard/standard/ssp1/generated" in str(ssm1.generated_output_path.parent)
     assert "pyssp_standard/standard/ssp2/generated" in str(ssp2.generated_output_path.parent)
     assert "pyssp_standard/standard/fmi2/generated" in str(fmi2.generated_output_path.parent)
+    assert "pyssp_standard/standard/ls_ref/generated" in str(ls_ref_manifest.generated_output_path.parent)
+    assert "pyssp_standard/standard/ls_ref/generated" in str(ls_ref_experiments.generated_output_path.parent)
     assert ssb1.schema_path.exists()
     assert ssp1.schema_path.exists()
     assert ssd1.schema_path.exists()
     assert ssm1.schema_path.exists()
     assert ssp2.schema_path.exists()
     assert fmi2.schema_path.exists()
+    assert ls_ref_manifest.schema_path.exists()
+    assert ls_ref_experiments.schema_path.exists()
 
 
 def test_detects_ssb_ssd_ssm_and_fmi2_versions():
@@ -73,6 +83,20 @@ def test_detects_ssb_ssd_ssm_and_fmi2_versions():
     assert ssd == StandardVersion(format="SSD", family="SSP", version="1.0")
     assert ssm == StandardVersion(format="SSM", family="SSP", version="1.0")
     assert fmi2 == StandardVersion(format="MD", family="FMI", version="2.0")
+
+
+def test_detects_ls_ref_versions():
+    manifest = get_standard_version(
+        '<fmiReferences xmlns:fmi-ls="http://fmi-standard.org/fmi-ls-manifest" '
+        'fmi-ls:fmi-ls-name="org.fmi-standard.fmi-ls-ref" '
+        'fmi-ls:fmi-ls-version="1.0.0-alpha.1" '
+        'fmi-ls:fmi-ls-description="Layered Standard providing information on related files included in an FMU.">'
+        "</fmiReferences>"
+    )
+    experiments = get_standard_version('<Experiments name="Smoke Tests" />')
+
+    assert manifest == StandardVersion(format="LS-REF-MANIFEST", family="FMI", version="1.0.0-alpha.1")
+    assert experiments == StandardVersion(format="LS-REF-EXPERIMENTS", family="FMI", version="1.0.0-alpha.1")
 
 
 def test_resolve_from_file_uses_detection(ssv2_fixture):

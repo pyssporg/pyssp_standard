@@ -4,6 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+from pyssp_standard.standard.ls_ref.constants import (
+    DEFAULT_LS_REF_VERSION,
+    FMI_LS_MANIFEST_NAMESPACE,
+)
 from pyssp_standard.tools.schema_targets import TARGETS
 
 
@@ -71,6 +75,24 @@ CODEC_STACK: dict[StandardVersion, ParseStackSpec] = {
         codec_id="ssp1_srmd_codec",
         mapper_id="ssp1_srmd_etree",
     ),
+    StandardVersion(family="FMI", format="LS-REF-MANIFEST", version="1.0.0-alpha.1"): ParseStackSpec(
+        standard=StandardVersion(family="FMI", format="LS-REF-MANIFEST", version="1.0.0-alpha.1"),
+        schema_path=TARGETS["ls_ref_manifest"].schema_path,
+        generated_module="pyssp_standard.standard.ls_ref.generated.manifest_generated_types",
+        generated_output_path=TARGETS["ls_ref_manifest"].binding_output_path,
+        root_type="fmiReferences",
+        codec_id="ls_ref_manifest_codec",
+        mapper_id="ls_ref_manifest_etree",
+    ),
+    StandardVersion(family="FMI", format="LS-REF-EXPERIMENTS", version="1.0.0-alpha.1"): ParseStackSpec(
+        standard=StandardVersion(family="FMI", format="LS-REF-EXPERIMENTS", version="1.0.0-alpha.1"),
+        schema_path=TARGETS["ls_ref_experiments"].schema_path,
+        generated_module="pyssp_standard.standard.ls_ref.generated.experiments_generated_types",
+        generated_output_path=TARGETS["ls_ref_experiments"].binding_output_path,
+        root_type="Experiments",
+        codec_id="ls_ref_experiments_codec",
+        mapper_id="ls_ref_experiments_etree",
+    ),
     StandardVersion(family="SSP", format="SSV", version="2.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSV", version="2.0"),
         schema_path=TARGETS["ssp2_ssv"].schema_path,
@@ -112,6 +134,14 @@ def get_standard_version(xml_text: str) -> StandardVersion:
         return StandardVersion(family="SSP", format="SSM", version=version)
     if tag == "SimulationResourceMetaData":
         return StandardVersion(family="SSP", format="SRMD", version=version)
+    if tag == "fmiReferences":
+        return StandardVersion(
+            family="FMI",
+            format="LS-REF-MANIFEST",
+            version=root.attrib.get(f"{{{FMI_LS_MANIFEST_NAMESPACE}}}fmi-ls-version", DEFAULT_LS_REF_VERSION),
+        )
+    if tag == "Experiments":
+        return StandardVersion(family="FMI", format="LS-REF-EXPERIMENTS", version=DEFAULT_LS_REF_VERSION)
     if tag == "fmiModelDescription":
         return StandardVersion(family="FMI", format="MD", version=root.attrib.get("fmiVersion"))
 
