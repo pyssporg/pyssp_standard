@@ -5,7 +5,7 @@ from typing import Iterable, Mapping
 
 from pyssp_standard.common.document_runtime import DocumentRuntime, ExternalReferenceSpec
 from pyssp_standard.standard.ssp1.codec.ssd_codec import Ssp1SsdCodec
-from pyssp_standard.standard.operations.ssd_parameters import extend_component_parametersets
+from pyssp_standard.standard.ssp1.operations.ssd_parameters import extend_component_parametersets
 from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1Component,
     Ssd1Connection,

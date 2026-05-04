@@ -6,7 +6,6 @@ from pyssp_standard.standard.ssp1.model.ssd_model import Ssd1Component, Ssd1Syst
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter
 
 
-#  TODO: Move to ssp1/operations
 def extend_component_parametersets(
     document: Ssd1SystemStructureDescription,
     parameters_by_component: Mapping[
@@ -14,8 +13,6 @@ def extend_component_parametersets(
         Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
     ],
 ) -> None:
-    from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import get_or_create_inlined_parameter_set
-
     system = document.system
     if system is None:
         raise RuntimeError("Cannot extend a parameter set without a system")
@@ -31,8 +28,4 @@ def extend_component_parametersets(
         if component is None:
             raise KeyError(f"Component not found in system '{system.name}': {component_name}")
 
-        parameter_set = get_or_create_inlined_parameter_set(
-            component.parameter_bindings,
-            binding_name=f"{component.name}_parameters",
-        )
-        parameter_set.extend_parameters(parameters)
+        component.extend_inline_parameterset(parameters)

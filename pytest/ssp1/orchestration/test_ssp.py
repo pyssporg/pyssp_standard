@@ -183,12 +183,16 @@ def test_resolves_external_parameter_bindings_at_archive_layer(tmp_path):
         archive.write("pytest/__fixture__/external_values.ssv", arcname="external_values.ssv")
 
     with SSD("pytest/__fixture__/mixed_example.ssd") as standalone_ssd:
-        external_binding = next(binding for binding in standalone_ssd.xml.parameter_bindings if binding.source is not None)
+        assert standalone_ssd.xml.system is not None
+        external_binding = next(
+            binding for binding in standalone_ssd.xml.system.get_parameter_bindings() if binding.source is not None
+        )
         assert external_binding.parameter_set is None
 
     with SSP(ssp_path, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            external_binding = next(binding for binding in ssd.xml.parameter_bindings if binding.source is not None)
+            assert ssd.xml.system is not None
+            external_binding = next(binding for binding in ssd.xml.system.get_parameter_bindings() if binding.source is not None)
             assert external_binding.parameter_set is not None
             assert external_binding.parameter_set.name == "ControllerExternal"
             assert external_binding.parameter_set.parameters[0].attributes["value"] == "0.8"
@@ -203,12 +207,14 @@ def test_persists_resolved_external_parameter_sets(tmp_path):
 
     with SSP(ssp_path, mode="a") as ssp:
         with ssp.system_structure() as ssd:
-            external_binding = next(binding for binding in ssd.xml.parameter_bindings if binding.source is not None)
+            assert ssd.xml.system is not None
+            external_binding = next(binding for binding in ssd.xml.system.get_parameter_bindings() if binding.source is not None)
             external_binding.parameter_set.parameters[0].attributes["value"] = "1.25"
 
     with SSP(ssp_path, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            external_binding = next(binding for binding in ssd.xml.parameter_bindings if binding.source is not None)
+            assert ssd.xml.system is not None
+            external_binding = next(binding for binding in ssd.xml.system.get_parameter_bindings() if binding.source is not None)
             assert external_binding.parameter_set is not None
             assert external_binding.parameter_set.parameters[0].attributes["value"] == "1.25"
 
@@ -222,7 +228,8 @@ def test_persists_resolved_external_parameter_sets(tmp_path):
 def test_resolves_external_parameter_mapping_at_archive_layer(embrace_ssp_dir_fixture):
     with SSP(embrace_ssp_dir_fixture, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            binding = ssd.xml.parameter_bindings[0]
+            assert ssd.xml.system is not None
+            binding = ssd.xml.system.get_parameter_bindings()[0]
             assert binding.source == "resources/RAPID_Systems_2021-03-29_Test_1.ssv"
             assert binding.parameter_set is not None
             assert len(binding.parameter_set.parameters) > 0
@@ -248,7 +255,8 @@ def test_missing_external_parameter_set_does_not_break_archive_session(tmp_path)
 
     with SSP(ssp_path, mode="r") as ssp:
         with ssp.system_structure() as ssd:
-            binding = ssd.xml.parameter_bindings[0]
+            assert ssd.xml.system is not None
+            binding = ssd.xml.system.get_parameter_bindings()[0]
             assert binding.source == "missing_values.ssv"
             assert binding.parameter_set is None
             assert binding.parameter_mapping is None
@@ -280,7 +288,8 @@ def test_add_external_parameterset_persists_binding_and_resolves_source_files(tm
         assert "external_values.ssv" in ssp.resources
         assert "external_mapping.ssm" in ssp.resources
         with ssp.system_structure() as ssd:
-            binding = ssd.xml.parameter_bindings[0]
+            assert ssd.xml.system is not None
+            binding = ssd.xml.system.get_parameter_bindings()[0]
             assert binding.source == "resources/external_values.ssv"
             assert binding.parameter_set is not None
             assert binding.parameter_set.name == "ExternalParameters"
@@ -315,7 +324,8 @@ def test_add_external_parameterset_without_mapping_persists_source_file(tmp_path
     with SSP(ssp_path, mode="r") as ssp:
         assert "external_values.ssv" in ssp.resources
         with ssp.system_structure() as ssd:
-            binding = ssd.xml.parameter_bindings[0]
+            assert ssd.xml.system is not None
+            binding = ssd.xml.system.get_parameter_bindings()[0]
             assert binding.source == "resources/external_values.ssv"
             assert binding.parameter_set is not None
             assert [(parameter.name, parameter.attributes["value"]) for parameter in binding.parameter_set.parameters] == [

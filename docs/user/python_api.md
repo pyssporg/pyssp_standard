@@ -72,7 +72,7 @@ with SSD("SystemStructure.ssd", mode="w") as ssd:
     ssd.xml.system = System(None, "system")
     ssd.xml.system.elements.append(component)
     ssd.xml.system.connectors.append(Connector(None, "x", "output", "Real"))
-    ssd.xml.add_connection(Connection(start_element="component", start_connector="x", end_connector="x"))
+    ssd.xml.system.add_connection(Connection(start_element="component", start_connector="x", end_connector="x"))
 ```
 
 ## SSP

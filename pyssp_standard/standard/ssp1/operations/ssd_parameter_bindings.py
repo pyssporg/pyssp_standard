@@ -12,13 +12,11 @@ def extend_inline_parameter_binding(
     parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
     *,
     default_name: str,
-    owner_name: str,
     binding_name: str | None = None,
     prefix: str | None = None,
     version: str = "1.0",
     metadata: Ssp1DocumentMetadata | None = None,
 ) -> Ssd1ParameterBinding:
-    _ = owner_name
     parameter_set = get_or_create_inlined_parameter_set(
         bindings,
         binding_name=binding_name or default_name,

@@ -13,6 +13,8 @@ The active implementation currently favors:
 - direct `xml.etree.ElementTree` codecs
 - small shared XML helper utilities when they reduce duplication
 - thin top-level facades over shared document runtime behavior
+- cross-standard composition helpers under `standard/operations/`
+- SSP1 composition helpers under `standard/ssp1/operations/`
 
 ## Layer Status
 
@@ -99,8 +101,12 @@ Current active structure:
   version-selection registry and document-root detection
 - `standard/<family>/codec/`
   version-specific or family-specific XML codecs
+- `standard/operations/`
+  cross-standard composition helpers
 - `standard/<family>/model/`
   in-memory document models
+- `standard/<family>/operations/`
+  version-specific composition and editing helpers
 - `standard/<family>/validation/`
   validators
 - top-level modules such as `ssd.py`, `ssv.py`, `ssm.py`, `ssp.py`, `md.py`

@@ -31,7 +31,7 @@ def test_create_round_trip(tmp_path):
         ssd.xml.system = System(None, "system")
         ssd.xml.system.elements.append(component)
         ssd.xml.system.connectors.append(Connector(None, "x", "output", "Real"))
-        ssd.xml.add_connection(Connection(start_element="component", start_connector="x", end_connector="x"))
+        ssd.xml.system.add_connection(Connection(start_element="component", start_connector="x", end_connector="x"))
 
     with SSD(path, mode="r") as ssd:
         assert ssd.xml.name == "Test SSD"
@@ -42,7 +42,7 @@ def test_create_round_trip(tmp_path):
         assert ssd.xml.system is not None
         assert len(ssd.xml.system.elements) == 1
         assert len(ssd.xml.system.connectors) == 1
-        assert len(ssd.xml.connections()) == 1
+        assert len(ssd.xml.system.get_connections()) == 1
         assert ssd.xml.system.elements[0].component_type == "application/x-fmu-sharedlibrary"
 
 
@@ -64,10 +64,10 @@ def test_editing_connections_preserves_compliance(tmp_path, embrace_ssd_fixture)
     shutil.copy(embrace_ssd_fixture, path)
 
     with SSD(path, "a") as ssd:
-        ssd.xml.add_connection(
+        ssd.xml.system.add_connection(
             Connection(start_element="house", start_connector="garage", end_element="work", end_connector="parking")
         )
-        ssd.xml.remove_connection(
+        ssd.xml.system.remove_connection(
             Connection(
                 start_element="Atmos",
                 start_connector="Tamb",
@@ -78,14 +78,14 @@ def test_editing_connections_preserves_compliance(tmp_path, embrace_ssd_fixture)
         assert ssd.check_compliance() is True
 
     with SSD(path) as ssd:
-        assert len(ssd.xml.list_connectors(parent="Consumer")) == 76
-        assert any(connection.start_element == "house" for connection in ssd.xml.connections())
+        assert len(ssd.xml.system.list_connectors(parent="Consumer")) == 76
+        assert any(connection.start_element == "house" for connection in ssd.xml.system.get_connections())
 
 
 def test_standalone_facade_preserves_external_binding_reference_without_resolution(mixed_ssd_fixture):
     with SSD(mixed_ssd_fixture) as ssd:
-        assert len(ssd.xml.parameter_bindings) == 2
-        external_binding = next(binding for binding in ssd.xml.parameter_bindings if binding.source is not None)
+        assert len(ssd.xml.system.get_parameter_bindings()) == 2
+        external_binding = next(binding for binding in ssd.xml.system.get_parameter_bindings() if binding.source is not None)
         assert external_binding.prefix == "Controller"
         assert external_binding.source == "external_values.ssv"
         assert external_binding.parameter_set is None
@@ -94,7 +94,7 @@ def test_standalone_facade_preserves_external_binding_reference_without_resoluti
 
 def test_list_connectors_returns_component_connectors(embrace_ssd_fixture):
     with SSD(embrace_ssd_fixture) as ssd:
-        found = ssd.xml.list_connectors(parent="Consumer")
+        found = ssd.xml.system.list_connectors(parent="Consumer")
 
     assert len(found) == 76
 
@@ -212,9 +212,10 @@ def test_ssd_can_extend_system_inline_parameterset(tmp_path):
         ssd.extend_system_parameterset({"step.offset": -1.0})
 
     with SSD(path, mode="r") as ssd:
-        binding = ssd.xml.parameter_bindings[0]
+        assert ssd.xml.system is not None
+        binding = ssd.xml.system.get_parameter_bindings()[0]
 
-        assert len(ssd.xml.parameter_bindings) == 1
+        assert len(ssd.xml.system.get_parameter_bindings()) == 1
         assert binding.parameter_set is not None
         assert binding.parameter_set.name == "simulation_parameters"
         assert [(parameter.name, parameter.attributes["value"]) for parameter in binding.parameter_set.parameters] == [
@@ -254,7 +255,10 @@ def test_round_trip_preserves_structural_order_in_serialized_xml(tmp_path):
     with SSD(path, mode="r") as ssd:
         assert [element.name for element in ssd.xml.system.elements] == ["beta_component", "alpha_component"]
         assert [connector.name for connector in ssd.xml.system.connectors] == ["beta_bus", "alpha_bus"]
-        assert [connection.start_element for connection in ssd.xml.connections()] == ["beta_component", "alpha_component"]
+        assert [connection.start_element for connection in ssd.xml.system.get_connections()] == [
+            "beta_component",
+            "alpha_component",
+        ]
 
     xml_text = path.read_text(encoding="utf-8")
     assert xml_text.index('name="beta_component"') < xml_text.index('name="alpha_component"')

@@ -120,11 +120,9 @@ def test_compliance_accepts_builtin_bracket_unit(tmp_path):
 def test_compliance_rejects_unknown_custom_unit(tmp_path):
     path = tmp_path / "test.ssv"
 
-    with SSV(path, "w") as ssv:
-        ssv.xml.add_parameter(parname="distance", ptype="Real", value=1.2, unit="parsec")
-
-        with pytest.raises(ValueError, match="references unknown unit 'parsec'"):
-            ssv.check_compliance()
+    with pytest.raises(ValueError, match="references unknown unit 'parsec'"):
+        with SSV(path, "w") as ssv:
+            ssv.xml.add_parameter(parname="distance", ptype="Real", value=1.2, unit="parsec")
 
 
 def test_external_fixture_loads_as_plain_standalone_document(external_ssv_fixture):

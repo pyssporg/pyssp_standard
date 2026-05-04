@@ -48,8 +48,6 @@ def test_round_trip_preserves_entry_annotations(tmp_path):
 def test_compliance_rejects_unknown_enumeration_reference(tmp_path):
     path = tmp_path / "invalid.ssb"
 
-    with SSB(path, "w") as ssb:
-        ssb.xml.add_entry("state", "Enumeration", enumeration="MissingEnum")
-
-        with pytest.raises(ValueError, match="references unknown enumeration 'MissingEnum'"):
-            ssb.check_compliance()
+    with pytest.raises(ValueError, match="references unknown enumeration 'MissingEnum'"):
+        with SSB(path, "w") as ssb:
+            ssb.xml.add_entry("state", "Enumeration", enumeration="MissingEnum")

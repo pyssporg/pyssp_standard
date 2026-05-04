@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Generic, Iterable, Mapping, TypeVar
+from typing import Iterable, Mapping
 
-from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1Annotation, Ssp1DocumentMetadata
+from pyssp_standard.standard.ssp1.model.ssc_model import (
+    Ssp1Annotation,
+    Ssp1DocumentMetadata,
+)
 from pyssp_standard.standard.common.utils import ExternalReference
 from pyssp_standard.standard.ssp1.model.ssm_model import Ssp1ParameterMapping
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter, Ssp1ParameterSet
-
-
-ReferenceT = TypeVar("ReferenceT")
 
 
 @dataclass
@@ -37,6 +37,15 @@ class Ssd1Connection:
     end_element: str | None = None
     end_connector: str = ""
 
+    @staticmethod
+    def connections_equal(left: Ssd1Connection, right: Ssd1Connection) -> bool:
+        return (
+            left.start_element == right.start_element
+            and left.start_connector == right.start_connector
+            and left.end_element == right.end_element
+            and left.end_connector == right.end_connector
+        )
+
 
 @dataclass
 class Ssd1Component:
@@ -56,23 +65,25 @@ class Ssd1Component:
         version: str = "1.0",
         metadata: Ssp1DocumentMetadata | None = None,
     ) -> "Ssd1ParameterBinding":
+        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import (
+            extend_inline_parameter_binding,
+        )
 
-        #TODO: Could point directly to pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings.extend_inline_parameter_binding
-        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import get_or_create_inlined_parameter_set
-
-        parameter_set = get_or_create_inlined_parameter_set(
+        return extend_inline_parameter_binding(
             self.parameter_bindings,
-            binding_name=binding_name or f"{self.name}_parameters",
+            parameters,
+            default_name=f"{self.name}_parameters",
+            binding_name=binding_name,
             prefix=prefix,
             version=version,
             metadata=metadata,
         )
-        parameter_set.extend_parameters(parameters)
-        return next(binding for binding in self.parameter_bindings if binding.parameter_set is parameter_set and binding.source is None)
+
 
 @dataclass
 class Ssd1ParameterMappingReference(ExternalReference):
     mapping: Ssp1ParameterMapping | None = None
+
 
 @dataclass
 class Ssd1ParameterBinding(ExternalReference):
@@ -90,6 +101,32 @@ class Ssd1System:
     connections: list[Ssd1Connection] = field(default_factory=list)
     parameter_bindings: list[Ssd1ParameterBinding] = field(default_factory=list)
 
+    def get_connections(self) -> list[Ssd1Connection]:
+        return self.connections
+
+    def add_connection(self, connection: Ssd1Connection) -> Ssd1Connection:
+        self.connections.append(connection)
+        return connection
+
+    def remove_connection(self, connection: Ssd1Connection) -> None:
+        self.connections = [
+            existing
+            for existing in self.connections
+            if not Ssd1Connection.connections_equal(existing, connection)
+        ]
+
+    def list_connectors(self, parent: str | None = None) -> list[Ssd1Connector]:
+        if parent is None:
+            return list(self.connectors)
+        for element in self.elements:
+            if element.name == parent:
+                return list(element.connectors)
+        return []
+
+    def get_parameter_bindings(self) -> list[Ssd1ParameterBinding]:
+        # TODO: + nested systems + component specific sets
+        return self.parameter_bindings
+
     def extend_inline_parameterset(
         self,
         parameters: Mapping[str, object] | Iterable[Ssp1Parameter | tuple[str, object]],
@@ -99,68 +136,19 @@ class Ssd1System:
         version: str = "1.0",
         metadata: Ssp1DocumentMetadata | None = None,
     ) -> "Ssd1ParameterBinding":
-        #TODO: Could point directly to pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings.extend_inline_parameter_binding
-        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import get_or_create_inlined_parameter_set
+        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import (
+            extend_inline_parameter_binding,
+        )
 
-        parameter_set = get_or_create_inlined_parameter_set(
+        return extend_inline_parameter_binding(
             self.parameter_bindings,
-            binding_name=binding_name or f"{self.name}_parameters",
+            parameters,
+            default_name=f"{self.name}_parameters",
+            binding_name=binding_name,
             prefix=prefix,
             version=version,
             metadata=metadata,
         )
-        parameter_set.extend_parameters(parameters)
-        return next(binding for binding in self.parameter_bindings if binding.parameter_set is parameter_set and binding.source is None)
-
-
-# TODO: Move all system related functionality to Ssd1System
-@dataclass
-class Ssd1SystemStructureDescription:
-    name: str = "system"
-    version: str = "1.0"
-    metadata: Ssp1DocumentMetadata = field(default_factory=Ssp1DocumentMetadata)
-    system: Ssd1System | None = None
-    default_experiment: Ssd1DefaultExperiment | None = None
-
-
-
-
-    def connections(self) -> list[Ssd1Connection]:
-        if self.system is None:
-            return []
-        return self.system.connections
-
-    def add_connection(self, connection: Ssd1Connection) -> Ssd1Connection:
-        if self.system is None:
-            self.system = Ssd1System(name="system")
-        self.system.connections.append(connection)
-        return connection
-
-    def remove_connection(self, connection: Ssd1Connection) -> None:
-        if self.system is None:
-            return
-        self.system.connections = [
-            existing
-            for existing in self.system.connections
-            if not self._connections_equal(existing, connection)
-        ]
-
-    def list_connectors(self, parent: str | None = None) -> list[Ssd1Connector]:
-        if self.system is None:
-            return []
-        if parent is None:
-            return list(self.system.connectors)
-        for element in self.system.elements:
-            if element.name == parent:
-                return list(element.connectors)
-        return []
-
-    @property
-    def parameter_bindings(self) -> list[Ssd1ParameterBinding]:
-        if self.system is None:
-            return []
-        return self.system.parameter_bindings
-
 
     def add_external_parameterset(
         self,
@@ -169,22 +157,22 @@ class Ssd1SystemStructureDescription:
         mapping_source: str | None = None,
         prefix: str | None = None,
     ) -> "Ssd1ParameterBinding":
-        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import add_external_parameterset
+        from pyssp_standard.standard.ssp1.operations.ssd_parameter_bindings import (
+            add_external_parameterset,
+        )
 
-        if self.system is None:
-            self.system = Ssd1System(name=self.name or "system")
         return add_external_parameterset(
-            self.system.parameter_bindings,
+            self.parameter_bindings,
             source=source,
             mapping_source=mapping_source,
             prefix=prefix,
         )
 
-    @staticmethod
-    def _connections_equal(left: Ssd1Connection, right: Ssd1Connection) -> bool:
-        return (
-            left.start_element == right.start_element
-            and left.start_connector == right.start_connector
-            and left.end_element == right.end_element
-            and left.end_connector == right.end_connector
-        )
+
+@dataclass
+class Ssd1SystemStructureDescription:
+    name: str = "system"
+    version: str = "1.0"
+    metadata: Ssp1DocumentMetadata = field(default_factory=Ssp1DocumentMetadata)
+    system: Ssd1System | None = None
+    default_experiment: Ssd1DefaultExperiment | None = None

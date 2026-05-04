@@ -1,2 +1,2 @@
-"""Operations that compose standard-domain models that cross standards"""
+"""Operations that compose standard-domain models that cross standards."""
 

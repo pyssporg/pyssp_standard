@@ -46,9 +46,11 @@ with SSP("system.ssp", mode="r") as ssp:
 - [Python API workflows](docs/user/python_api.md)
 - [Command reference](docs/command_reference.md)
 - [Developer repo map](docs/dev/repo_map.md)
+- [Code disposition](docs/dev/code_disposition.md)
 
 ## Notes
 
 - Use `SSD(path)` for file-local SSD work.
 - Use `SSP(path).system_structure()` when edits need archive-aware resolution of external `.ssv` and `.ssm` references.
+- For SSD structure edits, prefer `ssd.xml.system` as the canonical model entry point.
 - Legacy and unsupported material is kept outside the main docs flow and should not be treated as the primary API surface.

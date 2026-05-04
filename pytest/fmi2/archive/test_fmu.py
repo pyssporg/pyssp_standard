@@ -80,6 +80,7 @@ def test_package_as_ssp_creates_single_component_ssp(fmu_archive_fixture, tmp_pa
             ssp_path,
             system_name="custom_system",
             component_name="controller",
+            expose_system_connectors=True,
         )
 
     assert returned_path == ssp_path

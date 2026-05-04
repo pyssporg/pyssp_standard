@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pyssp_standard.standard.operations.model_description_to_ssd import (
-    add_component_to_system_structure,
-    create_component_from_model_description,
-)
+from pyssp_standard.standard.operations.model_description_to_ssd import create_component_from_model_description
+from pyssp_standard.standard.ssp1.model.ssd_model import Ssd1System
+from pyssp_standard.standard.ssp1.operations.model_description_to_ssd import add_component_to_system_structure
 from pyssp_standard.ssd import ParameterBinding, SsdRuntime
 from pyssp_standard.common.archive_runtime import DirectoryRuntime, create_runtime, ArchiveRuntime
 
@@ -40,7 +39,6 @@ class SSP:
         source_path = Path(source)
         return self.runtime.add_file(source_path, target_name=f"resources/{source_path.name}").removeprefix("resources/")
 
-    # TODO: Move to ssp1/operations, its only relating to one standard
     def add_external_parameterset(
         self,
         parameter_set_path: str | Path,
@@ -71,7 +69,9 @@ class SSP:
         )
 
         with self.system_structure() as ssd:
-            return ssd.xml.add_external_parameterset(
+            if ssd.xml.system is None:
+                ssd.xml.system = Ssd1System(name=ssd.xml.name or "system")
+            return ssd.xml.system.add_external_parameterset(
                 source=f"resources/{parameter_set_resource_name}",
                 mapping_source=(
                     f"resources/{mapping_resource_name}" if mapping_resource_name is not None else None

@@ -39,7 +39,8 @@ from pyssp_standard import SSP
 with SSP("system.ssp", mode="r") as ssp:
     with ssp.system_structure() as ssd:
         print(ssd.xml.name)
-        print(len(ssd.xml.connections()))
+        assert ssd.xml.system is not None
+        print(len(ssd.xml.system.get_connections()))
 ```
 
 ## External References

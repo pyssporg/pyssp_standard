@@ -8,6 +8,7 @@ Use it before opening implementation files.
 For most coding tasks, read in this order:
 - `AGENTS.md`
 - `docs/dev/repo_map.md`
+- `docs/dev/code_disposition.md`
 - `pyssp_standard/__init__.py`
 - one relevant module under `pyssp_standard/`
 - one relevant test under `pytest/`
@@ -27,6 +28,8 @@ Top-level public facades:
 Shared implementation:
 - `pyssp_standard/common/` for runtime, archive, document, and XML helpers
 - `pyssp_standard/standard/` for standard-specific helpers and version routing
+- `pyssp_standard/standard/operations/` for cross-standard composition helpers
+- `pyssp_standard/standard/ssp1/operations/` for SSP1 composition and binding helpers
 - `pyssp_standard/tools/` for developer tooling such as code generation support
 
 ## Tests
@@ -55,6 +58,7 @@ Do not read these by default:
 
 Open these only if the task needs them:
 - `README.md` for package overview and user-facing positioning
+- `docs/dev/code_disposition.md` for the current file-to-layer map
 - `docs/dev/architecture.md` for intended internal layer boundaries
 - `docs/dev/repo_status.md` for current implementation reality
 - `docs/dev/guidelines.md` for project-wide code and documentation conventions
