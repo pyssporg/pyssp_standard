@@ -5,20 +5,10 @@ from pathlib import Path
 from pyssp_standard.common.xml_document import XmlDocument
 from pyssp_standard.standard.ls_ref.codec import LSRefExperimentsCodec, LSRefManifestCodec
 from pyssp_standard.standard.ls_ref.model import (
-    LSRefExperiment,
-    LSRefExperimentResource,
     LSRefExperimentsDocument,
     LSRefManifestDocument,
-    LSRefRelated,
 )
 from pyssp_standard.standard.ls_ref.validation import LSRefExperimentsValidator, LSRefManifestValidator
-
-
-Related = LSRefRelated
-Experiment = LSRefExperiment
-ExperimentResource = LSRefExperimentResource
-Manifest = LSRefManifestDocument
-Experiments = LSRefExperimentsDocument
 
 
 class LSRefManifest(XmlDocument[LSRefManifestDocument]):
@@ -44,19 +34,3 @@ class LSRefExperiments(XmlDocument[LSRefExperimentsDocument]):
     def _create_document(self) -> LSRefExperimentsDocument:
         return LSRefExperimentsDocument(name=self.path.stem or "experiments")
 
-
-LayeredStandardReferenceManifest = LSRefManifest
-LayeredStandardReferenceExperiments = LSRefExperiments
-
-
-__all__ = [
-    "Experiment",
-    "ExperimentResource",
-    "Experiments",
-    "LSRefExperiments",
-    "LSRefManifest",
-    "Manifest",
-    "Related",
-    "LayeredStandardReferenceExperiments",
-    "LayeredStandardReferenceManifest",
-]
