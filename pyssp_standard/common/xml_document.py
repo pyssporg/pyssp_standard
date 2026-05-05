@@ -52,10 +52,10 @@ class XmlDocument(Generic[DocumentT]):
         self._document = self._codec.parse(text)
 
     def save_document(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(self._codec.serialize(self.xml), encoding="utf-8")
 
     def _create_document(self) -> DocumentT:
         raise NotImplementedError
     
-
 
