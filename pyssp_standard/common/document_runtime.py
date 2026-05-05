@@ -32,6 +32,9 @@ class _ResolvedPlacement:
 
 
 class DocumentRuntime(Generic[FacadeT]):
+    """
+    When you load a document in the context of an ssp or an archive the runtime will populate any external references in the xml and return the populated xml for use
+    """
     def __init__(
         self,
         runtime: DirectoryRuntime,
@@ -91,6 +94,10 @@ class DocumentRuntime(Generic[FacadeT]):
                 persisted_paths.add(cache_key)
 
             self._set_attr(owner, spec.document_attr, None)
+
+
+# ---- TODO: break out the reference discovery to test separately ....
+ 
 
     def _iter_external_reference_targets(self, root: Any):
         visited: set[int] = set()

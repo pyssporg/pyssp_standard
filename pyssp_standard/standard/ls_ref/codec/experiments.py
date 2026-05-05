@@ -7,6 +7,7 @@ from pyssp_standard.standard.ls_ref.constants import (
     EXPERIMENT_TAG,
     PARAMETERS_TAG,
     REFERENCES_TAG,
+    SIGNAL_TAG,
     STIMULI_TAG,
 )
 from pyssp_standard.standard.ls_ref.model.experiments import (
@@ -45,20 +46,24 @@ class LSRefExperimentsCodec:
         experiment = LSRefExperiment(
             name=element.attrib["name"],
             description=element.attrib.get("description"),
+            target=element.attrib.get("target"),
             start_time=self._parse_float(element.attrib.get("startTime")),
             stop_time=self._parse_float(element.attrib.get("stopTime")),
             tolerance=self._parse_float(element.attrib.get("tolerance")),
             step_size=self._parse_float(element.attrib.get("stepSize")),
         )
-        parameters = element.find(PARAMETERS_TAG)
-        if parameters is not None:
-            experiment.parameters = self._parse_resource(parameters)
-        stimuli = element.find(STIMULI_TAG)
-        if stimuli is not None:
-            experiment.stimuli = self._parse_resource(stimuli)
-        references = element.find(REFERENCES_TAG)
-        if references is not None:
-            experiment.references = self._parse_resource(references)
+        experiment.parameters = [
+            self._parse_resource(resource)
+            for resource in element.findall(PARAMETERS_TAG)
+        ]
+        experiment.stimuli = [
+            self._parse_resource(resource)
+            for resource in element.findall(STIMULI_TAG)
+        ]
+        experiment.references = [
+            self._parse_resource(resource)
+            for resource in element.findall(REFERENCES_TAG)
+        ]
         return experiment
 
     def _serialize_experiment(self, experiment: LSRefExperiment) -> ET.Element:
@@ -66,23 +71,31 @@ class LSRefExperimentsCodec:
         element.set("name", experiment.name)
         if experiment.description is not None:
             element.set("description", experiment.description)
+        if experiment.target is not None:
+            element.set("target", experiment.target)
         self._set_optional_float(element, "startTime", experiment.start_time)
         self._set_optional_float(element, "stopTime", experiment.stop_time)
         self._set_optional_float(element, "tolerance", experiment.tolerance)
         self._set_optional_float(element, "stepSize", experiment.step_size)
 
-        if experiment.parameters is not None:
-            element.append(self._serialize_resource(PARAMETERS_TAG, experiment.parameters))
-        if experiment.stimuli is not None:
-            element.append(self._serialize_resource(STIMULI_TAG, experiment.stimuli))
-        if experiment.references is not None:
-            element.append(self._serialize_resource(REFERENCES_TAG, experiment.references))
+        for resource in experiment.parameters:
+            element.append(self._serialize_resource(PARAMETERS_TAG, resource))
+        for resource in experiment.stimuli:
+            element.append(self._serialize_resource(STIMULI_TAG, resource))
+        for resource in experiment.references:
+            element.append(self._serialize_resource(REFERENCES_TAG, resource))
         return element
 
     def _parse_resource(self, element: ET.Element) -> LSRefExperimentResource:
         return LSRefExperimentResource(
             source=element.attrib["source"],
             type=element.attrib.get("type"),
+            mapping=element.attrib.get("mapping"),
+            match_by=element.attrib.get("matchBy"),
+            signals=[
+                signal.attrib["name"]
+                for signal in element.findall(SIGNAL_TAG)
+            ],
         )
 
     def _serialize_resource(self, tag: str, resource: LSRefExperimentResource) -> ET.Element:
@@ -90,6 +103,13 @@ class LSRefExperimentsCodec:
         if resource.type is not None:
             element.set("type", resource.type)
         element.set("source", resource.source)
+        if resource.mapping is not None:
+            element.set("mapping", resource.mapping)
+        if resource.match_by is not None:
+            element.set("matchBy", resource.match_by)
+        for signal in resource.signals:
+            signal_element = ET.SubElement(element, SIGNAL_TAG)
+            signal_element.set("name", signal)
         return element
 
     def _parse_float(self, value: str | None) -> float | None:

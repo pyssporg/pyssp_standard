@@ -48,7 +48,6 @@ def test_experiments_facade_round_trip(tmp_path):
         assert len(experiments.xml.experiments) == 1
         stored = experiments.xml.experiments[0]
         assert stored.name == "Smoke Test"
-        assert stored.parameters is not None
-        assert stored.parameters.source == "baseline-params.ssv"
-        assert stored.stimuli is not None
-        assert stored.references is not None
+        assert stored.parameters[0].source == "baseline-params.ssv"
+        assert stored.stimuli[0].source == "stimuli.csv"
+        assert stored.references[0].source == "references.csv"

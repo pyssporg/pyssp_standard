@@ -102,6 +102,7 @@ EXTERNAL_REFERENCE_SPECS = (
     ),
 )
 
+# ----TODO: All Specialized runtime should be inlined....
 
 class SsdRuntime(DocumentRuntime[SSD]):
     """Archive-level SSD facade with dependency resolution."""

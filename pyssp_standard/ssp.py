@@ -1,19 +1,35 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 
-from pyssp_standard.standard.operations.model_description_to_ssd import create_component_from_model_description
+from pyssp_standard.standard.operations.model_description_to_ssd import (
+    create_component_from_model_description,
+)
+from pyssp_standard.ls_ref import (
+    LSRefExperimentsRuntime,
+    LS_REF_EXTRA_DIR,
+    LSRefExperiment,
+)
 from pyssp_standard.standard.ssp1.model.ssd_model import Ssd1System
-from pyssp_standard.standard.ssp1.operations.model_description_to_ssd import add_component_to_system_structure
+from pyssp_standard.standard.ssp1.operations.model_description_to_ssd import (
+    add_component_to_system_structure,
+)
 from pyssp_standard.ssd import ParameterBinding, SsdRuntime
-from pyssp_standard.common.archive_runtime import DirectoryRuntime, create_runtime, ArchiveRuntime
+from pyssp_standard.common.archive_runtime import (
+    DirectoryRuntime,
+    create_runtime,
+    ArchiveRuntime,
+)
 
 
 class SSP:
     def __init__(self, path: str | Path, mode: str = "a"):
         self.path = Path(path)
         self.mode = mode
-        self._runtime : DirectoryRuntime | ArchiveRuntime = create_runtime(self.path, mode)
+        self._runtime: DirectoryRuntime | ArchiveRuntime = create_runtime(
+            self.path, mode
+        )
 
     def __enter__(self) -> "SSP":
         self._runtime.__enter__()
@@ -33,11 +49,16 @@ class SSP:
 
     @property
     def resources(self) -> list[str]:
-        return [name.removeprefix("resources/") for name in self.runtime.list_prefix("resources/")]
+        return [
+            name.removeprefix("resources/")
+            for name in self.runtime.list_prefix("resources/")
+        ]
 
     def add_resource(self, source: str | Path) -> str:
         source_path = Path(source)
-        return self.runtime.add_file(source_path, target_name=f"resources/{source_path.name}").removeprefix("resources/")
+        return self.runtime.add_file(
+            source_path, target_name=f"resources/{source_path.name}"
+        ).removeprefix("resources/")
 
     def add_external_parameterset(
         self,
@@ -52,7 +73,9 @@ class SSP:
         parameter_set_resource_name = (
             self.add_resource(parameter_set_path)
             if resource_name is None
-            else self.runtime.add_file(parameter_set_path, target_name=f"resources/{resource_name}").removeprefix("resources/")
+            else self.runtime.add_file(
+                parameter_set_path, target_name=f"resources/{resource_name}"
+            ).removeprefix("resources/")
         )
 
         mapping_resource_name = (
@@ -74,7 +97,9 @@ class SSP:
             return ssd.xml.system.add_external_parameterset(
                 source=f"resources/{parameter_set_resource_name}",
                 mapping_source=(
-                    f"resources/{mapping_resource_name}" if mapping_resource_name is not None else None
+                    f"resources/{mapping_resource_name}"
+                    if mapping_resource_name is not None
+                    else None
                 ),
                 prefix=prefix,
             )
@@ -82,8 +107,25 @@ class SSP:
     def remove_resource(self, resource_name: str) -> None:
         self.runtime.remove_file(f"resources/{resource_name}")
 
-    def system_structure(self, path="SystemStructure.ssd" ) -> SsdRuntime:
-        return SsdRuntime(self.runtime, ssd_path=path, mode="a" if self.mode == "w" else self.mode)
+    def system_structure(self, path="SystemStructure.ssd") -> SsdRuntime:
+        return SsdRuntime(
+            self.runtime, ssd_path=path, mode="a" if self.mode == "w" else self.mode
+        )
+
+    def ls_ref_experiments(
+        self, path=f"{LS_REF_EXTRA_DIR}/experiments.xml"
+    ) -> LSRefExperimentsRuntime:
+        return LSRefExperimentsRuntime(
+            self.runtime,
+            experiments_path=path,
+            mode="a" if self.mode == "w" else self.mode,
+        )
+
+    def add_ls_ref_experiment(
+        self, experiments: LSRefExperiment | Iterable[LSRefExperiment]
+    ) -> str:
+        with self.ls_ref_experiments() as ref:
+            ref.add_experiment(experiments)
 
     def add_fmu(
         self,
@@ -102,7 +144,9 @@ class SSP:
         added_resource_name = (
             self.add_resource(fmu_path)
             if resource_name is None
-            else self.runtime.add_file(fmu_path, target_name=f"resources/{resource_name}").removeprefix("resources/")
+            else self.runtime.add_file(
+                fmu_path, target_name=f"resources/{resource_name}"
+            ).removeprefix("resources/")
         )
 
         with FMU(fmu_path, mode="r") as fmu:
