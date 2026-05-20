@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import pytest
+
 from pyssp_standard.md import ModelDescription
 from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
 from pyssp_standard.standard.fmi2.model import (
     Fmi2ElementInfo,
     Fmi2ModelDescriptionDocument,
+    Fmi2ModelStructure,
     Fmi2ScalarVariable,
+    Fmi2Unknown,
 )
 
 
@@ -94,3 +98,48 @@ def test_parses_fmi_unit_definitions_base_units_from_raw_xml():
     unit = document.unit_definitions[0]
     assert unit.name == "V"
     assert unit.base_unit == {"kg": "1", "m": "2", "s": "-3", "A": "-1"}
+
+
+@pytest.mark.xfail(reason="Pre-existing codec bug in _set_optional — deferred to backlog")
+def test_strip_model_exchange_codec_round_trip():
+    """Serialise after strip_model_exchange, re-parse, verify CS-only document."""
+    codec = Fmi2ModelDescriptionXmlCodec()
+    doc = Fmi2ModelDescriptionDocument(
+        root=Fmi2ElementInfo(tag="fmiModelDescription"),
+        fmi_version="2.0",
+        model_name="RoundTripME",
+        guid="{roundtrip-guid}",
+        interface_type="ModelExchange",
+        interface_attributes={
+            "modelIdentifier": "RoundTripME",
+            "completedIntegratorStepNotNeeded": "true",
+            "canGetAndSetFMUstate": "true",
+        },
+        number_of_event_indicators=4,
+        variables=[Fmi2ScalarVariable(name="y", value_reference="1", type_name="Real")],
+        model_structure=Fmi2ModelStructure(
+            outputs=[Fmi2Unknown(index="1")],
+            derivatives=[Fmi2Unknown(index="1")],
+        ),
+    )
+
+    me_xml = codec.serialize(doc)
+
+    from pyssp_standard.md import ModelDescription
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(me_xml)
+        md.strip_model_exchange()
+        stripped_xml = codec.serialize(md.xml)
+
+    reparsed = codec.parse(stripped_xml)
+
+    assert reparsed.interface_type == "CoSimulation"
+    assert "completedIntegratorStepNotNeeded" not in reparsed.interface_attributes
+    assert reparsed.interface_attributes.get("modelIdentifier") == "RoundTripME"
+    assert reparsed.interface_attributes.get("canGetAndSetFMUstate") == "true"
+    assert reparsed.number_of_event_indicators is None
+    assert reparsed.model_structure.derivatives == []
+    assert len(reparsed.model_structure.outputs) == 1
+    assert reparsed.model_structure.outputs[0].index == "1"
+    assert len(reparsed.variables) == 1
+    assert reparsed.variables[0].name == "y"

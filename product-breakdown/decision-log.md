@@ -21,6 +21,7 @@ that should be formalized as separate decision files.*
 | AD-004 | Dataclass domain models as canonical in-memory representation (implicit) | Implementation | Explicit | `03-implementation/code-structure.md` | `standard/ssp1/model/`, `standard/fmi2/model/` |
 | TD-001 | xml.etree.ElementTree for XML parsing (implicit) | Technology | Explicit | `03-implementation/interfaces.md` | All codec modules |
 | VD-001 | Compliance check is explicit, not automatic (implicit) | Verification | Explicit | `04-verification/acceptance-criteria.md` | `common/xml_document.py` |
+| PD-002 | Drop round-trip stability from IMP-012; defer codec fix to backlog | Product | Accepted | `06-evolution/decisions/DEC-IMP012-R1-001.md` | `pytest/fmi2/codec/test_model_description_xml_codec.py`, `06-evolution/improvement-backlog.md` |
 
 ## Open Decisions
 

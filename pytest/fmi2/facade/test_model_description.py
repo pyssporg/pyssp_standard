@@ -12,6 +12,52 @@ from pyssp_standard.standard.fmi2.model import (
     Fmi2Unknown,
 )
 
+# ---------------------------------------------------------------------------
+# strip_model_exchange test data
+# ---------------------------------------------------------------------------
+
+_ME_XML = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<fmiModelDescription
+  fmiVersion="2.0"
+  modelName="TestME"
+  guid="{test-guid}"
+  numberOfEventIndicators="2">
+  <ModelExchange
+    modelIdentifier="TestME"
+    completedIntegratorStepNotNeeded="true"
+    needsExecutionTool="true"
+    canGetAndSetFMUstate="true"
+    providesDirectionalDerivative="true"/>
+  <ModelVariables>
+    <ScalarVariable name="u" valueReference="1"><Real/></ScalarVariable>
+  </ModelVariables>
+  <ModelStructure>
+    <Outputs><Unknown index="1"/></Outputs>
+    <Derivatives><Unknown index="1"/></Derivatives>
+  </ModelStructure>
+</fmiModelDescription>"""
+
+_CS_XML = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<fmiModelDescription
+  fmiVersion="2.0"
+  modelName="TestME"
+  guid="{test-guid}"
+  numberOfEventIndicators="2">
+  <CoSimulation
+    modelIdentifier="TestME"
+    canGetAndSetFMUstate="true"
+    providesDirectionalDerivative="true"/>
+  <ModelVariables>
+    <ScalarVariable name="u" valueReference="1"><Real/></ScalarVariable>
+  </ModelVariables>
+  <ModelStructure>
+    <Outputs><Unknown index="1"/></Outputs>
+    <Derivatives><Unknown index="1"/></Derivatives>
+  </ModelStructure>
+</fmiModelDescription>"""
+
 
 def test_exposes_core_variable_groups(model_description_fixture):
     with ModelDescription(model_description_fixture) as md:
@@ -117,3 +163,117 @@ def test_round_trip_preserves_metadata_and_repeated_element_order(tmp_path):
     assert xml_text.index('<ScalarVariable name="beta"') < xml_text.index('<ScalarVariable name="alpha"')
     assert xml_text.index('<ScalarVariable name="alpha"') < xml_text.index('<ScalarVariable name="gamma"')
     assert xml_text.index('<Unknown index="3"') < xml_text.index('<Unknown index="1"')
+
+# ---------------------------------------------------------------------------
+# strip_model_exchange tests
+# ---------------------------------------------------------------------------
+
+
+def test_strip_model_exchange_converts_type():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_ME_XML)
+        md.strip_model_exchange()
+        assert md.xml.interface_type == "CoSimulation"
+
+
+def test_strip_model_exchange_removes_me_only_attributes():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_ME_XML)
+        md.strip_model_exchange()
+        assert "completedIntegratorStepNotNeeded" not in md.xml.interface_attributes
+        assert "needsExecutionTool" not in md.xml.interface_attributes
+
+
+def test_strip_model_exchange_preserves_shared_attributes():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_ME_XML)
+        md.strip_model_exchange()
+        assert md.xml.interface_attributes.get("modelIdentifier") == "TestME"
+        assert md.xml.interface_attributes.get("canGetAndSetFMUstate") == "true"
+        assert md.xml.interface_attributes.get("providesDirectionalDerivative") == "true"
+
+
+def test_strip_model_exchange_clears_derivatives():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_ME_XML)
+        md.strip_model_exchange()
+        assert md.xml.model_structure.derivatives == []
+
+
+def test_strip_model_exchange_clears_number_of_event_indicators():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_ME_XML)
+        assert md.xml.number_of_event_indicators == 2
+        md.strip_model_exchange()
+        assert md.xml.number_of_event_indicators is None
+
+
+def test_strip_model_exchange_passes_compliance():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_ME_XML)
+        md.strip_model_exchange()
+        assert md.check_compliance() is True
+
+
+def test_strip_model_exchange_noop_when_already_cs():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_CS_XML)
+        original_attrs = dict(md.xml.interface_attributes)
+        original_derivatives = list(md.xml.model_structure.derivatives)
+        original_nei = md.xml.number_of_event_indicators
+        original_type = md.xml.interface_type
+
+        md.strip_model_exchange()
+
+        assert md.xml.interface_type == original_type
+        assert md.xml.interface_attributes == original_attrs
+        assert md.xml.model_structure.derivatives == original_derivatives
+        assert md.xml.number_of_event_indicators == original_nei
+
+
+def test_strip_model_exchange_noop_when_interface_none():
+    """Construct a document with interface_type=None (no <ModelExchange> or <CoSimulation>)."""
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(
+            """<?xml version="1.0" encoding="UTF-8"?>
+<fmiModelDescription fmiVersion="2.0" modelName="NoneType" guid="{none-guid}">
+  <ModelVariables>
+    <ScalarVariable name="x" valueReference="1"><Real/></ScalarVariable>
+  </ModelVariables>
+  <ModelStructure/>
+</fmiModelDescription>"""
+        )
+        assert md.xml.interface_type is None
+        md.strip_model_exchange()
+        assert md.xml.interface_type is None
+
+
+def test_strip_model_exchange_idempotent():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_ME_XML)
+        md.strip_model_exchange()
+        first_attrs = dict(md.xml.interface_attributes)
+        first_nei = md.xml.number_of_event_indicators
+        first_derivatives = list(md.xml.model_structure.derivatives)
+
+        md.strip_model_exchange()
+
+        assert md.xml.interface_attributes == first_attrs
+        assert md.xml.number_of_event_indicators == first_nei
+        assert md.xml.model_structure.derivatives == first_derivatives
+
+
+def test_strip_model_exchange_preserves_outputs_and_initial_unknowns():
+    with ModelDescription("model_description.xml") as md:
+        md.from_xml(_ME_XML)
+        original_outputs = list(md.xml.model_structure.outputs)
+        original_initial = list(md.xml.model_structure.initial_unknowns)
+        md.strip_model_exchange()
+        assert md.xml.model_structure.outputs == original_outputs
+        assert md.xml.model_structure.initial_unknowns == original_initial
+
+
+def test_strip_model_exchange_fails_when_not_loaded():
+    md = ModelDescription("model_description.xml")
+    with pytest.raises(RuntimeError, match="not loaded"):
+        md.strip_model_exchange()
