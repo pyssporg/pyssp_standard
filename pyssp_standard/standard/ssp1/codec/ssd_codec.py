@@ -85,10 +85,13 @@ class Ssp1SsdCodec:
             ]
         elements_element = first_child(element, NS_SSD, "Elements")
         if elements_element is not None:
-            system.elements = [
-                self._parse_component(component)
-                for component in elements_element.findall(qname(NS_SSD, "Component"))
-            ]
+            system.elements = []
+            for child in elements_element:
+                child_local_name = local_name(child.tag)
+                if child_local_name == "Component":
+                    system.elements.append(self._parse_component(child))
+                elif child_local_name == "System":
+                    system.elements.append(self._parse_system(child))
         connectors_element = first_child(element, NS_SSD, "Connectors")
         if connectors_element is not None:
             system.connectors = [
@@ -126,8 +129,11 @@ class Ssp1SsdCodec:
 
         if system.elements:
             elements_element = ET.SubElement(element, qname(NS_SSD, "Elements"))
-            for component in system.elements:
-                elements_element.append(self._serialize_component(component))
+            for element_item in system.elements:
+                if isinstance(element_item, Ssd1Component):
+                    elements_element.append(self._serialize_component(element_item))
+                else:
+                    elements_element.append(self._serialize_system(element_item))
 
         if system.connections:
             connections_element = ET.SubElement(element, qname(NS_SSD, "Connections"))

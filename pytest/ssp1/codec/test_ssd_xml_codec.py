@@ -3,6 +3,7 @@ from __future__ import annotations
 from pyssp_standard.standard.ssp1.codec import Ssp1SsdCodec
 from pyssp_standard.standard.ssp1.model import (
     Ssd1Component,
+    Ssd1Connector,
     Ssd1ParameterBinding,
     Ssd1ParameterMappingReference,
     Ssd1System,
@@ -132,3 +133,97 @@ def test_round_trip_preserves_component_parameter_bindings():
     assert reparsed.system.elements[0].parameter_bindings[0].parameter_set is not None
     assert reparsed.system.elements[0].parameter_bindings[0].parameter_set.parameters[0].name == "gain"
     assert reparsed.system.elements[0].parameter_bindings[0].parameter_set.parameters[0].attributes["value"] == "1.5"
+
+
+def test_round_trip_preserves_nested_systems():
+    """A system tree with nested Ssd1System elements round-trips correctly."""
+    codec = Ssp1SsdCodec()
+
+    inner = Ssd1System(
+        name="inner",
+        elements=[
+            Ssd1Component(name="leaf", source="leaf.fmu"),
+        ],
+        connectors=[
+            Ssd1Connector(name="inner_out", kind="output"),
+        ],
+    )
+    outer = Ssd1System(
+        name="outer",
+        elements=[
+            Ssd1Component(name="top", source="top.fmu"),
+            inner,
+        ],
+        connectors=[
+            Ssd1Connector(name="outer_in", kind="input"),
+        ],
+    )
+    document = Ssd1SystemStructureDescription(
+        name="Nested",
+        version="1.0",
+        system=outer,
+    )
+
+    reparsed = codec.parse(codec.serialize(document))
+
+    assert reparsed.system is not None
+    assert reparsed.system.name == "outer"
+    assert len(reparsed.system.elements) == 2
+
+    # First element is a Component
+    top = reparsed.system.elements[0]
+    assert isinstance(top, Ssd1Component)
+    assert top.name == "top"
+
+    # Second element is a nested System
+    inner_parsed = reparsed.system.elements[1]
+    assert isinstance(inner_parsed, Ssd1System)
+    assert inner_parsed.name == "inner"
+    assert len(inner_parsed.elements) == 1
+    assert isinstance(inner_parsed.elements[0], Ssd1Component)
+    assert inner_parsed.elements[0].name == "leaf"
+
+    # Connectors preserved on both levels
+    assert len(reparsed.system.connectors) == 1
+    assert reparsed.system.connectors[0].name == "outer_in"
+    assert len(inner_parsed.connectors) == 1
+    assert inner_parsed.connectors[0].name == "inner_out"
+
+    # get_components / get_subsystems helpers
+    assert len(reparsed.system.get_components()) == 1
+    assert len(reparsed.system.get_subsystems()) == 1
+
+
+def test_get_all_parameter_bindings_recursive():
+    """get_all_parameter_bindings collects bindings from system, subsystems, and components."""
+    inner = Ssd1System(
+        name="inner",
+        elements=[
+            Ssd1Component(name="leaf", source="leaf.fmu"),
+        ],
+        parameter_bindings=[
+            Ssd1ParameterBinding(
+                prefix="inner_",
+                parameter_set=Ssp1ParameterSet(name="inner_set", version="1.0"),
+            ),
+        ],
+    )
+    outer = Ssd1System(
+        name="outer",
+        elements=[
+            Ssd1Component(name="top", source="top.fmu"),
+            inner,
+        ],
+        parameter_bindings=[
+            Ssd1ParameterBinding(
+                prefix="outer_",
+                parameter_set=Ssp1ParameterSet(name="outer_set", version="1.0"),
+            ),
+        ],
+    )
+
+    all_bindings = outer.get_all_parameter_bindings()
+    # outer has 1 binding, inner has 1 binding, components have 0 = total 2
+    assert len(all_bindings) == 2
+    prefixes = {b.prefix for b in all_bindings}
+    assert prefixes == {"outer_", "inner_"}

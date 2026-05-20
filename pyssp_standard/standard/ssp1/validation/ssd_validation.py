@@ -23,6 +23,7 @@ class Ssp1SsdSemanticValidator:
             raise ValueError("SSD document must contain a root system")
 
         component_names: set[str] = set()
+        # TODO: also validate nested System elements recursively
         for component in model.system.elements:
             if component.name in component_names:
                 raise ValueError(f"Duplicate component '{component.name}'")

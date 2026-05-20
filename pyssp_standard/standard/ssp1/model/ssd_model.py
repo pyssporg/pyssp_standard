@@ -96,13 +96,21 @@ class Ssd1ParameterBinding(ExternalReference):
 class Ssd1System:
     element: str | None = None
     name: str = ""
-    elements: list[Ssd1Component] = field(default_factory=list)
+    elements: list[Ssd1Component | Ssd1System] = field(default_factory=list)
     connectors: list[Ssd1Connector] = field(default_factory=list)
     connections: list[Ssd1Connection] = field(default_factory=list)
     parameter_bindings: list[Ssd1ParameterBinding] = field(default_factory=list)
 
     def get_connections(self) -> list[Ssd1Connection]:
         return self.connections
+
+    def get_components(self) -> list[Ssd1Component]:
+        """Return only Ssd1Component children (not nested systems)."""
+        return [e for e in self.elements if isinstance(e, Ssd1Component)]
+
+    def get_subsystems(self) -> list[Ssd1System]:
+        """Return only nested Ssd1System children."""
+        return [e for e in self.elements if isinstance(e, Ssd1System)]
 
     def add_connection(self, connection: Ssd1Connection) -> Ssd1Connection:
         self.connections.append(connection)
@@ -124,8 +132,20 @@ class Ssd1System:
         return []
 
     def get_parameter_bindings(self) -> list[Ssd1ParameterBinding]:
-        # TODO: + nested systems + component specific sets
+        """Return system-level parameter bindings only."""
         return self.parameter_bindings
+
+    def get_all_parameter_bindings(self) -> list[Ssd1ParameterBinding]:
+        """Recursively collect parameter bindings from this system, all nested
+        subsystems, and all direct component children.
+        """
+        result = list(self.parameter_bindings)
+        for element in self.elements:
+            if isinstance(element, Ssd1System):
+                result.extend(element.get_all_parameter_bindings())
+            elif isinstance(element, Ssd1Component):
+                result.extend(element.parameter_bindings)
+        return result
 
     def extend_inline_parameterset(
         self,
