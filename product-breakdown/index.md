@@ -10,15 +10,34 @@
 
 ## Structure
 
-```
+```text
 product-breakdown/
-├── index.md                  ← You are here
-├── 01-overview/              # Product vision, positioning, stakeholders
-├── 02-features/              # Feature descriptions, usage scenarios
-├── 03-architecture/          # Module/component structure, layer map
-├── 04-roadmap/               # Release plans, milestones
-├── 05-backlog/               # Active and deferred work items
-└── 06-evolution/             # Improvement candidates and structural proposals
+├── index.md                    ← You are here
+├── decision-log.md             # Global decision index
+├── traceability-map.md         # Cross-layer traceability
+├── 00-intent/                  # Purpose, users, constraints, assumptions
+│   ├── purpose.md
+│   ├── users.md
+│   └── constraints.md
+├── 01-product/                 # Scope, capabilities, domain model
+│   ├── scope.md
+│   ├── capabilities.md
+│   └── domain-model.md
+├── 02-architecture/            # Quality attributes, context, components
+│   ├── quality-attributes.md
+│   ├── context-view.md
+│   └── component-view.md
+├── 03-implementation/          # Code structure, interfaces, configuration
+│   ├── code-structure.md
+│   └── interfaces.md
+├── 04-verification/            # Test strategy, acceptance criteria, traceability
+│   ├── test-strategy.md
+│   ├── acceptance-criteria.md
+│   └── traceability-matrix.md
+├── 05-operation/               # Runbook, support model
+│   ├── runbook.md
+│   └── support-model.md
+└── 06-evolution/               # Improvement backlog and candidates
     ├── improvement-backlog.md
     └── candidates/
         ├── IMP-001-consolidate-document-runtime-subclasses.md
@@ -35,11 +54,28 @@ product-breakdown/
 
 ---
 
-## Quick Reference: Product Structure
+## Quick Reference: Document Types
 
-### Layer Architecture
+| Type | Extension | Standards | Status |
+|------|-----------|-----------|--------|
+| SSP (System Structure Package) | `.ssp` | SSP1 | Active |
+| SSD (System Structure Description) | `.ssd` | SSP1 | Active |
+| SSV (Parameter Set) | `.ssv` | SSP1, SSP2* | Active (SSP1 only) |
+| SSM (Parameter Mapping) | `.ssm` | SSP1 | Active |
+| SSB (Signal Dictionary) | `.ssb` | SSP1 | Active |
+| SRMD (Simulation Resource MetaData) | `.srmd` | SSP1 | Active |
+| FMU (Functional Mock-up Unit) | `.fmu` | FMI2, FMI3* | Active (FMI2 only) |
+| Model Description | `modelDescription.xml` | FMI2, FMI3* | Active (FMI2 only) |
+| LS-REF Manifest | `manifest.xml` | LS-REF | Active |
+| LS-REF Experiments | `experiments.xml` | LS-REF | Active |
 
-```
+\* = skeleton (not yet implemented)
+
+---
+
+## Layer Architecture
+
+```text
 ┌─────────────────────────────────────────────┐
 │              Public API Facades             │
 │  SSP │ SSD │ SSV │ SSM │ FMU │ MD │ SRMD   │
@@ -67,33 +103,38 @@ product-breakdown/
 
 \* = skeleton (not yet implemented)
 
-### Document Types
+---
 
-| Type | Extension | Standards | Status |
-|------|-----------|-----------|--------|
-| SSP (System Structure Package) | `.ssp` | SSP1 | Active |
-| SSD (System Structure Description) | `.ssd` | SSP1 | Active |
-| SSV (Parameter Set) | `.ssv` | SSP1, SSP2* | Active (SSP1 only) |
-| SSM (Parameter Mapping) | `.ssm` | SSP1 | Active |
-| SSB (Signal Dictionary) | `.ssb` | SSP1 | Active |
-| SRMD (Simulation Resource MetaData) | `.srmd` | SSP1 | Active |
-| FMU (Functional Mock-up Unit) | `.fmu` | FMI2, FMI3* | Active (FMI2 only) |
-| Model Description | `modelDescription.xml` | FMI2, FMI3* | Active (FMI2 only) |
-| LS-REF Manifest | `manifest.xml` | LS-REF | Active |
-| LS-REF Experiments | `experiments.xml` | LS-REF | Active |
+## Traceability Chain
+
+```text
+00-intent (purpose, users, constraints)
+  -> 01-product (scope, capabilities, domain model)
+    -> 02-architecture (quality, context, components)
+      -> 03-implementation (code structure, interfaces)
+        -> 04-verification (tests, acceptance, traceability)
+          -> 05-operation (runbook, support)
+            -> 06-evolution (backlog, improvement candidates)
+```
+
+Each layer documents decisions that affect the layer below.
+See `traceability-map.md` for concrete paths from intent to code.
 
 ---
 
 ## Key References
 
-- **Product structure details:** `06-evolution/improvement-backlog.md`
+- **Improvement backlog:** `06-evolution/improvement-backlog.md`
 - **Architecture decisions:** `docs/dev/architecture.md`
 - **Current status:** `docs/dev/repo_status.md`
 - **Code map:** `docs/dev/repo_map.md`
-- **Improvement candidates:** `06-evolution/candidates/`
+- **Decision index:** `decision-log.md`
+- **Traceability map:** `traceability-map.md`
 
 ---
 
-*This product breakdown was initialized from the Improvement Workflow analysis (2026-05-20).
-The structure is intentionally partial — each subdirectory (`01-overview`, `02-features`, etc.)
-will be populated as product-definition work is done.*
+*This product breakdown uses the standard layer structure:
+00-intent → 01-product → 02-architecture → 03-implementation →
+04-verification → 05-operation → 06-evolution.*
+
+*Last updated: 2026-05-20*
