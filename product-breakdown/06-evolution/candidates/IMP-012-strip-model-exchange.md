@@ -23,7 +23,7 @@ Users who have an FMU supporting both `me` and `cs` may need to strip the `me` c
 
 ## Proposed Improvement
 
-Add a method or option on `ModelDescription` to remove the Model Exchange capability, leaving only Co-Simulation. This would modify the `modelDescription.xml` to remove the `fmiModelDescription.attributes.canBeInstantiatedOnlyOncePerProcess` and related ME-specific attributes/sections.
+Add a method or option on `ModelDescription` to remove the Model Exchange capability, leaving only Co-Simulation. This would modify the `modelDescription.xml` to remove the ME-specific attributes/sections.
 
 ## Expected Benefit
 

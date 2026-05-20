@@ -8,7 +8,7 @@
 > full guarded workflow (planner → discovery → contract → architecture →
 > lessons → packet → builder → verifier → review → gate → reporter).
 >
-> **Last updated:** 2026-05-20
+> **Last updated:** 2026-05-20 (split IMP-011 into IMP-011 + IMP-013)
 
 ---
 
@@ -16,10 +16,10 @@
 
 | Priority | Open | In Progress | Done | Total |
 |----------|------|-------------|------|-------|
-| High     | 4    | 0           | 0    | 4     |
+| High     | 5    | 0           | 0    | 5     |
 | Medium   | 3    | 0           | 0    | 3     |
 | Low      | 5    | 0           | 0    | 5     |
-| **Total**| **12**| **0**       | **0**| **12**|
+| **Total**| **13**| **0**       | **0**| **13**|
 
 ---
 
@@ -37,8 +37,9 @@
 | IMP-008 | Remove empty layer_example directory | Low | Documentation | candidate |
 | IMP-009 | Add SRMD and SSB to quick-start docs | Low | Documentation | candidate |
 | IMP-010 | Fill FMI3 skeleton codec/model/validation | Low | Version-Specific (FMI3) | candidate |
-| IMP-011 | Add option to flatten nested SSP archives | Low | Archive | candidate |
+| IMP-011 | Support nested `<System>` in SSD model and codec | High | Domain Model / Codec | candidate |
 | IMP-012 | Add option to remove Model Exchange from ModelDescription | Low | Public API | candidate |
+| IMP-013 | Flatten hierarchical SSD into single-level system structure | Low | Operations | candidate |
 
 ---
 
