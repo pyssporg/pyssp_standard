@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from pyssp_standard.common.document_runtime import DocumentRuntime, ExternalReferenceSpec
 from pyssp_standard.standard.ssp1.codec.ssd_codec import Ssp1SsdCodec
 from pyssp_standard.standard.ssp1.operations.ssd_parameters import extend_component_parametersets
 from pyssp_standard.standard.ssp1.model.ssd_model import (
@@ -12,15 +11,12 @@ from pyssp_standard.standard.ssp1.model.ssd_model import (
     Ssd1Connector,
     Ssd1DefaultExperiment,
     Ssd1ParameterBinding,
-    Ssd1ParameterMappingReference,
     Ssd1SystemStructureDescription,
     Ssd1System,
 )
 from pyssp_standard.standard.ssp1.validation import Ssp1SsdValidator
 from pyssp_standard.common.xml_document import XmlDocument
-from pyssp_standard.common.archive_runtime import DirectoryRuntime
-from pyssp_standard.ssm import SSM
-from pyssp_standard.ssv import SSV
+
 from pyssp_standard.standard.ssp1.model.ssc_model import Ssp1DocumentMetadata
 from pyssp_standard.standard.ssp1.model.ssv_model import Ssp1Parameter
 
@@ -87,31 +83,4 @@ class SSD(XmlDocument[Ssd1SystemStructureDescription]):
         )
 
 
-EXTERNAL_REFERENCE_SPECS = (
-    ExternalReferenceSpec(
-        owner_type=Ssd1ParameterBinding,
-        source_attr="source",
-        document_attr="parameter_set",
-        facade_type=SSV,
-    ),
-    ExternalReferenceSpec(
-        owner_type=Ssd1ParameterMappingReference,
-        source_attr="source",
-        document_attr="mapping",
-        facade_type=SSM,
-    ),
-)
 
-# ----TODO: All Specialized runtime should be inlined....
-
-class SsdRuntime(DocumentRuntime[SSD]):
-    """Archive-level SSD facade with dependency resolution."""
-
-    def __init__(self, runtime: DirectoryRuntime, ssd_path: str = "SystemStructure.ssd", mode: str = "r"):
-        super().__init__(
-            runtime,
-            document_path=ssd_path,
-            document_type=SSD,
-            external_reference_specs=EXTERNAL_REFERENCE_SPECS,
-            mode=mode,
-        )

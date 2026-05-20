@@ -7,15 +7,17 @@ from pyssp_standard.standard.operations.model_description_to_ssd import (
     create_component_from_model_description,
 )
 from pyssp_standard.ls_ref import (
-    LSRefExperimentsRuntime,
     LS_REF_EXTRA_DIR,
     LSRefExperiment,
+    LSRefExperiments,
 )
 from pyssp_standard.standard.ssp1.model.ssd_model import Ssd1System
 from pyssp_standard.standard.ssp1.operations.model_description_to_ssd import (
     add_component_to_system_structure,
 )
-from pyssp_standard.ssd import ParameterBinding, SsdRuntime
+from pyssp_standard.ssd import ParameterBinding, SSD
+from pyssp_standard.common.document_runtime import DocumentRuntime
+from pyssp_standard.common.reference_specs import EXTERNAL_REFERENCE_SPECS
 from pyssp_standard.common.archive_runtime import (
     DirectoryRuntime,
     create_runtime,
@@ -107,17 +109,22 @@ class SSP:
     def remove_resource(self, resource_name: str) -> None:
         self.runtime.remove_file(f"resources/{resource_name}")
 
-    def system_structure(self, path="SystemStructure.ssd") -> SsdRuntime:
-        return SsdRuntime(
-            self.runtime, ssd_path=path, mode="a" if self.mode == "w" else self.mode
+    def system_structure(self, path="SystemStructure.ssd") -> DocumentRuntime[SSD]:
+        return DocumentRuntime[SSD](
+            self.runtime,
+            document_path=path,
+            document_type=SSD,
+            external_reference_specs=EXTERNAL_REFERENCE_SPECS,
+            mode="a" if self.mode == "w" else self.mode,
         )
 
     def ls_ref_experiments(
         self, path=f"{LS_REF_EXTRA_DIR}/experiments.xml"
-    ) -> LSRefExperimentsRuntime:
-        return LSRefExperimentsRuntime(
+    ) -> DocumentRuntime[LSRefExperiments]:
+        return DocumentRuntime[LSRefExperiments](
             self.runtime,
-            experiments_path=path,
+            document_path=path,
+            document_type=LSRefExperiments,
             mode="a" if self.mode == "w" else self.mode,
         )
 

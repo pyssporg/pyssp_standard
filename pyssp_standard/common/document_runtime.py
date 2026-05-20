@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Generic, TypeVar
 
 from pyssp_standard.common.archive_runtime import DirectoryRuntime
+from pyssp_standard.common.reference_discovery import discover_external_references
 
 
 FacadeT = TypeVar("FacadeT")
@@ -96,37 +97,8 @@ class DocumentRuntime(Generic[FacadeT]):
             self._set_attr(owner, spec.document_attr, None)
 
 
-# ---- TODO: break out the reference discovery to test separately ....
- 
-
     def _iter_external_reference_targets(self, root: Any):
-        visited: set[int] = set()
-        stack = [root]
-        while stack:
-            current = stack.pop()
-            if current is None:
-                continue
-            current_id = id(current)
-            if current_id in visited:
-                continue
-            visited.add(current_id)
-
-            for spec in self._external_reference_specs:
-                if isinstance(current, spec.owner_type):
-                    source = self._get_attr(current, spec.source_attr)
-                    if source:
-                        yield current, spec
-
-            if is_dataclass(current):
-                stack.extend(value for value in vars(current).values() if not self._is_leaf_value(value))
-                continue
-
-            if isinstance(current, dict):
-                stack.extend(value for value in current.values() if not self._is_leaf_value(value))
-                continue
-
-            if isinstance(current, (list, tuple, set)):
-                stack.extend(value for value in current if not self._is_leaf_value(value))
+        return discover_external_references(root, self._external_reference_specs)
 
     def _load_external_document(self, owner: Any, spec: ExternalReferenceSpec) -> _ResolvedExternalDocument | None:
         source = self._get_attr(owner, spec.source_attr)

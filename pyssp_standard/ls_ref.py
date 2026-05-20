@@ -3,8 +3,6 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from pyssp_standard.common.archive_runtime import DirectoryRuntime
-from pyssp_standard.common.document_runtime import DocumentRuntime
 from pyssp_standard.common.xml_document import XmlDocument
 from pyssp_standard.standard.ls_ref.codec import LSRefExperimentsCodec, LSRefManifestCodec
 from pyssp_standard.standard.ls_ref.model import (
@@ -55,18 +53,4 @@ class LSRefExperiments(XmlDocument[LSRefExperimentsDocument]):
             experiments.check_compliance()
 
 
-class LSRefExperimentsRuntime(DocumentRuntime[LSRefExperiments]):
-    """Archive-level LS-REF experiments facade."""
 
-    def __init__(
-        self,
-        runtime: DirectoryRuntime,
-        experiments_path: str = f"{LS_REF_EXTRA_DIR}/experiments.xml",
-        mode: str = "r",
-    ):
-        super().__init__(
-            runtime,
-            document_path=experiments_path,
-            document_type=LSRefExperiments,
-            mode=mode,
-        )

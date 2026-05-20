@@ -16,10 +16,10 @@
 
 | Priority | Open | In Progress | Done | Total |
 |----------|------|-------------|------|-------|
-| High     | 5    | 0           | 0    | 5     |
-| Medium   | 3    | 0           | 0    | 3     |
-| Low      | 5    | 0           | 0    | 5     |
-| **Total**| **13**| **0**       | **0**| **13**|
+| High     | 2    | 0           | 3    | 5     |
+| Medium   | 1    | 0           | 2    | 3     |
+| Low      | 3    | 0           | 2    | 5     |
+| **Total**| **6** | **0**       | **7**| **13**|
 
 ---
 
@@ -27,19 +27,19 @@
 
 | ID | Title | Priority | Layer | Status |
 |----|-------|----------|-------|--------|
-| IMP-001 | Consolidate DocumentRuntime subclasses | High | Orchestration | candidate |
-| IMP-002 | Extract reference discovery from DocumentRuntime | High | Orchestration | candidate |
-| IMP-003 | Unify EXTERNAL_REFERENCE_SPECS | High | Orchestration | candidate |
+| IMP-001 | Consolidate DocumentRuntime subclasses | High | Orchestration | done |
+| IMP-002 | Extract reference discovery from DocumentRuntime | High | Orchestration | done |
+| IMP-003 | Unify EXTERNAL_REFERENCE_SPECS | High | Orchestration | done |
 | IMP-004 | Route facades through version_routing | High | Public API / Versioning | candidate |
 | IMP-005 | Implement SSP2 SSV stack | Medium | Version-Specific (SSP2) | candidate |
 | IMP-006 | Reconcile generated-binding metadata | Medium | Versioning / Tools | candidate |
-| IMP-007 | Add explicit test coverage for DocumentRuntime | Medium | Testing | candidate |
-| IMP-008 | Remove empty layer_example directory | Low | Documentation | candidate |
+| IMP-007 | Add explicit test coverage for DocumentRuntime | Medium | Testing | done |
+| IMP-008 | Remove empty layer_example directory | Low | Documentation | done |
 | IMP-009 | Add SRMD and SSB to quick-start docs | Low | Documentation | candidate |
 | IMP-010 | Fill FMI3 skeleton codec/model/validation | Low | Version-Specific (FMI3) | candidate |
-| IMP-011 | Support nested `<System>` in SSD model and codec | High | Domain Model / Codec | candidate |
-| IMP-012 | Add option to remove Model Exchange from ModelDescription | Low | Public API | candidate |
-| IMP-013 | Flatten hierarchical SSD into single-level system structure | Low | Operations | candidate |
+| IMP-011 | Support nested `<System>` in SSD model and codec | High | Domain Model / Codec | done |
+| IMP-012 | Add option to remove Model Exchange from ModelDescription | Low | Public API | done |
+| IMP-013 | Flatten hierarchical SSD into single-level system structure | Low | Operations | done |
 
 ---
 
@@ -59,12 +59,12 @@ orchestration → thin public facades.
 pyssp_standard/
 ├── __init__.py                    # Public API surface exports
 ├── ssp.py                         # SSP archive entry point (context-managed)
-├── ssd.py                         # SSD facade + SsdRuntime
+├── ssd.py                         # SSD facade
 ├── ssv.py                         # SSV (ParameterSet) facade
 ├── ssm.py                         # SSM (ParameterMapping) facade
 ├── fmu.py                         # FMU archive entry point + package_as_ssp()
 ├── md.py                          # ModelDescription facade
-├── ls_ref.py                      # LSRefManifest + LSRefExperiments + Runtime
+├── ls_ref.py                      # LSRefManifest + LSRefExperiments
 ├── srmd.py                        # SRMD facade
 ├── ssb.py                         # SSB facade
 ├── todo.md                        # Known technical debt notes
@@ -74,6 +74,8 @@ pyssp_standard/
 │   ├── archive_runtime.py         #   Context-managed archive runtime
 │   ├── directory_runtime.py       #   Directory-based file runtime
 │   ├── document_runtime.py        #   Cross-document reference resolution
+│   ├── reference_specs.py         #   External reference specifications (SSV, SSM)
+│   ├── reference_discovery.py     #   Standalone external reference discovery
 │   ├── xml_document.py            #   Base XmlDocument[T] facade
 │   └── xml_schema_validation.py   #   XSD-backed XML validator
 │
@@ -123,7 +125,7 @@ pyssp_standard/
 | Layer | Responsibility | Primary Location |
 |-------|---------------|-----------------|
 | **Public API** | Thin user-facing facades | `ssp.py`, `ssd.py`, `ssv.py`, `ssm.py`, `fmu.py`, `md.py`, `ls_ref.py`, `srmd.py`, `ssb.py` |
-| **Orchestration** | Cross-file resolution, archive-aware sessions | `common/document_runtime.py`, `ssp.py` (SsdRuntime) |
+| **Orchestration** | Cross-file resolution, archive-aware sessions | `common/document_runtime.py`, `common/reference_discovery.py` |
 | **Archive** | Zip unpack/repack, directory abstraction | `common/archive.py`, `common/archive_runtime.py`, `common/directory_runtime.py` |
 | **Codec** | XML parse/serialize per document type | `standard/<family>/codec/` |
 | **Domain Model** | In-memory dataclass shapes | `standard/<family>/model/` |
@@ -147,7 +149,6 @@ Exported from `__init__.py`:
 | `SSB` | `ssb.py` |
 | `LSRefManifest` | `ls_ref.py` |
 | `LSRefExperiments` | `ls_ref.py` |
-| `LSRefExperimentsRuntime` | `ls_ref.py` |
 | `LS_REF_EXTRA_DIR` (constant) | `ls_ref.py` |
 | `get_repo_root()` (function) | `__init__.py` |
 
@@ -160,6 +161,7 @@ pytest/
 │   ├── codec/                     # XML round-trip tests
 │   ├── facade/                    # Public API tests
 │   └── orchestration/             # Archive-aware workflow tests
+├── common/                       # Common layer tests (reference discovery, etc.)
 ├── fmi2/
 │   ├── archive/                   # FMU workflow tests
 │   ├── codec/                     # ModelDescription codec tests
@@ -203,18 +205,18 @@ docs/
 | G4 | Facades hardcode codecs instead of version routing | Architecture | Adding version requires facade change |
 | G5 | No end-user CLI | Missing feature | Python API only |
 | G6 | No cross-standard integration tests | Test gap | Risk of regression |
-| G7 | DocumentRuntime reference discovery untestable | Code quality | Cannot unit-test reference discovery |
-| G8 | Specialized runtimes should be inlined | Code quality | Duplicated boilerplate |
-| G9 | EXTERNAL_REFERENCE_SPECS duplicated | Code quality | Import dependency issue |
+| G7 | DocumentRuntime reference discovery untestable | Code quality | (resolved - IMP-002) |
+| G8 | Specialized runtimes should be inlined | Code quality | (resolved - IMP-001) |
+| G9 | EXTERNAL_REFERENCE_SPECS duplicated | Code quality | (resolved - IMP-003) |
 | G10 | Loose coupling between facade and codec/validator | Architecture | Bypasses routing abstraction |
 | G11 | SSP2 SSV registered but not implemented | Missing impl | Dead registration |
-| G12 | ls_ref.py and ssd.py define near-identical runtimes | Code quality | Duplication |
+| G12 | ls_ref.py and ssd.py define near-identical runtimes | Code quality | (resolved - G12 merged into IMP-001) |
 | G13 | No SSP2/FMI3 user docs | Doc gap | Unclear version support |
-| G14 | Empty layer_example directory | Doc gap | Dead directory |
+| G14 | Empty layer_example directory | Doc gap | (directory already removed) |
 | G15 | SRMD/SSB not in quick-start | Doc gap | Hidden capability |
 | G16 | No CLI docs | Doc gap | No discoverable CLI path |
 | G17 | No SSP2/FMI3 tests | Test gap | No coverage |
-| G18 | No dedicated document_runtime tests | Test gap | TODO noted in source |
+| G18 | No dedicated document_runtime tests | Test gap | (resolved - IMP-007) |
 | G19 | No benchmarks | Test gap | Performance regression risk |
 
 ---
@@ -225,12 +227,12 @@ docs/
    directly instead of querying `version_routing.py`. The routing layer
    exists but is not the universal dispatch mechanism.
 
-2. **DocumentRuntime subclass sprawl** — `SsdRuntime` and
-   `LSRefExperimentsRuntime` are thin subclasses with near-identical logic.
-   `todo.md` flags these as unnecessary.
+2. **DocumentRuntime subclass sprawl** — Resolved (IMP-001): `SsdRuntime` and
+   `LSRefExperimentsRuntime` have been removed. Both are now direct uses of
+   `DocumentRuntime[...]`.
 
-3. **Reference specs duplicated** — `EXTERNAL_REFERENCE_SPECS` is local to
-   `ssd.py` but needed by `common/document_runtime.py`.
+3. **Reference specs duplicated** — Resolved (IMP-003): `EXTERNAL_REFERENCE_SPECS`
+   moved to `common/reference_specs.py`.
 
 4. **SSP2/FMI3 skeletons** — Directory structure exists for SSP2 and FMI3
    but has no implementation. The version routing already references SSP2 SSV.

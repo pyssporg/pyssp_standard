@@ -9,12 +9,12 @@
 pyssp_standard/
 ├── __init__.py              # Public API exports + get_repo_root()
 ├── ssp.py                   # SSP archive facade (context-managed)
-├── ssd.py                   # SSD facade + SsdRuntime + EXTERNAL_REFERENCE_SPECS
+├── ssd.py                   # SSD facade
 ├── ssv.py                   # SSV ParameterSet facade
 ├── ssm.py                   # SSM ParameterMapping facade
 ├── fmu.py                   # FMU archive facade + package_as_ssp()
 ├── md.py                    # ModelDescription facade
-├── ls_ref.py                # LSRefManifest + LSRefExperiments + Runtime
+├── ls_ref.py                # LSRefManifest + LSRefExperiments
 ├── srmd.py                  # SRMD facade
 ├── ssb.py                   # SSB facade
 ├── todo.md                  # Known technical debt notes (2 items)
@@ -24,6 +24,8 @@ pyssp_standard/
 │   ├── archive_runtime.py   #   Context-managed archive runtime + create_runtime()
 │   ├── directory_runtime.py #   Directory-based file runtime
 │   ├── document_runtime.py  #   Cross-document reference resolution
+│   ├── reference_specs.py   #   External reference specifications (SSV, SSM)
+│   ├── reference_discovery.py #   Standalone external reference discovery
 │   ├── xml_document.py      #   Base XmlDocument[T] facade (shared lifecycle)
 │   └── xml_schema_validation.py  # XSD-backed validation
 │
@@ -85,9 +87,11 @@ pyssp_standard/
    This pattern is consistent across `SSD`, `SSM`, `MD`, `SRMD`, `SSB`, `LSRefManifest`,
    `LSRefExperiments`.
 
-3. **DocumentRuntime subclasses**: `SsdRuntime` and `LSRefExperimentsRuntime` are
-   near-identical wrappers over `DocumentRuntime`. Both are flagged as candidates
-   for inlining (`todo.md`).
+3. **Extracted reference discovery**: `discover_external_references()` in
+   `common/reference_discovery.py` is a pure function extracted from
+   `DocumentRuntime._iter_external_reference_targets`, making the tree-walking
+   logic independently testable. `EXTERNAL_REFERENCE_SPECS` moved to
+   `common/reference_specs.py`.
 
 4. **Version routing archive**: `version_routing.py` registers `ParseStackSpec`s for
    10 standard/format/version combinations, but facades do not use it for dispatch.
@@ -97,7 +101,7 @@ pyssp_standard/
 | Layer | Files | Estimated LOC |
 |-------|-------|---------------|
 | Top-level facades | 9 | ~450 |
-| Common | 6 | ~450 |
+| Common | 8 | ~500 |
 | Standard/SSP1 | 22 | ~3,500 |
 | Standard/FMI2 | 3 | ~500 |
 | Standard/LS-REF | 6 | ~300 |
@@ -109,5 +113,5 @@ pyssp_standard/
 
 - All modules listed above exist at the paths shown
 - All facade `__init__` methods show direct codec/validator instantiation
-- `todo.md`: "All Specialized runtime should be inlined"
-- `common/document_runtime.py` line 99: TODO to extract reference discovery
+- `todo.md`: both TODOs resolved (IMP-001, IMP-003)
+- `common/document_runtime.py`: reference discovery extracted to `reference_discovery.py` (IMP-002)
