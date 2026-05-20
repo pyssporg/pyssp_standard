@@ -44,4 +44,4 @@
 - `README.md`: package positioning
 - All facade modules: none use network or external service
 - `pyssp_standard/schema/`: vendored XSD files
-- `docs/dev/architecture.md`: purpose section
+- `02-architecture/layer-rules.md`: purpose and boundaries

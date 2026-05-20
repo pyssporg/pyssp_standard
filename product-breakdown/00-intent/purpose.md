@@ -47,6 +47,6 @@ XML parsing from domain logic.
 ## Evidence
 
 - `README.md`: "a Python package for inspecting and editing SSP-related files"
-- `docs/dev/architecture.md`: layered XML-document workflow
+- `02-architecture/layer-rules.md`: layered XML-document workflow
 - `pyssp_standard/__init__.py`: 12 public symbols across 9 source modules
-- `docs/dev/requirements.md`: behavioral requirements baseline
+- `04-verification/acceptance-criteria.md`: behavioral requirements baseline

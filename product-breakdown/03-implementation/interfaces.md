@@ -119,3 +119,27 @@ class Ssp1SsvValidator:
 - `common/xml_document.py`: base class
 - `common/document_runtime.py`: generic orchestration
 - `common/archive_runtime.py`: `create_runtime()` dispatch
+
+## Quick Lookup: Concern to Code Home
+
+| Concern | Primary Code Home |
+|---------|-------------------|
+| Archive and directory runtimes | `common/archive_runtime.py`, `common/directory_runtime.py`, `common/document_runtime.py` |
+| Public facades | `ssp.py`, `ssd.py`, `ssm.py`, `ssv.py`, `fmu.py`, `md.py` |
+| Cross-standard composition | `standard/operations/model_description_to_ssd.py` |
+| SSP1 codecs | `standard/ssp1/codec/` |
+| SSP1 models | `standard/ssp1/model/` |
+| SSP1 operations | `standard/ssp1/operations/` |
+| Validation | `standard/ssp1/validation/`, `standard/fmi2/validation/` |
+| Shared XML helpers | `common/xml_document.py`, `standard/ssp1/codec/xml_utils.py` |
+| Test fixtures | `pytest/` and `models/ssp/` |
+
+### Where to Start for Specific Changes
+
+| Change | Start At |
+|--------|----------|
+| Archive-aware `.ssp` workflows | `ssp.py`, `common/document_runtime.py` |
+| Cross-standard model conversion | `standard/operations/model_description_to_ssd.py` |
+| Standalone SSD document shape | `standard/ssp1/model/ssd_model.py`, `standard/ssp1/codec/ssd_codec.py` |
+| Parameter bindings or mappings | `standard/ssp1/operations/ssd_parameter_bindings.py` |
+| SSP1-only system assembly | `standard/ssp1/operations/model_description_to_ssd.py` |

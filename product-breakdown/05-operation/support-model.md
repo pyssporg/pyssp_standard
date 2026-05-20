@@ -26,10 +26,6 @@ best-effort basis.
 
 - No formal versioning or changelog yet (see `product-breakdown/decision-log.md`)
 - API stability is not guaranteed; interfaces may change
-- `docs/dev/repo_status.md` tracks current implementation state
-
-## Evidence
-
-- `README.md`: "This is an experimental software"
-- `docs/dev/guidelines.md`: "Interfaces do not need to be stable"
+- `02-architecture/quality-attributes.md` tracks current implementation state
+- `03-implementation/code-structure.md`: "Interfaces do not need to be stable"
 - `AGENTS.md`: "This is an experimental software, this means: Interfaces do not need to be stable"

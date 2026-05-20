@@ -37,5 +37,5 @@
 ## Evidence
 
 - All test files under `pytest/`
-- `docs/dev/requirements.md`: requirements baseline
+- `04-verification/acceptance-criteria.md`: requirements baseline
 - `pytest/conftest.py`: fixture configuration for each test category

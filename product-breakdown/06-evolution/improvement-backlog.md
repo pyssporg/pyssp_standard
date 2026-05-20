@@ -18,8 +18,8 @@
 |----------|------|-------------|------|-------|
 | High     | 4    | 0           | 0    | 4     |
 | Medium   | 3    | 0           | 0    | 3     |
-| Low      | 3    | 0           | 0    | 3     |
-| **Total**| **10**| **0**       | **0**| **10**|
+| Low      | 5    | 0           | 0    | 5     |
+| **Total**| **12**| **0**       | **0**| **12**|
 
 ---
 
@@ -37,6 +37,8 @@
 | IMP-008 | Remove empty layer_example directory | Low | Documentation | candidate |
 | IMP-009 | Add SRMD and SSB to quick-start docs | Low | Documentation | candidate |
 | IMP-010 | Fill FMI3 skeleton codec/model/validation | Low | Version-Specific (FMI3) | candidate |
+| IMP-011 | Add option to flatten nested SSP archives | Low | Archive | candidate |
+| IMP-012 | Add option to remove Model Exchange from ModelDescription | Low | Public API | candidate |
 
 ---
 

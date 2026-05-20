@@ -39,5 +39,5 @@ distinct layers to support reuse and testability.
 
 - `product-breakdown/index.md`: document types table with status
 - `pyssp_standard/__init__.py`: 12 exported symbols
-- `docs/dev/repo_status.md`: layer status per standard family
-- `docs/dev/requirements.md`: scope paragraph
+- `02-architecture/quality-attributes.md`: layer status per standard family
+- `04-verification/acceptance-criteria.md`: scope paragraph

@@ -6,13 +6,13 @@ Keep repository context narrow. Do not scan the whole repo by default.
 
 Read in this order:
 - `AGENTS.md`
-- `docs/dev/repo_map.md`
+- `product-breakdown/03-implementation/code-structure.md`
 - `pyssp_standard/__init__.py`
 - the specific module under `pyssp_standard/` that matches the task
 - the smallest relevant test under `pytest/`
 - `README.md` only for package positioning, not for implementation details
 
-Use `docs/dev/repo_map.md` for first-pass orientation. Do not open `pyssp_standard/__README__.md` unless the task needs architectural background beyond the repo map.
+Use `product-breakdown/03-implementation/code-structure.md` for first-pass orientation. Do not open `pyssp_standard/__README__.md` unless the task needs architectural background beyond the repo map.
 
 Default working set:
 - `pyssp_standard/`

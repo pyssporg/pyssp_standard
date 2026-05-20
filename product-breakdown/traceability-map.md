@@ -27,34 +27,9 @@ patterns are clear; gaps are marked explicitly.*
 INT-001 Inspect and edit SSP artifacts
   -> CAP-001 SSP archive read/write
     -> UC-001 Open SSP archive, inspect resources
-      -> REQ-001 Read SSP archives in r/a/w modes (docs/dev/requirements.md)
-        -> PD-001 Layered facade pattern
-          -> AD-001 Archive layer owns I/O, not semantics
-            -> impl: pyssp_standard/common/archive.py, archive_runtime.py
-              -> TEST: pytest/ssp1/orchestration/test_ssp.py
-```
-
-### SSV Parameter Set
-
-```text
-INT-001 Inspect and edit SSP artifacts
-  -> CAP-002 Parameter set read/create/edit/validate
-    -> UC-002 Read standalone .ssv, inspect parameters
-      -> REQ-002 Read-modify-write preserves parameter order (docs/dev/requirements.md)
-        -> AD-003 Direct ElementTree codec preserves element order
-          -> impl: pyssp_standard/standard/ssp1/codec/ssv_codec.py
-          -> model: pyssp_standard/standard/ssp1/model/ssv_model.py
-            -> TEST: pytest/ssp1/codec/test_ssv_xml_codec.py
-            -> TEST: pytest/ssp1/facade/test_ssv.py
-```
-
-### Cross-Document Resolution
-
-```text
-INT-002 Resolve external references in archive context
-  -> CAP-003 Archive-aware external reference resolution
-    -> UC-003 Open .ssp, resolve referenced .ssv/.ssm files
-      -> REQ-003 External .ssv/.ssm resolved when files exist (docs/dev/requirements.md)
+-> REQ-001 Read SSP archives in r/a/w modes
+      -> REQ-002 Read-modify-write preserves parameter order
+      -> REQ-003 External .ssv/.ssm resolved when files exist
         -> AD-002 DocumentRuntime owns cross-file resolution
           -> impl: pyssp_standard/common/document_runtime.py
             -> TEST: pytest/ssp1/orchestration/test_ssp.py (indirect)

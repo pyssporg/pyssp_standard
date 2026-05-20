@@ -32,4 +32,4 @@
 
 - `pyssp_standard/__init__.py`: full public API surface
 - All facade modules under `pyssp_standard/`: thin wrappers over shared behavior
-- `docs/dev/repo_status.md`: active vs. skeleton status
+- `02-architecture/quality-attributes.md`: active vs. skeleton status

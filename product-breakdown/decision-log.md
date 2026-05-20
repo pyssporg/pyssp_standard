@@ -15,7 +15,7 @@ that should be formalized as separate decision files.*
 | ID | Title | Layer | Status | Location | Related Artifacts |
 |----|-------|-------|--------|----------|-------------------|
 | PD-001 | Public facades hardcode codec/validator (implicit) | Product | Explicit | `03-implementation/interfaces.md` | `pyssp_standard/ssv.py`, `ssd.py`, `ssm.py`, `md.py`, `srmd.py`, `ssb.py` |
-| AD-001 | Layered XML-document workflow architecture (implicit) | Architecture | Explicit | `02-architecture/component-view.md` | `docs/dev/architecture.md`, `02-architecture/component-view.md` |
+| AD-001 | Layered XML-document workflow architecture (implicit) | Architecture | Explicit | `02-architecture/component-view.md` | `02-architecture/layer-rules.md`, `02-architecture/component-view.md` |
 | AD-002 | Version routing exists but facades bypass it (implicit) | Architecture | Active | `02-architecture/quality-attributes.md` | `standard/version_routing.py`, `06-evolution/improvement-backlog.md` (G4, G10) |
 | AD-003 | Direct ElementTree codecs instead of generated bindings (implicit) | Implementation | Explicit | `03-implementation/interfaces.md` | `standard/ssp1/codec/`, `standard/fmi2/codec/` |
 | AD-004 | Dataclass domain models as canonical in-memory representation (implicit) | Implementation | Explicit | `03-implementation/code-structure.md` | `standard/ssp1/model/`, `standard/fmi2/model/` |
@@ -26,11 +26,13 @@ that should be formalized as separate decision files.*
 
 The following topics need explicit decisions with formal records:
 
-- Which parts of the public API are stable vs. experimental (see `docs/dev/requirements.md`)
+- Which parts of the public API are stable vs. experimental
 - How missing XML files in `r` or `a` mode should be handled (error vs. implicit creation)
 - Whether compliance validation should be required before persistence in all workflows
 - How far annotation and extension preservation must go for unsupported content
 - Which malformed external references should fail loudly vs. degrade to `None`
+- Whether to expose a CLI (currently Python API only)
+- How to handle partial SSP2/FMI3 support at the facade level (error vs. feature-gated vs. auto-detect)
 
 ## Related
 

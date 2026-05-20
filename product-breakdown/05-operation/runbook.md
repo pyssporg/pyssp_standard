@@ -43,7 +43,7 @@ pytest -m tooling           # Tooling tests
 ## Documentation
 
 - User docs: `docs/getting_started.md`, `docs/user/python_api.md`
-- Dev docs: `docs/dev/repo_map.md`, `docs/dev/architecture.md`
+- Dev docs: `02-architecture/layer-rules.md`, `02-architecture/workflow.md`
 - Build docs locally: see `docs/integrations/read_the_docs.md`
 
 ## Debugging

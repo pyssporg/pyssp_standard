@@ -44,7 +44,7 @@ SSP Archive
 ## Model Principles
 
 - All active models are plain Python `dataclass` objects (see `standard/ssp1/model/*`).
-- Domain models reflect workflow concepts, not schema awkwardness (`docs/dev/architecture.md`).
+- Domain models reflect workflow concepts, not schema awkwardness (`02-architecture/layer-rules.md`).
 - Model objects are version-specific but share a common pattern: `__init__.py` re-exports.
 
 ## Evidence
@@ -52,4 +52,4 @@ SSP Archive
 - `standard/ssp1/model/ssd_model.py`, `ssv_model.py`, `ssm_model.py`, `ssb_model.py`, `srmd_model.py`
 - `standard/fmi2/model/model_description.py`
 - `standard/ls_ref/model/experiments.py`, `manifest.py`
-- `docs/dev/architecture.md`: "Domain models should reflect workflow concepts"
+- `02-architecture/layer-rules.md`: "Domain models should reflect workflow concepts"

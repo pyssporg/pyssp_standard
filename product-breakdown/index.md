@@ -49,7 +49,9 @@ product-breakdown/
         ├── IMP-007-document-runtime-test-coverage.md
         ├── IMP-008-remove-empty-layer-example-directory.md
         ├── IMP-009-add-srmd-ssb-to-quickstart.md
-        └── IMP-010-fill-fmi3-skeleton.md
+        ├── IMP-010-fill-fmi3-skeleton.md
+        ├── IMP-011-add-ssp-flatten.md
+        └── IMP-012-strip-model-exchange.md
 ```
 
 ---
@@ -125,9 +127,9 @@ See `traceability-map.md` for concrete paths from intent to code.
 ## Key References
 
 - **Improvement backlog:** `06-evolution/improvement-backlog.md`
-- **Architecture decisions:** `docs/dev/architecture.md`
-- **Current status:** `docs/dev/repo_status.md`
-- **Code map:** `docs/dev/repo_map.md`
+- **Layer rules:** `02-architecture/layer-rules.md`
+- **Current status:** `02-architecture/quality-attributes.md` (Layer Status)
+- **Code map:** `03-implementation/code-structure.md`
 - **Decision index:** `decision-log.md`
 - **Traceability map:** `traceability-map.md`
 
