@@ -8,7 +8,7 @@
 > full guarded workflow (planner → discovery → contract → architecture →
 > lessons → packet → builder → verifier → review → gate → reporter).
 >
-> **Last updated:** 2026-05-20 (split IMP-011 into IMP-011 + IMP-013)
+> **Last updated:** 2026-05-20 (final housekeeping — moved remaining IMP candidates to completed)
 
 ---
 
@@ -16,10 +16,10 @@
 
 | Priority | Open | In Progress | Done | Total |
 |----------|------|-------------|------|-------|
-| High     | 2    | 0           | 3    | 5     |
-| Medium   | 1    | 0           | 2    | 3     |
-| Low      | 3    | 0           | 2    | 5     |
-| **Total**| **6** | **0**       | **7**| **13**|
+| High     | 0    | 0           | 5    | 5     |
+| Medium   | 0    | 0           | 3    | 3     |
+| Low      | 0    | 0           | 5    | 5     |
+| **Total**| **0** | **0**       | **13**| **13**|
 
 ---
 
@@ -30,13 +30,13 @@
 | IMP-001 | Consolidate DocumentRuntime subclasses | High | Orchestration | done |
 | IMP-002 | Extract reference discovery from DocumentRuntime | High | Orchestration | done |
 | IMP-003 | Unify EXTERNAL_REFERENCE_SPECS | High | Orchestration | done |
-| IMP-004 | Route facades through version_routing | High | Public API / Versioning | candidate |
-| IMP-005 | Implement SSP2 SSV stack | Medium | Version-Specific (SSP2) | candidate |
-| IMP-006 | Reconcile generated-binding metadata | Medium | Versioning / Tools | candidate |
+| IMP-004 | Route facades through version_routing | High | Public API / Versioning | done |
+| IMP-005 | Implement SSP2 SSV stack | Medium | Version-Specific (SSP2) | done |
+| IMP-006 | Reconcile generated-binding metadata | Medium | Versioning / Tools | done |
 | IMP-007 | Add explicit test coverage for DocumentRuntime | Medium | Testing | done |
 | IMP-008 | Remove empty layer_example directory | Low | Documentation | done |
-| IMP-009 | Add SRMD and SSB to quick-start docs | Low | Documentation | candidate |
-| IMP-010 | Fill FMI3 skeleton codec/model/validation | Low | Version-Specific (FMI3) | candidate |
+| IMP-009 | Add SRMD and SSB to quick-start docs | Low | Documentation | done |
+| IMP-010 | Fill FMI3 skeleton codec/model/validation | Low | Version-Specific (FMI3) | done |
 | IMP-011 | Support nested `<System>` in SSD model and codec | High | Domain Model / Codec | done |
 | IMP-012 | Add option to remove Model Exchange from ModelDescription | Low | Public API | done |
 | IMP-013 | Flatten hierarchical SSD into single-level system structure | Low | Operations | done |
