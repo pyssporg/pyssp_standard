@@ -8,7 +8,7 @@
 > full guarded workflow (planner → discovery → contract → architecture →
 > lessons → packet → builder → verifier → review → gate → reporter).
 >
-> **Last updated:** 2026-05-20 (final housekeeping — moved remaining IMP candidates to completed)
+> **Last updated:** 2026-05-21 (added IMP-017 — automated version identification)
 
 ---
 
@@ -16,10 +16,10 @@
 
 | Priority | Open | In Progress | Done | Total |
 |----------|------|-------------|------|-------|
-| High     | 0    | 0           | 5    | 5     |
-| Medium   | 0    | 0           | 3    | 3     |
-| Low      | 0    | 0           | 5    | 5     |
-| **Total**| **0** | **0**       | **13**| **13**|
+| High     | 1    | 0           | 5    | 6     |
+| Medium   | 2    | 0           | 3    | 5     |
+| Low      | 1    | 0           | 5    | 6     |
+| **Total**| **4** | **0**       | **13**| **17**|
 
 ---
 
@@ -40,6 +40,10 @@
 | IMP-011 | Support nested `<System>` in SSD model and codec | High | Domain Model / Codec | done |
 | IMP-012 | Add option to remove Model Exchange from ModelDescription | Low | Public API | done |
 | IMP-013 | Flatten hierarchical SSD into single-level system structure | Low | Operations | done |
+| IMP-014 | Version-aware SSV facade through version routing | High | Public API | proposed |
+| IMP-015 | SSP2 SSV facade-level tests | Medium | Testing | proposed |
+| IMP-016 | SSP2 SSV inline parameter set support in SSD facade | Low | Domain Model / Operations | proposed |
+| IMP-017 | Automated standard version identification in XmlDocument | Medium | Public API / Versioning | proposed |
 
 ---
 
