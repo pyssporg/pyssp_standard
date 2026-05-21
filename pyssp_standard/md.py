@@ -1,23 +1,48 @@
+"""ModelDescription facade — version-aware through version routing."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
-from pyssp_standard.standard.fmi2.codec import Fmi2ModelDescriptionXmlCodec
-from pyssp_standard.standard.fmi2.model import Fmi2ModelDescriptionDocument
-from pyssp_standard.standard.fmi2.validation import Fmi2ModelDescriptionValidator
 from pyssp_standard.common.xml_document import XmlDocument
+from pyssp_standard.standard.fmi2.model import Fmi2ModelDescriptionDocument
+from pyssp_standard.standard.fmi3.model import (
+    Fmi3ModelDescriptionDocument,
+    Fmi3ScalarVariable,
+)
+from pyssp_standard.standard.version_routing import (
+    StandardVersion,
+    get_codec_and_validator,
+    get_standard_version_from_file,
+)
 
 _ME_ONLY_INTERFACE_ATTRIBUTES: frozenset[str] = frozenset({"completedIntegratorStepNotNeeded", "needsExecutionTool"})
 
 
-class ModelDescription(XmlDocument[Fmi2ModelDescriptionDocument]):
-    def __init__(self, path: str | Path | None = None, mode: str = "r"):
+class ModelDescription(XmlDocument[Fmi2ModelDescriptionDocument | Fmi3ModelDescriptionDocument]):
+    """ModelDescription facade — version-aware through version routing."""
 
+    def __init__(self, path: str | Path | None = None, mode: str = "r", version: str | None = None) -> None:
         super().__init__(path, mode)
-        self._codec = Fmi2ModelDescriptionXmlCodec()
-        self._validator = Fmi2ModelDescriptionValidator()
+        self._version = version or "2.0"
 
-    def _create_document(self) -> Fmi2ModelDescriptionDocument:
+        self._codec, self._validator = self.get_codec_and_validator("FMI", "MD")
+
+    def _create_document(self) -> Fmi2ModelDescriptionDocument | Fmi3ModelDescriptionDocument:
+        if self._version == "3.0":
+            return Fmi3ModelDescriptionDocument(
+                root=None,
+                fmi_version="3.0",
+                model_name=self.path.stem or "model",
+                instantiation_token=self.path.stem or "generated",
+                variables=[
+                    Fmi3ScalarVariable(
+                        name="auto_generated",
+                        value_reference=0,
+                        type_name="Float64",
+                    ),
+                ],
+            )
         return Fmi2ModelDescriptionDocument(
             root=None,
             fmi_version="2.0",
@@ -27,28 +52,16 @@ class ModelDescription(XmlDocument[Fmi2ModelDescriptionDocument]):
         )
 
     def strip_model_exchange(self) -> None:
-        """Convert a ModelExchange document to CoSimulation in-place.
-
-        Mutates:
-            - interface_type → "CoSimulation"
-            - Removes ME-only attributes from interface_attributes
-            - Clears model_structure.derivatives
-            - Sets number_of_event_indicators → None
-
-        No-op when interface_type is already "CoSimulation" or None.
-        Raises RuntimeError if document is not loaded.
-        """
+        """Convert a ModelExchange document to CoSimulation in-place. FMI2 only."""
+        if self._version != "2.0":
+            return
         if self.xml.interface_type == "CoSimulation":
             return
-
         if self.xml.interface_type is None:
             return
-
         self.xml.interface_type = "CoSimulation"
-
         for key in _ME_ONLY_INTERFACE_ATTRIBUTES:
             self.xml.interface_attributes.pop(key, None)
-
         self.xml.model_structure.derivatives.clear()
         self.xml.number_of_event_indicators = None
         self.check_compliance()

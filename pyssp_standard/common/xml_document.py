@@ -3,6 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Generic, TypeVar
 
+from pyssp_standard.standard.version_routing import (
+    StandardVersion,
+    get_codec_and_validator,
+    get_standard_version_from_file,
+)
 
 DocumentT = TypeVar("DocumentT")
 
@@ -16,6 +21,7 @@ class XmlDocument(Generic[DocumentT]):
         self._document: DocumentT | None = None
         self._codec = None
         self._validator = None
+        self._version = ""
 
     def __enter__(self):
         if self.mode == "w":
@@ -29,6 +35,20 @@ class XmlDocument(Generic[DocumentT]):
             self.check_compliance()
             self.save_document()
         return False
+
+    def get_codec_and_validator(self, family, format):
+        if self.mode != "w":
+            try:
+                sv = get_standard_version_from_file(self.path)
+                self._version = sv.version
+            except FileNotFoundError:
+                pass
+
+        # Dispatch codec and validator
+        codec_type, validator_type = get_codec_and_validator(
+            StandardVersion(family=family, format=format, version=self._version)
+        )
+        return codec_type(), validator_type()
 
     @property
     def xml(self) -> DocumentT:

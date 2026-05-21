@@ -106,20 +106,17 @@ class Fmi3ModelDescriptionXmlCodec:
 
         model_variables = ET.SubElement(root, "ModelVariables")
         for variable in document.variables:
-            variable_element = ET.SubElement(model_variables, "ScalarVariable")
+            variable_element = ET.SubElement(model_variables, variable.type_name)
             variable_element.set("name", variable.name)
             variable_element.set("valueReference", str(variable.value_reference))
             self._set_optional(variable_element.attrib, "description", variable.description)
             self._set_optional(variable_element.attrib, "causality", variable.causality)
             self._set_optional(variable_element.attrib, "variability", variable.variability)
             self._set_optional(variable_element.attrib, "initial", variable.initial)
-
-            type_element = ET.SubElement(variable_element, variable.type_name)
-            type_attributes = dict(variable.type_attributes)
-            self._set_optional(type_attributes, "declaredType", variable.declared_type)
-            self._set_optional(type_attributes, "start", variable.start)
-            for key, value in type_attributes.items():
-                type_element.set(key, value)
+            self._set_optional(variable_element.attrib, "declaredType", variable.declared_type)
+            self._set_optional(variable_element.attrib, "start", variable.start)
+            for key, value in variable.type_attributes.items():
+                variable_element.set(key, value)
 
         model_structure = ET.SubElement(root, "ModelStructure")
         self._append_unknown_group(model_structure, "Output", document.model_structure.outputs)
@@ -177,34 +174,41 @@ class Fmi3ModelDescriptionXmlCodec:
             step_size=self._parse_float(element.attrib.get("stepSize")),
         )
 
+    _FMI3_VARIABLE_TYPES: frozenset[str] = frozenset({
+        "Float32", "Float64", "Int8", "UInt8", "Int16", "UInt16",
+        "Int32", "UInt32", "Int64", "UInt64", "Boolean", "String",
+        "Binary", "Enumeration", "Clock",
+    })
+
     def _parse_variables(self, model_variables: ET.Element | None) -> list[Fmi3ScalarVariable]:
         if model_variables is None:
             return []
         variables: list[Fmi3ScalarVariable] = []
-        for variable_element in model_variables.findall("ScalarVariable"):
-            type_element = next(
-                (child for child in variable_element if child.tag != "Annotations"),
-                None,
-            )
-            if type_element is None:
-                continue
-            type_attributes = dict(type_element.attrib)
-            declared_type = type_attributes.pop("declaredType", None)
-            start = type_attributes.pop("start", None)
-            variables.append(
-                Fmi3ScalarVariable(
-                    name=variable_element.attrib["name"],
-                    value_reference=int(variable_element.attrib["valueReference"]),
-                    type_name=type_element.tag,
-                    description=variable_element.attrib.get("description"),
-                    causality=variable_element.attrib.get("causality"),
-                    variability=variable_element.attrib.get("variability"),
-                    initial=variable_element.attrib.get("initial"),
-                    declared_type=declared_type,
-                    start=start,
-                    type_attributes=type_attributes,
+        for variable_element in model_variables:
+            if variable_element.tag in self._FMI3_VARIABLE_TYPES:
+                type_attributes = dict(variable_element.attrib)
+                name = type_attributes.pop("name")
+                value_reference = int(type_attributes.pop("valueReference"))
+                description = type_attributes.pop("description", None)
+                causality = type_attributes.pop("causality", None)
+                variability = type_attributes.pop("variability", None)
+                initial = type_attributes.pop("initial", None)
+                declared_type = type_attributes.pop("declaredType", None)
+                start = type_attributes.pop("start", None)
+                variables.append(
+                    Fmi3ScalarVariable(
+                        name=name,
+                        value_reference=value_reference,
+                        type_name=variable_element.tag,
+                        description=description,
+                        causality=causality,
+                        variability=variability,
+                        initial=initial,
+                        declared_type=declared_type,
+                        start=start,
+                        type_attributes=type_attributes,
+                    )
                 )
-            )
         return variables
 
     def _parse_model_structure(self, model_structure: ET.Element | None) -> Fmi3ModelStructure:
