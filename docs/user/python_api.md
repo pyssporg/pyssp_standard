@@ -9,6 +9,8 @@ The main user-facing entry points are:
 - `SSD` for standalone `SystemStructure.ssd` files
 - `SSM` for `.ssm` parameter mappings
 - `SSV` for `.ssv` parameter sets
+- `SRMD` for `.srmd` simulation resource meta data
+- `SSB` for `.ssb` signal dictionaries
 - `FMU` for `.fmu` archives or unpacked FMU directories
 - `ModelDescription` for direct work on `modelDescription.xml`
 
@@ -48,6 +50,26 @@ with SSM("mapping.ssm", "w") as ssm:
         "scaled_target",
         transformation=Ssp1Transformation("LinearTransformation", {"factor": 2, "offset": 0}),
     )
+```
+
+## SRMD
+
+Use `SRMD` for simulation resource meta data.
+
+```python
+from pyssp_standard import SRMD
+with SRMD("resources.srmd", mode="r") as srmd:
+    print(srmd.xml)
+```
+
+## SSB
+
+Use `SSB` for signal dictionaries.
+
+```python
+from pyssp_standard import SSB
+with SSB("dictionary.ssb", mode="r") as ssb:
+    print(ssb.xml)
 ```
 
 ## SSD

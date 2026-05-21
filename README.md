@@ -7,6 +7,8 @@ The current public entry points are:
 - `SSD` for standalone system structure documents
 - `SSM` for parameter mappings
 - `SSV` for parameter sets
+- `SRMD` for simulation resource meta data (compute resources, tool versions, licenses)
+- `SSB` for signal dictionaries
 - `FMU` and `ModelDescription` for FMI model archives and `modelDescription.xml`
 
 The package is aimed at pre-processing, inspection, and controlled edits of SSP artifacts.

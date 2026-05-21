@@ -18,6 +18,8 @@ Use these facades depending on the file you are working with:
 - `SSD` for a standalone `SystemStructure.ssd`
 - `SSV` for `.ssv` parameter sets
 - `SSM` for `.ssm` parameter mappings
+- `SRMD` for `.srmd` simulation resource meta data
+- `SSB` for `.ssb` signal dictionaries
 - `FMU` for `.fmu` archives or unpacked FMU directories
 
 ## First Success
@@ -51,6 +53,26 @@ There is one important workflow distinction:
 - `SSP(path).system_structure()` is the archive-aware entry point and resolves external `.ssv` and `.ssm` references while the context is open
 
 Use the SSP entry point when a task spans `SystemStructure.ssd` and referenced parameter files in one session.
+
+### Simulation Resource Meta Data (SRMD)
+
+SRMD describes resource requirements for simulation (compute resources, tool versions, license information):
+
+```python
+from pyssp_standard import SRMD
+with SRMD("path/to/resources.srmd") as srmd:
+    print(srmd.xml)
+```
+
+### Signal Dictionary (SSB)
+
+SSB defines signal dictionaries used for signal-based communication between components:
+
+```python
+from pyssp_standard import SSB
+with SSB("path/to/dictionary.ssb") as ssb:
+    print(ssb.xml)
+```
 
 ## Next Pages
 

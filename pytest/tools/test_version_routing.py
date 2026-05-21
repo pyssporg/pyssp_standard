@@ -33,30 +33,6 @@ def test_resolves_registered_parse_stacks():
     ls_ref_manifest = get_parse_stack(StandardVersion(format="LS-REF-MANIFEST", family="FMI", version="1.0.0-alpha.1"))
     ls_ref_experiments = get_parse_stack(StandardVersion(format="LS-REF-EXPERIMENTS", family="FMI", version="1.0.0-alpha.1"))
 
-    assert ssb1.generated_module.endswith("standard.ssp1.generated.ssb_generated_types")
-    assert ssp1.generated_module.endswith("standard.ssp1.generated.ssv_generated_types")
-    assert ssd1.generated_module.endswith("standard.ssp1.generated.ssd_generated_types")
-    assert ssm1.generated_module.endswith("standard.ssp1.generated.ssm_generated_types")
-    assert ssp2.generated_module.endswith("standard.ssp2.generated.ssv_generated_types")
-    assert fmi2.generated_module.endswith("standard.fmi2.generated.model_description_generated_types")
-    assert ls_ref_manifest.generated_module.endswith("standard.ls_ref.generated.manifest_generated_types")
-    assert ls_ref_experiments.generated_module.endswith("standard.ls_ref.generated.experiments_generated_types")
-    assert ssb1.generated_output_path.name == "ssb_generated_types.py"
-    assert ssp1.generated_output_path.name == "ssv_generated_types.py"
-    assert ssd1.generated_output_path.name == "ssd_generated_types.py"
-    assert ssm1.generated_output_path.name == "ssm_generated_types.py"
-    assert ssp2.generated_output_path.name == "ssv_generated_types.py"
-    assert fmi2.generated_output_path.name == "model_description_generated_types.py"
-    assert ls_ref_manifest.generated_output_path.name == "manifest_generated_types.py"
-    assert ls_ref_experiments.generated_output_path.name == "experiments_generated_types.py"
-    assert "pyssp_standard/standard/ssp1/generated" in str(ssb1.generated_output_path.parent)
-    assert "pyssp_standard/standard/ssp1/generated" in str(ssp1.generated_output_path.parent)
-    assert "pyssp_standard/standard/ssp1/generated" in str(ssd1.generated_output_path.parent)
-    assert "pyssp_standard/standard/ssp1/generated" in str(ssm1.generated_output_path.parent)
-    assert "pyssp_standard/standard/ssp2/generated" in str(ssp2.generated_output_path.parent)
-    assert "pyssp_standard/standard/fmi2/generated" in str(fmi2.generated_output_path.parent)
-    assert "pyssp_standard/standard/ls_ref/generated" in str(ls_ref_manifest.generated_output_path.parent)
-    assert "pyssp_standard/standard/ls_ref/generated" in str(ls_ref_experiments.generated_output_path.parent)
     assert ssb1.schema_path.exists()
     assert ssp1.schema_path.exists()
     assert ssd1.schema_path.exists()

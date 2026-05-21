@@ -2,12 +2,45 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from xml.etree import ElementTree as ET
 
+from pyssp_standard.standard.fmi2.codec.model_description_xml_codec import (
+    Fmi2ModelDescriptionXmlCodec,
+)
+from pyssp_standard.standard.fmi2.validation.model_description_validation import (
+    Fmi2ModelDescriptionValidator,
+)
+from pyssp_standard.standard.fmi3.codec.model_description_xml_codec import (
+    Fmi3ModelDescriptionXmlCodec,
+)
+from pyssp_standard.standard.fmi3.validation.model_description_validation import (
+    Fmi3ModelDescriptionValidator,
+)
+from pyssp_standard.standard.ls_ref.codec import (
+    LSRefExperimentsCodec,
+    LSRefManifestCodec,
+)
 from pyssp_standard.standard.ls_ref.constants import (
     DEFAULT_LS_REF_VERSION,
     FMI_LS_MANIFEST_NAMESPACE,
 )
+from pyssp_standard.standard.ls_ref.validation import (
+    LSRefExperimentsValidator,
+    LSRefManifestValidator,
+)
+from pyssp_standard.standard.ssp1.codec.ssb_codec import Ssp1SsbCodec
+from pyssp_standard.standard.ssp1.codec.ssd_codec import Ssp1SsdCodec
+from pyssp_standard.standard.ssp1.codec.ssm_codec import Ssp1SsmCodec
+from pyssp_standard.standard.ssp1.codec.srmd_codec import Ssp1SrmdCodec
+from pyssp_standard.standard.ssp1.codec.ssv_codec import Ssp1SsvCodec
+from pyssp_standard.standard.ssp2.codec.ssv_codec import Ssp2SsvCodec
+from pyssp_standard.standard.ssp2.validation.ssv_validation import Ssp2SsvValidator
+from pyssp_standard.standard.ssp1.validation.ssb_validation import Ssp1SsbValidator
+from pyssp_standard.standard.ssp1.validation.ssd_validation import Ssp1SsdValidator
+from pyssp_standard.standard.ssp1.validation.ssm_validation import Ssp1SsmValidator
+from pyssp_standard.standard.ssp1.validation.srmd_validation import Ssp1SrmdValidator
+from pyssp_standard.standard.ssp1.validation.ssv_validation import Ssp1SsvValidator
 from pyssp_standard.tools.schema_targets import TARGETS
 
 
@@ -22,94 +55,70 @@ class StandardVersion:
 class ParseStackSpec:
     standard: StandardVersion
     schema_path: Path
-    generated_module: str
-    generated_output_path: Path
-    root_type: str
-    codec_id: str
-    mapper_id: str
+    codec_type: type[Any] | None = None
+    validator_type: type[Any] | None = None
 
 
 CODEC_STACK: dict[StandardVersion, ParseStackSpec] = {
     StandardVersion(family="SSP", format="SSB", version="1.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSB", version="1.0"),
         schema_path=TARGETS["ssp1_ssb"].schema_path,
-        generated_module="pyssp_standard.standard.ssp1.generated.ssb_generated_types",
-        generated_output_path=TARGETS["ssp1_ssb"].binding_output_path,
-        root_type="SignalDictionary",
-        codec_id="ssp1_ssb_codec",
-        mapper_id="ssp1_ssb_etree",
+        codec_type=Ssp1SsbCodec,
+        validator_type=Ssp1SsbValidator,
     ),
     StandardVersion(family="SSP", format="SSV", version="1.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSV", version="1.0"),
         schema_path=TARGETS["ssp1_ssv"].schema_path,
-        generated_module="pyssp_standard.standard.ssp1.generated.ssv_generated_types",
-        generated_output_path=TARGETS["ssp1_ssv"].binding_output_path,
-        root_type="ParameterSet",
-        codec_id="ssp1_ssv_codec",
-        mapper_id="ssp1_ssv_etree",
+        codec_type=Ssp1SsvCodec,
+        validator_type=Ssp1SsvValidator,
     ),
     StandardVersion(family="SSP", format="SSD", version="1.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSD", version="1.0"),
         schema_path=TARGETS["ssp1_ssd"].schema_path,
-        generated_module="pyssp_standard.standard.ssp1.generated.ssd_generated_types",
-        generated_output_path=TARGETS["ssp1_ssd"].binding_output_path,
-        root_type="SystemStructureDescription",
-        codec_id="ssp1_ssd_codec",
-        mapper_id="ssp1_ssd_etree",
+        codec_type=Ssp1SsdCodec,
+        validator_type=Ssp1SsdValidator,
     ),
     StandardVersion(family="SSP", format="SSM", version="1.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSM", version="1.0"),
         schema_path=TARGETS["ssp1_ssm"].schema_path,
-        generated_module="pyssp_standard.standard.ssp1.generated.ssm_generated_types",
-        generated_output_path=TARGETS["ssp1_ssm"].binding_output_path,
-        root_type="ParameterMapping",
-        codec_id="ssp1_ssm_codec",
-        mapper_id="ssp1_ssm_etree",
+        codec_type=Ssp1SsmCodec,
+        validator_type=Ssp1SsmValidator,
     ),
     StandardVersion(family="SSP", format="SRMD", version="1.0.0-beta2"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SRMD", version="1.0.0-beta2"),
         schema_path=TARGETS["ssp1_srmd"].schema_path,
-        generated_module="pyssp_standard.standard.ssp1.generated.srmd_generated_types",
-        generated_output_path=TARGETS["ssp1_srmd"].binding_output_path,
-        root_type="SimulationResourceMetaData",
-        codec_id="ssp1_srmd_codec",
-        mapper_id="ssp1_srmd_etree",
+        codec_type=Ssp1SrmdCodec,
+        validator_type=Ssp1SrmdValidator,
     ),
     StandardVersion(family="FMI", format="LS-REF-MANIFEST", version="1.0.0-alpha.1"): ParseStackSpec(
         standard=StandardVersion(family="FMI", format="LS-REF-MANIFEST", version="1.0.0-alpha.1"),
         schema_path=TARGETS["ls_ref_manifest"].schema_path,
-        generated_module="pyssp_standard.standard.ls_ref.generated.manifest_generated_types",
-        generated_output_path=TARGETS["ls_ref_manifest"].binding_output_path,
-        root_type="fmiReferences",
-        codec_id="ls_ref_manifest_codec",
-        mapper_id="ls_ref_manifest_etree",
+        codec_type=LSRefManifestCodec,
+        validator_type=LSRefManifestValidator,
     ),
     StandardVersion(family="FMI", format="LS-REF-EXPERIMENTS", version="1.0.0-alpha.1"): ParseStackSpec(
         standard=StandardVersion(family="FMI", format="LS-REF-EXPERIMENTS", version="1.0.0-alpha.1"),
         schema_path=TARGETS["ls_ref_experiments"].schema_path,
-        generated_module="pyssp_standard.standard.ls_ref.generated.experiments_generated_types",
-        generated_output_path=TARGETS["ls_ref_experiments"].binding_output_path,
-        root_type="Experiments",
-        codec_id="ls_ref_experiments_codec",
-        mapper_id="ls_ref_experiments_etree",
+        codec_type=LSRefExperimentsCodec,
+        validator_type=LSRefExperimentsValidator,
     ),
     StandardVersion(family="SSP", format="SSV", version="2.0"): ParseStackSpec(
         standard=StandardVersion(family="SSP", format="SSV", version="2.0"),
         schema_path=TARGETS["ssp2_ssv"].schema_path,
-        generated_module="pyssp_standard.standard.ssp2.generated.ssv_generated_types",
-        generated_output_path=TARGETS["ssp2_ssv"].binding_output_path,
-        root_type="ParameterSet",
-        codec_id="ssp2_ssv_codec",
-        mapper_id="ssp2_ssv_generated",
+        codec_type=Ssp2SsvCodec,
+        validator_type=Ssp2SsvValidator,
     ),
     StandardVersion(family="FMI", format="MD", version="2.0"): ParseStackSpec(
         standard=StandardVersion(family="FMI", format="MD", version="2.0"),
         schema_path=TARGETS["fmi2_model_description"].schema_path,
-        generated_module="pyssp_standard.standard.fmi2.generated.model_description_generated_types",
-        generated_output_path=TARGETS["fmi2_model_description"].binding_output_path,
-        root_type="FmiModelDescription",
-        codec_id="fmi2_model_description_codec",
-        mapper_id="fmi2_model_description_etree",
+        codec_type=Fmi2ModelDescriptionXmlCodec,
+        validator_type=Fmi2ModelDescriptionValidator,
+    ),
+    StandardVersion(family="FMI", format="MD", version="3.0"): ParseStackSpec(
+        standard=StandardVersion(family="FMI", format="MD", version="3.0"),
+        schema_path=TARGETS["fmi3_model_description"].schema_path,
+        codec_type=Fmi3ModelDescriptionXmlCodec,
+        validator_type=Fmi3ModelDescriptionValidator,
     ),
 }
 
@@ -166,3 +175,9 @@ def get_parse_stack_from_xml(xml_text: str) -> ParseStackSpec:
 
 def get_parse_stack_from_file(path: Path) -> ParseStackSpec:
     return get_parse_stack(get_standard_version_from_file(path))
+
+
+def get_codec_and_validator(standard: StandardVersion) -> tuple[type[Any] | None, type[Any] | None]:
+    """Resolve codec and validator types for a given standard version."""
+    spec = get_parse_stack(standard)
+    return spec.codec_type, spec.validator_type
