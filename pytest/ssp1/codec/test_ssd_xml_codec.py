@@ -109,6 +109,9 @@ def test_round_trip_preserves_component_parameter_bindings():
                 Ssd1Component(
                     name="Plant",
                     source="resources/Plant.fmu",
+                    connectors=[
+                        Ssd1Connector(name="port", kind="output", type_name="Real"),
+                    ],
                     parameter_bindings=[
                         Ssd1ParameterBinding(
                             parameter_set=Ssp1ParameterSet(
@@ -125,7 +128,10 @@ def test_round_trip_preserves_component_parameter_bindings():
         ),
     )
 
-    reparsed = codec.parse(codec.serialize(document))
+    xml_text = codec.serialize(document)
+    assert xml_text.index("<ssd:Connectors>") < xml_text.index("<ssd:ParameterBindings>")
+
+    reparsed = codec.parse(xml_text)
 
     assert reparsed.system is not None
     assert len(reparsed.system.elements) == 1

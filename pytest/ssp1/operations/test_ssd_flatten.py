@@ -17,7 +17,7 @@ class TestFlattenSsd:
     """Test suite for the SSD flatten operation."""
 
     def test_flatten_simple_subsystem(self):
-        """Components inside a subsystem receive a dot-prefixed name."""
+        """Components inside a subsystem receive an underscore-prefixed name."""
         inner = Ssd1Component(name="comp", source="test.fmu")
         subsystem = Ssd1System(name="sub", elements=[inner])
         root = Ssd1System(name="root", elements=[subsystem])
@@ -27,7 +27,7 @@ class TestFlattenSsd:
 
         assert len(result.system.elements) == 1
         promoted = result.system.elements[0]
-        assert promoted.name == "sub.comp"
+        assert promoted.name == "sub_comp"
         assert isinstance(promoted, Ssd1Component)
 
     def test_preserves_root_components(self):
@@ -42,7 +42,7 @@ class TestFlattenSsd:
 
         names = {e.name for e in result.system.elements}
         assert "root_comp" in names
-        assert "sub.inner" in names
+        assert "sub_inner" in names
         assert len(result.system.elements) == 2
 
     def test_remaps_internal_connections(self):
@@ -64,8 +64,8 @@ class TestFlattenSsd:
 
         assert len(result.system.connections) == 1
         c = result.system.connections[0]
-        assert c.start_element == "sub.A"
-        assert c.end_element == "sub.B"
+        assert c.start_element == "sub_A"
+        assert c.end_element == "sub_B"
         assert c.start_connector == "out"
         assert c.end_connector == "in"
 
@@ -114,8 +114,8 @@ class TestFlattenSsd:
             (c.start_element, c.start_connector, c.end_element, c.end_connector)
             for c in result.system.connections
         }
-        assert ("source", "out", "sub.inner", "in") in conn_set
-        assert ("sub.inner", "out", "source", "in") in conn_set
+        assert ("source", "out", "sub_inner", "in") in conn_set
+        assert ("sub_inner", "out", "source", "in") in conn_set
 
     def test_recursive_subsystem_tracing(self):
         """Multi-level subsystem connector tunnelling resolves correctly."""
@@ -176,15 +176,15 @@ class TestFlattenSsd:
         result = flatten_ssd(doc)
 
         promoted_names = {e.name for e in result.system.elements}
-        assert "b.a.core" in promoted_names
+        assert "b_a_core" in promoted_names
         assert len(result.system.elements) == 3
 
         conn_set = {
             (c.start_element, c.start_connector, c.end_element, c.end_connector)
             for c in result.system.connections
         }
-        assert ("src", "out", "b.a.core", "in") in conn_set
-        assert ("b.a.core", "out", "dst", "in") in conn_set
+        assert ("src", "out", "b_a_core", "in") in conn_set
+        assert ("b_a_core", "out", "dst", "in") in conn_set
 
     def test_merges_parameter_bindings(self):
         """Parameter bindings from nested subsystems are merged into the
@@ -209,7 +209,7 @@ class TestFlattenSsd:
 
         # Component-level: promoted component keeps its own binding
         promoted = result.system.elements[0]
-        assert promoted.name == "sub.comp"
+        assert promoted.name == "sub_comp"
         assert len(promoted.parameter_bindings) == 1
         assert promoted.parameter_bindings[0].prefix == "p"
 
@@ -269,7 +269,7 @@ class TestFlattenSsd:
         raises ValueError."""
         inner = Ssd1Component(name="existing", source="test.fmu")
         subsystem = Ssd1System(name="sub", elements=[inner])
-        root_comp = Ssd1Component(name="sub.existing", source="test.fmu")
+        root_comp = Ssd1Component(name="sub_existing", source="test.fmu")
         root = Ssd1System(name="root", elements=[root_comp, subsystem])
         doc = Ssd1SystemStructureDescription(name="test", system=root)
 

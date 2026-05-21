@@ -42,6 +42,49 @@ def test_schema_validators_accept_real_fixture_xml(
     Fmi2ModelDescriptionSchemaValidator().validate_xml(model_description_fixture.read_text(encoding="utf-8"))
 
 
+def test_ssd_schema_validator_accepts_component_children_in_schema_order():
+    xml_text = """
+<ssd:SystemStructureDescription xmlns:ssc="http://ssp-standard.org/SSP1/SystemStructureCommon" xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription" version="1.0" name="Ordered SSD">
+  <ssd:System name="system">
+    <ssd:Elements>
+      <ssd:Component name="plant" source="plant.fmu">
+        <ssd:Connectors>
+          <ssd:Connector name="out" kind="output"><ssc:Real /></ssd:Connector>
+        </ssd:Connectors>
+        <ssd:ParameterBindings>
+          <ssd:ParameterBinding />
+        </ssd:ParameterBindings>
+      </ssd:Component>
+    </ssd:Elements>
+  </ssd:System>
+</ssd:SystemStructureDescription>
+"""
+
+    Ssp1SsdSchemaValidator().validate_xml(xml_text)
+
+
+def test_ssd_schema_validator_rejects_component_children_in_old_order():
+    xml_text = """
+<ssd:SystemStructureDescription xmlns:ssc="http://ssp-standard.org/SSP1/SystemStructureCommon" xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription" version="1.0" name="Ordered SSD">
+  <ssd:System name="system">
+    <ssd:Elements>
+      <ssd:Component name="plant" source="plant.fmu">
+        <ssd:ParameterBindings>
+          <ssd:ParameterBinding />
+        </ssd:ParameterBindings>
+        <ssd:Connectors>
+          <ssd:Connector name="out" kind="output"><ssc:Real /></ssd:Connector>
+        </ssd:Connectors>
+      </ssd:Component>
+    </ssd:Elements>
+  </ssd:System>
+</ssd:SystemStructureDescription>
+"""
+
+    with pytest.raises(ValueError, match="SSD XML failed XSD validation"):
+        Ssp1SsdSchemaValidator().validate_xml(xml_text)
+
+
 def test_schema_validator_rejects_invalid_xml_with_useful_error_prefix():
     xml_text = '<ssv:ParameterSet xmlns:ssv="http://ssp-standard.org/SSP1/SystemStructureParameterValues" version="1.0" />'
 

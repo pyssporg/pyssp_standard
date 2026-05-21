@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from pyssp_standard.tools.schema_targets import TARGETS
 
 
@@ -24,16 +22,22 @@ def test_schema_targets_have_separated_versioned_outputs():
     ls_ref_manifest = TARGETS["ls_ref_manifest"]
     ls_ref_experiments = TARGETS["ls_ref_experiments"]
 
-    assert ssp1.binding_output_path != ssp2.binding_output_path
-    assert "standard/ssp1/generated" in str(ssb.binding_output_path)
-    assert "standard/ssp1/generated" in str(ssp1.binding_output_path)
-    assert "standard/ssp2/generated" in str(ssp2.binding_output_path)
-    assert ssb.binding_output_path.name == "ssb_generated_types.py"
-    assert ssd.binding_output_path.name == "ssd_generated_types.py"
-    assert ssm.binding_output_path.name == "ssm_generated_types.py"
-    assert fmi2.binding_output_path.name == "model_description_generated_types.py"
-    assert ls_ref_manifest.binding_output_path.name == "manifest_generated_types.py"
-    assert ls_ref_experiments.binding_output_path.name == "experiments_generated_types.py"
+    assert ssp1.family == "SSP"
+    assert ssp2.family == "SSP"
+    assert ssd.family == "SSP"
+    assert ssm.family == "SSP"
+    assert fmi2.family == "FMI"
+    assert ls_ref_manifest.family == "FMI"
+    assert ls_ref_experiments.family == "FMI"
+
+    assert ssp1.version == "1.0"
+    assert ssp2.version == "2.0"
+    assert ssd.version == "1.0"
+    assert ssm.version == "1.0"
+    assert fmi2.version == "2.0"
+    assert ls_ref_manifest.version == "1.0.0-alpha.1"
+    assert ls_ref_experiments.version == "1.0.0-alpha.1"
+
     assert ssb.schema_path.name == "SystemStructureSignalDictionary.xsd"
     assert ssp1.schema_path.name == "SystemStructureParameterValues.xsd"
     assert ssp2.schema_path.name == "SystemStructureParameterValues.xsd"
@@ -47,7 +51,5 @@ def test_schema_targets_have_separated_versioned_outputs():
 def test_schema_target_paths_are_repo_relative():
     for target in TARGETS.values():
         assert target.schema_path.is_absolute()
-        assert target.binding_output_path.is_absolute()
         assert target.schema_path.exists()
         assert "pyssp_standard/schema" in target.schema_path.as_posix()
-        assert target.binding_output_path.parent.exists() or Path(target.binding_output_path.parent).is_absolute()
