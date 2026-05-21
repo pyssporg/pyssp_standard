@@ -177,14 +177,14 @@ class Ssp1SsdCodec:
             element.set("type", component.component_type)
         if component.implementation is not None:
             element.set("implementation", component.implementation)
-        if component.parameter_bindings:
-            bindings_element = ET.SubElement(element, qname(NS_SSD, "ParameterBindings"))
-            for binding in component.parameter_bindings:
-                bindings_element.append(self._serialize_parameter_binding(binding))
         if component.connectors:
             connectors_element = ET.SubElement(element, qname(NS_SSD, "Connectors"))
             for connector in component.connectors:
                 connectors_element.append(self._serialize_connector(connector))
+        if component.parameter_bindings:
+            bindings_element = ET.SubElement(element, qname(NS_SSD, "ParameterBindings"))
+            for binding in component.parameter_bindings:
+                bindings_element.append(self._serialize_parameter_binding(binding))
         return element
 
     def _parse_connector(self, element: ET.Element) -> Ssd1Connector:
