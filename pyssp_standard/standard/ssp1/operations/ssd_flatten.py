@@ -1,4 +1,4 @@
-"""SSD flatten operation: promote all nested components to root with dot-prefixed names.
+"""SSD flatten operation: promote all nested components to root with underscore-prefixed names.
 
 This is a pure function that returns a new Ssd1SystemStructureDescription. The
 input document is never mutated.
@@ -20,7 +20,7 @@ from pyssp_standard.standard.ssp1.model.ssd_model import (
 def flatten_ssd(doc: Ssd1SystemStructureDescription) -> Ssd1SystemStructureDescription:
     """Flatten all nested subsystems, promoting components to root.
 
-    Each promoted component receives a dot-prefixed name built from the
+    Each promoted component receives an underscore-prefixed name built from the
     names of its ancestor subsystems.  All connections are remapped,
     cross-subsystem connectors are traced to their actual targets, and
     parameter bindings from every level are merged into the root.
@@ -103,7 +103,7 @@ def _collect_and_prefix(
 
     for element in system.elements:
         if isinstance(element, Ssd1System):
-            sub_prefix = f"{prefix}{element.name}."
+            sub_prefix = f"{prefix}{element.name}_"
             sub_comps, sub_map, _ = _collect_and_prefix(element, sub_prefix)
             components.extend(sub_comps)
             name_map.update(sub_map)
