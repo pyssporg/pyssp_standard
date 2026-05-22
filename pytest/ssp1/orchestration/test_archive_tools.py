@@ -22,6 +22,20 @@ def test_package_archive_marks_library_files_executable(tmp_path):
     assert (info.external_attr >> 16) & 0o111
 
 
+def test_package_archive_accepts_extensionless_output_path(tmp_path):
+    source_dir = tmp_path / "archive_dir"
+    (source_dir / "resources").mkdir(parents=True)
+    (source_dir / "SystemStructure.ssd").write_text("<ssd:SystemStructure />", encoding="utf-8")
+    archive_path = tmp_path / "archive"
+
+    package_archive(source_dir, archive_path)
+
+    with zipfile.ZipFile(archive_path, "r") as archive:
+        names = set(archive.namelist())
+
+    assert "SystemStructure.ssd" in names
+
+
 def test_unpack_archive_marks_library_files_executable(tmp_path):
     archive_path = tmp_path / "model.fmu"
     with zipfile.ZipFile(archive_path, "w") as archive:

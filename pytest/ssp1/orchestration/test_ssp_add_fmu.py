@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 import zipfile
 
 import pytest
@@ -148,6 +149,31 @@ def test_add_fmu_directory_is_packed_as_nested_fmu_on_archive_commit(fmu_directo
 
     assert "modelDescription.xml" in fmu_names
     assert any(n.startswith("binaries/") for n in fmu_names)
+
+
+def test_add_fmu_extensionless_directory_is_stored_as_compressed_fmu(fmu_directory_fixture, tmp_path):
+    fmu_dir = tmp_path / "directory"
+    shutil.copytree(fmu_directory_fixture, fmu_dir)
+    ssp_path = tmp_path / "extensionless_directory.ssp"
+
+    with SSP(ssp_path, mode="w") as ssp:
+        resource_name = ssp.add_fmu("plant", fmu_dir)
+
+    assert resource_name == "directory.fmu"
+
+    with zipfile.ZipFile(ssp_path, "r") as ssp_archive:
+        ssp_names = set(ssp_archive.namelist())
+        nested_fmu = ssp_archive.read("resources/directory.fmu")
+
+    assert "resources/directory.fmu" in ssp_names
+    assert "resources/directory/modelDescription.xml" not in ssp_names
+
+    nested_fmu_path = tmp_path / "directory.fmu"
+    nested_fmu_path.write_bytes(nested_fmu)
+    with zipfile.ZipFile(nested_fmu_path, "r") as fmu_archive:
+        fmu_names = set(fmu_archive.namelist())
+
+    assert "modelDescription.xml" in fmu_names
 
 
 def test_add_fmu_directory_returns_string(fmu_directory_fixture, tmp_path):

@@ -187,9 +187,9 @@ def package_archive(
     source_dir = Path(source_dir)
     archive_path = Path(archive_path)
     suffix = archive_path.suffix.lower()
-    if suffix not in {".fmu", ".ssp"}:
+    if suffix and suffix not in ARCHIVE_SUFFIXES:
         raise ValueError(
-            f"Expected a .fmu or .ssp output archive, got: {archive_path.name}"
+            f"Expected a .fmu, .ssp, or extensionless output archive, got: {archive_path.name}"
         )
 
     if not source_dir.is_dir():
