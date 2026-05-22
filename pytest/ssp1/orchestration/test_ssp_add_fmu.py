@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import zipfile
+
+import pytest
+
 from pyssp_standard.ssp import SSP
 
 
@@ -101,3 +105,65 @@ def test_add_fmu_preserves_component_connector_type_metadata(fmu_archive_fixture
             assert "start" not in real_parameter.type_attributes
             assert mirrored_integer_parameter.type_attributes == integer_parameter.type_attributes
             assert mirrored_real_parameter.type_attributes == real_parameter.type_attributes
+
+
+def test_add_fmu_accepts_directory_path(fmu_directory_fixture, tmp_path):
+    ssp_path = tmp_path / "dir_fmu.ssp"
+    with SSP(ssp_path, mode="w") as ssp:
+        resource_name = ssp.add_fmu("plant", fmu_directory_fixture, expose_system_connectors=True)
+    assert resource_name == "0001_ECS_HW.fmu"
+    with SSP(ssp_path, mode="r") as ssp:
+        assert "0001_ECS_HW.fmu" in ssp.resources
+        with ssp.system_structure() as ssd:
+            component = next(e for e in ssd.xml.system.elements if e.name == "plant")
+            assert component.source == "resources/0001_ECS_HW.fmu"
+
+
+def test_add_fmu_directory_missing_model_description_raises(tmp_path):
+    empty_dir = tmp_path / "bad_fmu"
+    empty_dir.mkdir()
+    ssp_path = tmp_path / "bad.ssp"
+    with SSP(ssp_path, mode="w") as ssp:
+        with pytest.raises(FileNotFoundError, match="modelDescription.xml"):
+            ssp.add_fmu("plant", empty_dir)
+
+
+def test_add_fmu_directory_is_packed_as_nested_fmu_on_archive_commit(fmu_directory_fixture, tmp_path):
+    ssp_path = tmp_path / "dir_copy_test.ssp"
+    with SSP(ssp_path, mode="w") as ssp:
+        resource_name = ssp.add_fmu("plant", fmu_directory_fixture)
+    assert resource_name == "0001_ECS_HW.fmu"
+
+    with zipfile.ZipFile(ssp_path, "r") as ssp_archive:
+        names = set(ssp_archive.namelist())
+        nested_fmu = ssp_archive.read("resources/0001_ECS_HW.fmu")
+
+    assert "resources/0001_ECS_HW.fmu" in names
+    assert "resources/0001_ECS_HW.fmu/modelDescription.xml" not in names
+
+    nested_fmu_path = tmp_path / "0001_ECS_HW.fmu"
+    nested_fmu_path.write_bytes(nested_fmu)
+    with zipfile.ZipFile(nested_fmu_path, "r") as fmu_archive:
+        fmu_names = set(fmu_archive.namelist())
+
+    assert "modelDescription.xml" in fmu_names
+    assert any(n.startswith("binaries/") for n in fmu_names)
+
+
+def test_add_fmu_directory_returns_string(fmu_directory_fixture, tmp_path):
+    ssp_path = tmp_path / "ret_type.ssp"
+    with SSP(ssp_path, mode="w") as ssp:
+        resource_name = ssp.add_fmu("plant", fmu_directory_fixture)
+    assert isinstance(resource_name, str)
+
+
+def test_add_fmu_directory_custom_resource_name(fmu_directory_fixture, tmp_path):
+    ssp_path = tmp_path / "custom_res.ssp"
+    with SSP(ssp_path, mode="w") as ssp:
+        resource_name = ssp.add_fmu("plant", fmu_directory_fixture, resource_name="custom/my_fmu_dir")
+    assert resource_name == "custom/my_fmu_dir.fmu"
+    with zipfile.ZipFile(ssp_path, "r") as archive:
+        names = set(archive.namelist())
+
+    assert "resources/custom/my_fmu_dir.fmu" in names
+    assert "resources/custom/my_fmu_dir.fmu/modelDescription.xml" not in names

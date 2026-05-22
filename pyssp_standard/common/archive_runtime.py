@@ -5,7 +5,9 @@ from pathlib import Path
 import tempfile
 import zipfile
 
+from pyssp_standard.common.archive import package_archive
 from pyssp_standard.common.directory_runtime import DirectoryRuntime
+
 
 class ArchiveRuntime:
     """Shared archive-layer helper for .ssp and .fmu zip containers."""
@@ -67,10 +69,7 @@ class ArchiveRuntime:
         return self._directory_runtime.list_prefix(prefix)
 
     def _commit(self) -> None:
-        with zipfile.ZipFile(self.path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for entry in sorted(self.root.rglob("*")):
-                if entry.is_file():
-                    archive.write(entry, arcname=entry.relative_to(self.root).as_posix())
+        package_archive(self.root, self.path, recursive=True)
 
 
 def create_runtime(path: str | Path, mode: str = "r") -> DirectoryRuntime | ArchiveRuntime:

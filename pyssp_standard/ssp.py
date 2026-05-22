@@ -18,6 +18,7 @@ from pyssp_standard.standard.ssp1.operations.model_description_to_ssd import (
 from pyssp_standard.ssd import ParameterBinding, SSD
 from pyssp_standard.common.document_runtime import DocumentRuntime
 from pyssp_standard.common.reference_specs import EXTERNAL_REFERENCE_SPECS
+from pyssp_standard.common.archive import copy_resource_directory
 from pyssp_standard.common.archive_runtime import (
     DirectoryRuntime,
     create_runtime,
@@ -145,16 +146,61 @@ class SSP:
         expose_system_connectors: bool = False,
         connector_prefix: str | None = None,
     ) -> str:
+        """Add an FMU to the SSP archive and create an SSD component.
+
+        *fmu_path* may be a ``.fmu`` archive file or an extracted FMU directory.
+        When a directory is provided, its contents are copied recursively under
+        ``resources/`` and ``modelDescription.xml`` must exist inside it.
+
+        Args:
+            component_name: Name for the component in the SSD.
+            fmu_path: Path to a ``.fmu`` file or an extracted FMU directory.
+            resource_name: Optional explicit resource name. When *fmu_path* is a
+                directory and *resource_name* is ``None``, the directory basename
+                is used as the resource name.
+            implementation: FMI implementation type (default ``"ModelExchange"``).
+            component_type: Component type MIME (default
+                ``"application/x-fmu-sharedlibrary"``).
+            expose_system_connectors: If ``True``, mirror component connectors
+                to the system level.
+            connector_prefix: Optional prefix for system-level connectors.
+
+        Returns:
+            The resource name under ``resources/`` (e.g. ``"0001_ECS_HW.fmu"``).
+
+        Raises:
+            FileNotFoundError: If *fmu_path* does not exist, or if a directory
+                *fmu_path* does not contain ``modelDescription.xml``.
+            FileExistsError: If *fmu_path* is a directory and the target
+                resource path already exists (via ``copy_resource_directory``).
+        """
         from pyssp_standard.fmu import FMU
 
         fmu_path = Path(fmu_path)
-        added_resource_name = (
-            self.add_resource(fmu_path)
-            if resource_name is None
-            else self.runtime.add_file(
-                fmu_path, target_name=f"resources/{resource_name}"
-            ).removeprefix("resources/")
-        )
+
+        # Branch: directory FMU vs file FMU
+        if fmu_path.is_dir():
+            # Validate modelDescription.xml exists inside the directory
+            model_desc_path = fmu_path / "modelDescription.xml"
+            if not model_desc_path.is_file():
+                raise FileNotFoundError(
+                    f"FMU directory does not contain modelDescription.xml: {model_desc_path}"
+                )
+
+            target_resource_name = resource_name or fmu_path.name
+            if Path(target_resource_name).suffix.lower() != ".fmu":
+                target_resource_name = f"{target_resource_name}.fmu"
+            added_resource_name = copy_resource_directory(
+                fmu_path, self.runtime.resolve("resources"), target_resource_name
+            )
+        else:
+            added_resource_name = (
+                self.add_resource(fmu_path)
+                if resource_name is None
+                else self.runtime.add_file(
+                    fmu_path, target_name=f"resources/{resource_name}"
+                ).removeprefix("resources/")
+            )
 
         with FMU(fmu_path, mode="r") as fmu:
             with fmu.model_description as md:
