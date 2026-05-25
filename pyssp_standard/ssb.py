@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 from pyssp_standard.common.xml_document import XmlDocument
@@ -18,3 +19,14 @@ class SSB(XmlDocument[Ssp1SignalDictionary]):
 
     def _create_document(self) -> Ssp1SignalDictionary:
         return Ssp1SignalDictionary(version="1.0")
+
+    def set_generation_date_and_time(self, dt: datetime | str | None = None) -> None:
+        """Set the generation date and time on the XML document.
+
+        Args:
+            dt: A datetime, ISO 8601 string, or None.
+                None defaults to "2000-01-01T00:00:00Z".
+        """
+        from pyssp_standard.common.datetime_utils import format_generation_datetime
+
+        self.xml.metadata.generation_date_and_time = format_generation_datetime(dt)

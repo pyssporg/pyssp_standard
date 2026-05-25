@@ -22,6 +22,7 @@ that should be formalized as separate decision files.*
 | TD-001 | xml.etree.ElementTree for XML parsing (implicit) | Technology | Explicit | `03-implementation/interfaces.md` | All codec modules |
 | VD-001 | Compliance check is explicit, not automatic (implicit) | Verification | Explicit | `04-verification/acceptance-criteria.md` | `common/xml_document.py` |
 | PD-002 | Drop round-trip stability from IMP-012; defer codec fix to backlog | Product | Accepted | `06-evolution/decisions/DEC-IMP012-R1-001.md` | `pytest/fmi2/codec/test_model_description_xml_codec.py`, `06-evolution/improvement-backlog.md` |
+| **IMD-001** | **set_generation_date_and_time placement and scope** | **Implementation** | **Active** | **`03-implementation/decisions/IMD-001-set-generation-date-time.md`** | **`pyssp_standard/common/datetime_utils.py`, `pyssp_standard/ssd.py`, `ssv.py`, `ssb.py`, `ssm.py`, `srmd.py`, `md.py`, `ssp.py`, `fmu.py`** |
 
 ## Open Decisions
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from datetime import datetime
 from pathlib import Path
 
 from pyssp_standard.standard.operations.model_description_to_ssd import (
@@ -118,6 +119,16 @@ class SSP:
             external_reference_specs=EXTERNAL_REFERENCE_SPECS,
             mode="a" if self.mode == "w" else self.mode,
         )
+
+    def set_generation_date_and_time(self, dt: datetime | str | None = None) -> None:
+        """Set the generation date and time on the SystemStructure.ssd document.
+
+        Args:
+            dt: A datetime, ISO 8601 string, or None.
+                None defaults to "2000-01-01T00:00:00Z".
+        """
+        with self.system_structure() as ssd:
+            ssd.set_generation_date_and_time(dt)
 
     def ls_ref_experiments(
         self, path=f"{LS_REF_EXTRA_DIR}/experiments.xml"

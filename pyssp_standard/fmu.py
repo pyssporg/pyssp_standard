@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 from pyssp_standard.md import ModelDescription
@@ -33,6 +34,16 @@ class FMU:
     @property
     def model_description(self) -> ModelDescription:
         return ModelDescription(self.runtime.root / "modelDescription.xml", mode=self.mode)
+
+    def set_generation_date_and_time(self, dt: datetime | str | None = None) -> None:
+        """Set the generation date and time on the modelDescription.xml document.
+
+        Args:
+            dt: A datetime, ISO 8601 string, or None.
+                None defaults to "2000-01-01T00:00:00Z".
+        """
+        with ModelDescription(self.runtime.root / "modelDescription.xml", mode=self.mode) as md:
+            md.set_generation_date_and_time(dt)
 
     def package_as_ssp(
         self,

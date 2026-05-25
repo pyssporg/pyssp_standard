@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Mapping
 
@@ -61,6 +62,17 @@ class SSD(XmlDocument[Ssd1SystemStructureDescription]):
             })
         """
         extend_component_parametersets(self.xml, parameters_by_component)
+
+    def set_generation_date_and_time(self, dt: datetime | str | None = None) -> None:
+        """Set the generation date and time on the XML document.
+
+        Args:
+            dt: A datetime, ISO 8601 string, or None.
+                None defaults to "2000-01-01T00:00:00Z".
+        """
+        from pyssp_standard.common.datetime_utils import format_generation_datetime
+
+        self.xml.metadata.generation_date_and_time = format_generation_datetime(dt)
 
     def extend_system_parameterset(
         self,
