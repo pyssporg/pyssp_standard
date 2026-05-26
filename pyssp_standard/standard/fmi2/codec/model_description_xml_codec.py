@@ -232,8 +232,10 @@ class Fmi2ModelDescriptionXmlCodec:
             self._set_optional(unknown_element.attrib, "dependenciesKind", unknown.dependencies_kind)
 
     def _set_optional(self, attrs: dict[str, str], key: str, value: str | None) -> None:
-        if value is not None:
-            attrs[key] = value
+        if value is None:
+            attrs.pop(key, None)
+            return
+        attrs[key] = value
 
     def _parse_float(self, value: str | None) -> float | None:
         if value is None:

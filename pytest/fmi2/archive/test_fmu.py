@@ -41,6 +41,23 @@ def test_model_description_facade_reads_from_archive_contents(fmu_archive_fixtur
             assert md.check_compliance() is True
 
 
+def test_strip_model_exchange_preserves_archive_model_description_guid(fmu_archive_fixture, tmp_path):
+    test_fmu_file = tmp_path / "ecs.fmu"
+    shutil.copy(fmu_archive_fixture, test_fmu_file)
+
+    with FMU(test_fmu_file, mode="r") as fmu:
+        with fmu.model_description as md:
+            original_guid = md.xml.guid
+
+    with FMU(test_fmu_file, mode="a") as fmu:
+        with fmu.model_description as md:
+            md.strip_model_exchange()
+
+    with FMU(test_fmu_file, mode="r") as fmu:
+        with fmu.model_description as md:
+            assert md.xml.guid == original_guid
+
+
 def test_directory_mode_reads_fmu_contents_from_persistent_root(fmu_directory_fixture):
     archive = FMU(fmu_directory_fixture, mode="r")
     with archive as fmu:

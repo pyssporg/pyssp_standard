@@ -100,7 +100,6 @@ def test_parses_fmi_unit_definitions_base_units_from_raw_xml():
     assert unit.base_unit == {"kg": "1", "m": "2", "s": "-3", "A": "-1"}
 
 
-@pytest.mark.xfail(reason="Pre-existing codec bug in _set_optional — deferred to backlog")
 def test_strip_model_exchange_codec_round_trip():
     """Serialise after strip_model_exchange, re-parse, verify CS-only document."""
     codec = Fmi2ModelDescriptionXmlCodec()
@@ -133,6 +132,7 @@ def test_strip_model_exchange_codec_round_trip():
 
     reparsed = codec.parse(stripped_xml)
 
+    assert reparsed.guid == "{roundtrip-guid}"
     assert reparsed.interface_type == "CoSimulation"
     assert "completedIntegratorStepNotNeeded" not in reparsed.interface_attributes
     assert reparsed.interface_attributes.get("modelIdentifier") == "RoundTripME"
