@@ -8,7 +8,7 @@
 > full guarded workflow (planner → discovery → contract → architecture →
 > lessons → packet → builder → verifier → review → gate → reporter).
 >
-> **Last updated:** 2026-05-21 (added IMP-018 — bulk FMU import from directory)
+> **Last updated:** 2026-05-26 (added IMP-019 — lifecycle-safe FMU iteration over SSP components)
 
 ---
 
@@ -16,10 +16,10 @@
 
 | Priority | Open | In Progress | Done | Total |
 |----------|------|-------------|------|-------|
-| High     | 1    | 0           | 5    | 6     |
+| High     | 2    | 0           | 5    | 7     |
 | Medium   | 2    | 0           | 3    | 5     |
 | Low      | 2    | 0           | 5    | 7     |
-| **Total**| **5** | **0**       | **13**| **18**|
+| **Total**| **6** | **0**       | **13**| **19**|
 
 ---
 
@@ -45,6 +45,7 @@
 | IMP-016 | SSP2 SSV inline parameter set support in SSD facade | Low | Domain Model / Operations | proposed |
 | IMP-017 | Automated standard version identification in XmlDocument | Medium | Public API / Versioning | proposed |
 | IMP-018 | Bulk FMU import from directory via add_fmu_directory() | Low | Public API | proposed |
+| IMP-019 | Lifecycle-safe FMU iteration over SSP components | Medium | Operations / Public API | proposed |
 
 ---
 

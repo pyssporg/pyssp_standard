@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from pathlib import Path
 
@@ -13,6 +13,10 @@ from pyssp_standard.ls_ref import (
     LSRefExperiments,
 )
 from pyssp_standard.standard.ssp1.model.ssd_model import Ssd1System
+from pyssp_standard.standard.ssp1.operations.ssd_fmu_iteration import (
+    FmuEntry,
+    iter_fmu_entries,
+)
 from pyssp_standard.standard.ssp1.operations.model_description_to_ssd import (
     add_component_to_system_structure,
 )
@@ -119,6 +123,37 @@ class SSP:
             external_reference_specs=EXTERNAL_REFERENCE_SPECS,
             mode="a" if self.mode == "w" else self.mode,
         )
+
+    def iter_fmu_entries(
+        self,
+        *,
+        recursive: bool = False,
+        skip_missing: bool = True,
+    ) -> Iterator[FmuEntry]:
+        """Yield ``FmuEntry`` for every component whose source references an FMU resource.
+
+        Opens the ``SystemStructure.ssd`` document lazily and delegates to
+        :func:`~pyssp_standard.standard.ssp1.operations.ssd_fmu_iteration.iter_fmu_entries`,
+        yielding entries as they are discovered.
+
+        Args:
+            recursive: If True, recurse into nested ``Ssd1System`` subsystems.
+            skip_missing: If True, skip components whose resolved source path
+                does not exist on disk.
+
+        Yields:
+            :class:`~pyssp_standard.standard.ssp1.operations.ssd_fmu_iteration.FmuEntry`
+            instances for each FMU-backed component.
+        """
+        with self.system_structure() as ssd:
+            if ssd.xml.system is None:
+                return
+            yield from iter_fmu_entries(
+                ssd.xml.system,
+                self.runtime,
+                recursive=recursive,
+                skip_missing=skip_missing,
+            )
 
     def set_generation_date_and_time(self, dt: datetime | str | None = None) -> None:
         """Set the generation date and time on the SystemStructure.ssd document.
