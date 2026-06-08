@@ -1,4 +1,0 @@
-lxml
-xmlschema
-pint
-pytest

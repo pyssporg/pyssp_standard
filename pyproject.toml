@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyssp-standard"
+version = "0.8.2"
+description = "Simple python package for reading, modifying and creating files, specified in the SSP Standard"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "Fredrik Haider" },
+]
+keywords = ["SSP", "system", "engineering"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "lxml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "myst-parser",
+    "pytest",
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+
+[project.urls]
+Homepage = "https://github.com/pyssporg/pyssp_standard"
+
+[tool.setuptools.packages.find]
+include = [
+    "pyssp_standard",
+    "pyssp_standard.common*",
+    "pyssp_standard.standard*",
+    "pyssp_standard.tools*",
+]
+
+[tool.setuptools.package-data]
+pyssp_standard = ["schema/**/*.xsd"]
