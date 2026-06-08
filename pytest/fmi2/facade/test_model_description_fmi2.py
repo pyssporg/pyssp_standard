@@ -152,7 +152,7 @@ def test_round_trip_preserves_metadata_and_repeated_element_order(tmp_path):
         assert [unit.name for unit in md.xml.unit_definitions] == ["second", "meter"]
         assert [type_definition.name for type_definition in md.xml.type_definitions] == ["SecondType", "FirstType"]
         assert [variable.name for variable in md.xml.variables] == ["beta", "alpha", "gamma"]
-        assert [unknown.index for unknown in md.xml.model_structure.outputs] == ["3", "1"]
+        assert [unknown.index for unknown in md.xml.model_structure.outputs] == [3, 1]
 
     xml_text = path.read_text(encoding="utf-8")
     assert xml_text.index("<CoSimulation") < xml_text.index("<UnitDefinitions>")
@@ -180,17 +180,17 @@ def test_strip_model_exchange_removes_me_only_attributes():
     with ModelDescription("model_description.xml") as md:
         md.from_xml(_ME_XML)
         md.strip_model_exchange()
-        assert "completedIntegratorStepNotNeeded" not in md.xml.interface_attributes
-        assert "needsExecutionTool" not in md.xml.interface_attributes
+        assert md.xml.capabilities.completed_integrator_step_not_needed is False
+        assert md.xml.capabilities.needs_execution_tool is False
 
 
 def test_strip_model_exchange_preserves_shared_attributes():
     with ModelDescription("model_description.xml") as md:
         md.from_xml(_ME_XML)
         md.strip_model_exchange()
-        assert md.xml.interface_attributes.get("modelIdentifier") == "TestME"
-        assert md.xml.interface_attributes.get("canGetAndSetFMUstate") == "true"
-        assert md.xml.interface_attributes.get("providesDirectionalDerivative") == "true"
+        assert md.xml.capabilities.model_identifier == "TestME"
+        assert md.xml.capabilities.can_get_and_set_fmu_state is True
+        assert md.xml.capabilities.provides_directional_derivative is True
 
 
 def test_strip_model_exchange_clears_derivatives():
@@ -218,7 +218,7 @@ def test_strip_model_exchange_passes_compliance():
 def test_strip_model_exchange_noop_when_already_cs():
     with ModelDescription("model_description.xml") as md:
         md.from_xml(_CS_XML)
-        original_attrs = dict(md.xml.interface_attributes)
+        original_caps = md.xml.capabilities
         original_derivatives = list(md.xml.model_structure.derivatives)
         original_nei = md.xml.number_of_event_indicators
         original_type = md.xml.interface_type
@@ -226,7 +226,7 @@ def test_strip_model_exchange_noop_when_already_cs():
         md.strip_model_exchange()
 
         assert md.xml.interface_type == original_type
-        assert md.xml.interface_attributes == original_attrs
+        assert md.xml.capabilities == original_caps
         assert md.xml.model_structure.derivatives == original_derivatives
         assert md.xml.number_of_event_indicators == original_nei
 
@@ -252,13 +252,13 @@ def test_strip_model_exchange_idempotent():
     with ModelDescription("model_description.xml") as md:
         md.from_xml(_ME_XML)
         md.strip_model_exchange()
-        first_attrs = dict(md.xml.interface_attributes)
+        first_caps = md.xml.capabilities
         first_nei = md.xml.number_of_event_indicators
         first_derivatives = list(md.xml.model_structure.derivatives)
 
         md.strip_model_exchange()
 
-        assert md.xml.interface_attributes == first_attrs
+        assert md.xml.capabilities == first_caps
         assert md.xml.number_of_event_indicators == first_nei
         assert md.xml.model_structure.derivatives == first_derivatives
 

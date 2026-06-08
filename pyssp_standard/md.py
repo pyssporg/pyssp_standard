@@ -17,7 +17,9 @@ from pyssp_standard.standard.version_routing import (
     get_standard_version_from_file,
 )
 
-_ME_ONLY_INTERFACE_ATTRIBUTES: frozenset[str] = frozenset({"completedIntegratorStepNotNeeded", "needsExecutionTool"})
+_ME_ONLY_CAPABILITY_FIELDS: frozenset[str] = frozenset(
+    {"completedIntegratorStepNotNeeded", "needsExecutionTool"}
+)
 
 
 class ModelDescription(XmlDocument[Fmi2ModelDescriptionDocument | Fmi3ModelDescriptionDocument]):
@@ -72,8 +74,11 @@ class ModelDescription(XmlDocument[Fmi2ModelDescriptionDocument | Fmi3ModelDescr
         if self.xml.interface_type is None:
             return
         self.xml.interface_type = "CoSimulation"
-        for key in _ME_ONLY_INTERFACE_ATTRIBUTES:
-            self.xml.interface_attributes.pop(key, None)
+        if self.xml.capabilities is not None:
+            self.xml.capabilities.completed_integrator_step_not_needed = False
+            self.xml.capabilities.needs_execution_tool = False
+            self.xml.capabilities.extra_attributes.pop("completedIntegratorStepNotNeeded", None)
+            self.xml.capabilities.extra_attributes.pop("needsExecutionTool", None)
         self.xml.model_structure.derivatives.clear()
         self.xml.number_of_event_indicators = None
         self.check_compliance()

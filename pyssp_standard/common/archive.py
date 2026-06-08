@@ -29,8 +29,18 @@ def _chmod_library_files(root_dir: Path) -> None:
             path.chmod(_with_executable_bits(path.stat().st_mode))
 
 
-def _write_archive_file(archive: zipfile.ZipFile, path: Path, arcname: str) -> None:
+FMI_EPOCH = (2000, 1, 1, 0, 0, 0)
+
+
+def _write_archive_file(
+    archive: zipfile.ZipFile,
+    path: Path,
+    arcname: str,
+    date_time: tuple[int, ...] | None = None,
+) -> None:
     info = zipfile.ZipInfo.from_file(path, arcname=arcname)
+    if date_time is not None:
+        info.date_time = date_time  # type: ignore[assignment]
     info.compress_type = zipfile.ZIP_DEFLATED
     if _is_library_path(arcname):
         info.external_attr = _zip_external_attr(_with_executable_bits(path.stat().st_mode))
@@ -117,11 +127,16 @@ def copy_resource_directory(source_dir: Path, resource_root: Path, target_name: 
     return target_name
 
 
-def _pack_directory_as_archive(source_dir: Path, archive_path: Path) -> None:
+def _pack_directory_as_archive(
+    source_dir: Path,
+    archive_path: Path,
+    fixed_timestamp: tuple[int, int, int, int, int, int] | None = None,
+) -> None:
     temp_archive_path = archive_path.with_name(f"{archive_path.name}.tmp-package")
     if temp_archive_path.exists():
         temp_archive_path.unlink()
 
+    date_time: tuple[int, ...] | None = fixed_timestamp
     with zipfile.ZipFile(
         temp_archive_path, "w", compression=zipfile.ZIP_DEFLATED
     ) as archive:
@@ -131,6 +146,7 @@ def _pack_directory_as_archive(source_dir: Path, archive_path: Path) -> None:
                     archive,
                     path,
                     path.relative_to(source_dir).as_posix(),
+                    date_time=date_time,
                 )
 
     shutil.rmtree(source_dir)
@@ -155,7 +171,11 @@ def _packaged_archive_path(candidate: Path, source_dir: Path) -> Path | None:
     return None
 
 
-def package_archive_directories(source_dir: str | Path) -> None:
+def package_archive_directories(
+    source_dir: str | Path,
+    *,
+    fixed_timestamp: tuple[int, int, int, int, int, int] | None = None,
+) -> None:
     """Package nested extracted archive directories deepest-first."""
     source_dir = Path(source_dir)
     candidates = [
@@ -169,7 +189,7 @@ def package_archive_directories(source_dir: str | Path) -> None:
     for candidate, packaged_path in sorted(
         candidates, key=lambda item: len(item[0].parts), reverse=True
     ):
-        _pack_directory_as_archive(candidate, packaged_path)
+        _pack_directory_as_archive(candidate, packaged_path, fixed_timestamp=fixed_timestamp)
 
 
 def package_archive(
@@ -178,11 +198,15 @@ def package_archive(
     *,
     recursive: bool = False,
     overwrite: bool = True,
+    fixed_timestamp: tuple[int, int, int, int, int, int] | None = None,
 ) -> Path:
     """Package a directory as an SSP/FMU archive.
 
     When ``recursive`` is enabled, extracted child archive directories are
     packaged deepest-first before the parent archive is written.
+
+    When ``fixed_timestamp`` is provided, all ZIP entries use the same
+    timestamp, enabling reproducible archive builds.
     """
     source_dir = Path(source_dir)
     archive_path = Path(archive_path)
@@ -210,8 +234,9 @@ def package_archive(
         archive_root = Path(temp_dir.name) / source_dir.name
         shutil.copytree(source_dir, archive_root)
 
-        package_archive_directories(archive_root)
+        package_archive_directories(archive_root, fixed_timestamp=fixed_timestamp)
 
+    date_time: tuple[int, ...] | None = fixed_timestamp
     try:
         with zipfile.ZipFile(
             archive_path, "w", compression=zipfile.ZIP_DEFLATED
@@ -222,6 +247,7 @@ def package_archive(
                         archive,
                         path,
                         path.relative_to(archive_root).as_posix(),
+                        date_time=date_time,
                     )
     finally:
         if temp_dir is not None:

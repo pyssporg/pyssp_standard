@@ -3,6 +3,7 @@
 from pyssp_standard.standard.fmi2.model.model_description import (
     Fmi2DefaultExperiment,
     Fmi2ElementInfo,
+    Fmi2InterfaceAttributes,
     Fmi2ModelDescriptionDocument,
     Fmi2ModelStructure,
     Fmi2ScalarVariable,
@@ -14,6 +15,7 @@ from pyssp_standard.standard.fmi2.model.model_description import (
 __all__ = [
     "Fmi2DefaultExperiment",
     "Fmi2ElementInfo",
+    "Fmi2InterfaceAttributes",
     "Fmi2ModelDescriptionDocument",
     "Fmi2ModelStructure",
     "Fmi2ScalarVariable",

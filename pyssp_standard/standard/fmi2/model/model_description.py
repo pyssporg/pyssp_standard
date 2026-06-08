@@ -4,6 +4,19 @@ from dataclasses import dataclass, field
 
 
 @dataclass
+class Fmi2InterfaceAttributes:
+    model_identifier: str
+    can_get_and_set_fmu_state: bool = False
+    can_serialize_fmu_state: bool = False
+    provides_directional_derivative: bool = False
+    needs_execution_tool: bool = False
+    completed_integrator_step_not_needed: bool = False
+    can_be_instantiated_only_once_per_process: bool = False
+    can_not_use_memory_management_functions: bool = False
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
 class Fmi2ElementInfo:
     tag: str
     attributes: dict[str, str] = field(default_factory=dict)
@@ -32,9 +45,9 @@ class Fmi2TypeDefinition:
 
 @dataclass
 class Fmi2Unknown:
-    index: str
-    dependencies: str | None = None
-    dependencies_kind: str | None = None
+    index: int
+    dependencies: list[int] = field(default_factory=list)
+    dependencies_kind: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -47,14 +60,15 @@ class Fmi2ModelStructure:
 @dataclass
 class Fmi2ScalarVariable:
     name: str
-    value_reference: str
+    value_reference: int
     type_name: str
     description: str | None = None
     causality: str | None = None
     variability: str | None = None
     initial: str | None = None
     declared_type: str | None = None
-    start: str | None = None
+    start: str | float | int | None = None
+    unit: str | None = None
     type_attributes: dict[str, str] = field(default_factory=dict)
 
 
@@ -64,12 +78,15 @@ class Fmi2ModelDescriptionDocument:
     fmi_version: str
     model_name: str
     guid: str
+    description: str | None = None
+    author: str | None = None
+    version: str | None = None
     generation_tool: str | None = None
     generation_date_and_time: str | None = None
     variable_naming_convention: str | None = None
     number_of_event_indicators: int | None = None
     interface_type: str | None = None
-    interface_attributes: dict[str, str] = field(default_factory=dict)
+    capabilities: Fmi2InterfaceAttributes | None = None
     unit_definitions: list[Fmi2Unit] = field(default_factory=list)
     type_definitions: list[Fmi2TypeDefinition] = field(default_factory=list)
     variables: list[Fmi2ScalarVariable] = field(default_factory=list)

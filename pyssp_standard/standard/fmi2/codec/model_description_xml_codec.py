@@ -5,6 +5,7 @@ from xml.etree import ElementTree as ET
 from pyssp_standard.standard.fmi2.model.model_description import (
     Fmi2DefaultExperiment,
     Fmi2ElementInfo,
+    Fmi2InterfaceAttributes,
     Fmi2ModelDescriptionDocument,
     Fmi2ModelStructure,
     Fmi2ScalarVariable,
@@ -23,6 +24,9 @@ class Fmi2ModelDescriptionXmlCodec:
             fmi_version=root.attrib["fmiVersion"],
             model_name=root.attrib["modelName"],
             guid=root.attrib["guid"],
+            description=root.attrib.get("description"),
+            author=root.attrib.get("author"),
+            version=root.attrib.get("version"),
             generation_tool=root.attrib.get("generationTool"),
             generation_date_and_time=root.attrib.get("generationDateAndTime"),
             variable_naming_convention=root.attrib.get("variableNamingConvention"),
@@ -32,7 +36,7 @@ class Fmi2ModelDescriptionXmlCodec:
                 else None
             ),
             interface_type=interface_element.tag if interface_element is not None else None,
-            interface_attributes=dict(interface_element.attrib) if interface_element is not None else {},
+            capabilities=self._parse_interface_attributes(interface_element) if interface_element is not None else None,
         )
         document.unit_definitions = self._parse_units(root.find("UnitDefinitions"))
         document.type_definitions = self._parse_type_definitions(root.find("TypeDefinitions"))
@@ -52,6 +56,9 @@ class Fmi2ModelDescriptionXmlCodec:
                 "guid": document.guid,
             }
         )
+        self._set_optional(root_attributes, "description", document.description)
+        self._set_optional(root_attributes, "author", document.author)
+        self._set_optional(root_attributes, "version", document.version)
         self._set_optional(root_attributes, "generationTool", document.generation_tool)
         self._set_optional(root_attributes, "generationDateAndTime", document.generation_date_and_time)
         self._set_optional(root_attributes, "variableNamingConvention", document.variable_naming_convention)
@@ -63,10 +70,7 @@ class Fmi2ModelDescriptionXmlCodec:
         for key, value in root_attributes.items():
             root.set(key, value)
 
-        if document.interface_type is not None:
-            interface_element = ET.SubElement(root, document.interface_type)
-            for key, value in document.interface_attributes.items():
-                interface_element.set(key, value)
+        self._serialize_interface(root, document)
 
         if document.unit_definitions:
             units_element = ET.SubElement(root, "UnitDefinitions")
@@ -101,7 +105,7 @@ class Fmi2ModelDescriptionXmlCodec:
         for variable in document.variables:
             variable_element = ET.SubElement(model_variables, "ScalarVariable")
             variable_element.set("name", variable.name)
-            variable_element.set("valueReference", variable.value_reference)
+            variable_element.set("valueReference", str(variable.value_reference))
             self._set_optional(variable_element.attrib, "description", variable.description)
             self._set_optional(variable_element.attrib, "causality", variable.causality)
             self._set_optional(variable_element.attrib, "variability", variable.variability)
@@ -110,7 +114,12 @@ class Fmi2ModelDescriptionXmlCodec:
             type_element = ET.SubElement(variable_element, variable.type_name)
             type_attributes = dict(variable.type_attributes)
             self._set_optional(type_attributes, "declaredType", variable.declared_type)
-            self._set_optional(type_attributes, "start", variable.start)
+            if variable.start is not None:
+                if isinstance(variable.start, float) and variable.type_name in ("Integer", "Enumeration"):
+                    type_attributes["start"] = str(int(variable.start))
+                else:
+                    type_attributes["start"] = str(variable.start)
+            self._set_optional(type_attributes, "unit", variable.unit)
             for key, value in type_attributes.items():
                 type_element.set(key, value)
 
@@ -121,6 +130,62 @@ class Fmi2ModelDescriptionXmlCodec:
 
         ET.indent(root, space="  ")
         return ET.tostring(root, encoding="unicode", xml_declaration=True)
+
+    def _parse_interface_attributes(self, element: ET.Element) -> Fmi2InterfaceAttributes:
+        attribs = dict(element.attrib)
+        model_identifier = attribs.pop("modelIdentifier", "")
+        known_bools = {
+            "canGetAndSetFMUstate": "can_get_and_set_fmu_state",
+            "canSerializeFMUstate": "can_serialize_fmu_state",
+            "providesDirectionalDerivative": "provides_directional_derivative",
+            "needsExecutionTool": "needs_execution_tool",
+            "completedIntegratorStepNotNeeded": "completed_integrator_step_not_needed",
+            "canBeInstantiatedOnlyOncePerProcess": "can_be_instantiated_only_once_per_process",
+            "canNotUseMemoryManagementFunctions": "can_not_use_memory_management_functions",
+        }
+        kwargs: dict[str, bool | str | dict] = {}
+        for xml_key, py_key in known_bools.items():
+            if xml_key in attribs:
+                kwargs[py_key] = attribs.pop(xml_key).strip().lower() == "true"
+        kwargs["extra_attributes"] = attribs
+        return Fmi2InterfaceAttributes(
+            model_identifier=model_identifier,
+            can_get_and_set_fmu_state=kwargs.get("can_get_and_set_fmu_state", False),
+            can_serialize_fmu_state=kwargs.get("can_serialize_fmu_state", False),
+            provides_directional_derivative=kwargs.get("provides_directional_derivative", False),
+            needs_execution_tool=kwargs.get("needs_execution_tool", False),
+            completed_integrator_step_not_needed=kwargs.get("completed_integrator_step_not_needed", False),
+            can_be_instantiated_only_once_per_process=kwargs.get("can_be_instantiated_only_once_per_process", False),
+            can_not_use_memory_management_functions=kwargs.get("can_not_use_memory_management_functions", False),
+            extra_attributes=kwargs.get("extra_attributes", {}),
+        )
+
+    def _serialize_interface(self, root: ET.Element, document: Fmi2ModelDescriptionDocument) -> None:
+        if document.interface_type is None or document.capabilities is None:
+            return
+        interface_element = ET.SubElement(root, document.interface_type)
+        caps = document.capabilities
+
+        # Required
+        interface_element.set("modelIdentifier", caps.model_identifier)
+
+        # Known booleans — only write if True (FMI convention)
+        bool_attributes: list[tuple[str, str]] = [
+            ("canGetAndSetFMUstate", "can_get_and_set_fmu_state"),
+            ("canSerializeFMUstate", "can_serialize_fmu_state"),
+            ("providesDirectionalDerivative", "provides_directional_derivative"),
+            ("needsExecutionTool", "needs_execution_tool"),
+            ("completedIntegratorStepNotNeeded", "completed_integrator_step_not_needed"),
+            ("canBeInstantiatedOnlyOncePerProcess", "can_be_instantiated_only_once_per_process"),
+            ("canNotUseMemoryManagementFunctions", "can_not_use_memory_management_functions"),
+        ]
+        for xml_key, py_key in bool_attributes:
+            if getattr(caps, py_key, False):
+                interface_element.set(xml_key, "true")
+
+        # Extra attributes
+        for key, value in caps.extra_attributes.items():
+            interface_element.set(key, value)
 
     def _find_interface_element(self, root: ET.Element) -> ET.Element | None:
         for tag in ("ModelExchange", "CoSimulation"):
@@ -183,11 +248,30 @@ class Fmi2ModelDescriptionXmlCodec:
                 continue
             type_attributes = dict(type_element.attrib)
             declared_type = type_attributes.pop("declaredType", None)
-            start = type_attributes.pop("start", None)
+            raw_start = type_attributes.pop("start", None)
+            unit = type_attributes.pop("unit", None)
+
+            value_reference = int(variable_element.attrib["valueReference"])
+
+            start: str | float | None = raw_start
+            if raw_start is not None:
+                if type_element.tag in ("Integer", "Enumeration"):
+                    try:
+                        start = int(raw_start)
+                    except ValueError:
+                        start = raw_start
+                elif type_element.tag == "Real":
+                    try:
+                        start = float(raw_start)
+                    except ValueError:
+                        start = raw_start
+                else:
+                    start = raw_start
+
             variables.append(
                 Fmi2ScalarVariable(
                     name=variable_element.attrib["name"],
-                    value_reference=variable_element.attrib["valueReference"],
+                    value_reference=value_reference,
                     type_name=type_element.tag,
                     description=variable_element.attrib.get("description"),
                     causality=variable_element.attrib.get("causality"),
@@ -195,6 +279,7 @@ class Fmi2ModelDescriptionXmlCodec:
                     initial=variable_element.attrib.get("initial"),
                     declared_type=declared_type,
                     start=start,
+                    unit=unit,
                     type_attributes=type_attributes,
                 )
             )
@@ -214,12 +299,22 @@ class Fmi2ModelDescriptionXmlCodec:
             return []
         return [
             Fmi2Unknown(
-                index=unknown.attrib["index"],
-                dependencies=unknown.attrib.get("dependencies"),
-                dependencies_kind=unknown.attrib.get("dependenciesKind"),
+                index=int(unknown.attrib["index"]),
+                dependencies=self._parse_dependencies(unknown.attrib.get("dependencies")),
+                dependencies_kind=self._parse_dependencies_kind(unknown.attrib.get("dependenciesKind")),
             )
             for unknown in element.findall("Unknown")
         ]
+
+    def _parse_dependencies(self, raw: str | None) -> list[int]:
+        if not raw:
+            return []
+        return [int(x) for x in raw.split()]
+
+    def _parse_dependencies_kind(self, raw: str | None) -> list[str]:
+        if not raw:
+            return []
+        return raw.split()
 
     def _append_unknown_group(self, parent: ET.Element, tag: str, unknowns: list[Fmi2Unknown]) -> None:
         if not unknowns:
@@ -227,9 +322,11 @@ class Fmi2ModelDescriptionXmlCodec:
         group = ET.SubElement(parent, tag)
         for unknown in unknowns:
             unknown_element = ET.SubElement(group, "Unknown")
-            unknown_element.set("index", unknown.index)
-            self._set_optional(unknown_element.attrib, "dependencies", unknown.dependencies)
-            self._set_optional(unknown_element.attrib, "dependenciesKind", unknown.dependencies_kind)
+            unknown_element.set("index", str(unknown.index))
+            if unknown.dependencies:
+                unknown_element.set("dependencies", " ".join(str(d) for d in unknown.dependencies))
+            if unknown.dependencies_kind:
+                unknown_element.set("dependenciesKind", " ".join(unknown.dependencies_kind))
 
     def _set_optional(self, attrs: dict[str, str], key: str, value: str | None) -> None:
         if value is None:

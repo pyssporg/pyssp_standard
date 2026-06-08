@@ -12,9 +12,10 @@ from pyssp_standard.common.directory_runtime import DirectoryRuntime
 class ArchiveRuntime:
     """Shared archive-layer helper for .ssp and .fmu zip containers."""
 
-    def __init__(self, path: str | Path, mode: str = "r"):
+    def __init__(self, path: str | Path, mode: str = "r", fixed_timestamp: tuple[int, int, int, int, int, int] | None = None):
         self.path = Path(path)
         self.mode = mode
+        self._fixed_timestamp = fixed_timestamp
         self._temp_dir: tempfile.TemporaryDirectory[str] | None = None
         self._directory_runtime = DirectoryRuntime(self.path, mode)
 
@@ -69,7 +70,7 @@ class ArchiveRuntime:
         return self._directory_runtime.list_prefix(prefix)
 
     def _commit(self) -> None:
-        package_archive(self.root, self.path, recursive=True)
+        package_archive(self.root, self.path, recursive=True, fixed_timestamp=self._fixed_timestamp)
 
 
 def create_runtime(path: str | Path, mode: str = "r") -> DirectoryRuntime | ArchiveRuntime:
