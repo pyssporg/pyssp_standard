@@ -8,7 +8,7 @@
 > full guarded workflow (planner → discovery → contract → architecture →
 > lessons → packet → builder → verifier → review → gate → reporter).
 >
-> **Last updated:** 2026-05-26 (added IMP-019 — lifecycle-safe FMU iteration over SSP components)
+> **Last updated:** 2026-06-08 (added IMP-020, IMP-021, IMP-022 — FMI2 model improvements + deterministic ZIP)
 
 ---
 
@@ -16,10 +16,10 @@
 
 | Priority | Open | In Progress | Done | Total |
 |----------|------|-------------|------|-------|
-| High     | 2    | 0           | 5    | 7     |
-| Medium   | 2    | 0           | 3    | 5     |
-| Low      | 2    | 0           | 5    | 7     |
-| **Total**| **6** | **0**       | **13**| **19**|
+| High     | 3    | 0           | 5    | 8     |
+| Medium   | 3    | 0           | 3    | 6     |
+| Low      | 3    | 0           | 5    | 8     |
+| **Total**| **9** | **0**       | **13**| **22**|
 
 ---
 
@@ -46,6 +46,9 @@
 | IMP-017 | Automated standard version identification in XmlDocument | Medium | Public API / Versioning | proposed |
 | IMP-018 | Bulk FMU import from directory via add_fmu_directory() | Low | Public API | proposed |
 | IMP-019 | Lifecycle-safe FMU iteration over SSP components | Medium | Operations / Public API | proposed |
+| IMP-020 | FMI2 model field type corrections (value_reference, start, unit, ModelStructure) | High | Domain Model / Codec (FMI2) | proposed |
+| IMP-021 | FMI2 model metadata completeness (description, author, version, typed capabilities) | Medium | Domain Model / Codec (FMI2) | proposed |
+| IMP-022 | Deterministic ZIP timestamps for reproducible archive builds | Low | Archive | proposed |
 
 ---
 
@@ -224,6 +227,12 @@ docs/
 | G17 | No SSP2/FMI3 tests | Test gap | No coverage |
 | G18 | No dedicated document_runtime tests | Test gap | (resolved - IMP-007) |
 | G19 | No benchmarks | Test gap | Performance regression risk |
+| G20 | FMI2 ScalarVariable.value_reference typed as str instead of int | Type fidelity | Forces manual XML parsing for int access |
+| G21 | FMI2 ScalarVariable.start typed as str only, not str\|float | Type fidelity | Loses numeric semantic for Real/Integer types |
+| G22 | FMI2 interface capabilities untyped (dict[str,str] with string booleans) | Model completeness | Fragile string comparisons, no type safety |
+| G23 | FMI2 metadata description/author/version not parsed or exposed | Model completeness | Information loss during parse-serialize round-trip |
+| G24 | FMI2 ModelStructure dependencies typed as str rather than list[int] | Type fidelity | Every project must manually parse space-separated strings |
+| G25 | Non-deterministic ZIP timestamps in archive packing | Missing feature | Non-reproducible builds in CI |
 
 ---
 
