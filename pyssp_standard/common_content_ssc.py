@@ -204,23 +204,28 @@ class TypeChoice(ABC, ModelicaStandard):
     def to_xml(self, namespace="ssc"): ...
 
     @classmethod
-    def from_xml(cls, elem):
+    def from_xml(cls, elem, fmi_type_defs=None):
         name = QName(elem.tag).localname
         if name == "Real":
-            return TypeReal.from_xml(elem)
+            return TypeReal.from_xml(elem, fmi_type_defs=fmi_type_defs)
         elif name == "Integer":
-            return TypeInteger.from_xml(elem)
+            return TypeInteger.from_xml(elem, fmi_type_defs=fmi_type_defs)
         elif name == "Boolean":
-            return TypeBoolean.from_xml(elem)
+            return TypeBoolean.from_xml(elem, fmi_type_defs=fmi_type_defs)
         elif name == "String":
-            return TypeString.from_xml(elem)
+            return TypeString.from_xml(elem, fmi_type_defs=fmi_type_defs)
         elif name == "Enumeration":
-            return TypeEnumeration.from_xml(elem)
+            return TypeEnumeration.from_xml(elem, fmi_type_defs=fmi_type_defs)
         else:
             raise ValueError("Element is not a valid type choice element.")
 
 
 class TypeReal(TypeChoice):
+    unit: str | None
+    min: float | None
+    max: float | None
+    start: float | None
+
     def __init__(self, unit, min=None, max=None, start=None):
         self.unit = unit
         self.min = min
@@ -250,12 +255,26 @@ class TypeReal(TypeChoice):
         return elem
 
     @classmethod
-    def from_xml(cls, elem):
-        keys = ("min", "max", "start")
+    def from_xml(cls, elem, fmi_type_defs=None):
+        # Retrieve defaults from FMI declaredType if possible
+        declared_type = elem.get("declaredType")
+        default = None
+        if declared_type is not None and fmi_type_defs is not None:
+            try:
+                default = fmi_type_defs[declared_type].type_
+            except KeyError:
+                pass
+
+        unit = elem.get("unit", default and default.unit)
+        min_ = elem.get("min", default and default.min)
+        max_ = elem.get("max", default and default.max)
+        start = elem.get("start")
 
         return cls(
-            unit=elem.get("unit"),
-            **{key: float(v) for key in keys if (v := elem.get(key)) is not None},
+            unit=unit,
+            min=float(min_) if min_ is not None else None,
+            max=float(max_) if max_ is not None else None,
+            start=float(start) if start is not None else None,
         )
 
 
@@ -272,7 +291,7 @@ class TypeInteger(TypeChoice):
         return ET.Element(f"{ns}Integer")
 
     @classmethod
-    def from_xml(cls, elem):
+    def from_xml(cls, elem, fmi_type_defs=None):
         return cls()
 
 
@@ -289,7 +308,7 @@ class TypeBoolean(TypeChoice):
         return ET.Element(f"{ns}Boolean")
 
     @classmethod
-    def from_xml(cls, elem):
+    def from_xml(cls, elem, fmi_type_defs=None):
         return cls()
 
 
@@ -306,7 +325,7 @@ class TypeString(TypeChoice):
         return ET.Element(f"{ns}String")
 
     @classmethod
-    def from_xml(cls, elem):
+    def from_xml(cls, elem, fmi_type_defs=None):
         return cls()
 
 
@@ -326,7 +345,7 @@ class TypeEnumeration(TypeChoice):
         return ET.Element(f"{ns}Enumeration", **kwargs)
 
     @classmethod
-    def from_xml(cls, elem):
+    def from_xml(cls, elem, fmi_type_defs=None):
         # Parse fmi enums with attr declaredType
         ns = QName(elem.tag).namespace
         if ns is None:  # fmi

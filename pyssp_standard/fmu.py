@@ -82,19 +82,22 @@ class SimpleType:
 
 
 class TypeDefinitions:
-    types: list[Enumeration | TypeReal | TypeInteger | TypeBoolean | TypeString]
+    types: dict[str, Enumeration | TypeReal | TypeInteger | TypeBoolean | TypeString]
 
     def __init__(self, types):
-        self.types = types
+        self.types = {type_.name: type_ for type_ in types}
 
     def __len__(self):
         return len(self.types)
 
-    def __getitem__(self, idx):
-        return self.types[idx]
+    def __getitem__(self, name):
+        return self.types[name]
 
-    def __setitem__(self, idx, val):
-        self.types[idx] = val
+    def __iter__(self):
+        return iter(self.types.values())
+
+    def __contains__(self, name):
+        return name in self.types
 
     @classmethod
     def from_xml(cls, elem):
@@ -156,6 +159,10 @@ ModelDescription:
         if self.generation_date_and_time is not None:
             self.generation_date_and_time = datetime.fromisoformat(self.generation_date_and_time.strip("Z"))
 
+        type_defs = root.find("TypeDefinitions")
+        if type_defs is not None:
+            self.type_defs = TypeDefinitions.from_xml(type_defs)
+
         model_variables = root.findall('ModelVariables')[0]
         scalar_variables = model_variables.findall('ScalarVariable')
         for scalar in scalar_variables:
@@ -163,7 +170,10 @@ ModelDescription:
             description = scalar.get('description')
             causality = scalar.get('causality')
             variability = scalar.get('variability')
-            type_ = TypeChoice.from_xml(scalar.xpath(TypeChoice.XPATH_FMI)[0])
+            type_ = TypeChoice.from_xml(
+                scalar.xpath(TypeChoice.XPATH_FMI)[0],
+                fmi_type_defs=self.type_defs
+            )
             scalar_variable = ScalarVariable(
                 name=name,
                 description=description,
@@ -176,10 +186,6 @@ ModelDescription:
         unit_defs = root.find("UnitDefinitions")
         if unit_defs is not None:
             self.units = Units(unit_defs)
-
-        type_defs = root.find("TypeDefinitions")
-        if type_defs is not None:
-            self.type_defs = TypeDefinitions.from_xml(type_defs)
 
     def __write__(self):
         pass
